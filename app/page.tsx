@@ -430,62 +430,62 @@ export default function Home() {
             ))}
           </div>
 
-          <span className="inline-flex justify-center rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-lg">
-            SoundCloud folgt ●
-          </span>
+          <span className="inline-flex justify-center rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm">
+  SoundCloud folgt ●
+</span>
         </div>
       </section>
 
       {/* CONTACT */}
-<section
-  id="contact"
-  className="scroll-mt-24 px-6 pb-14 md:px-10 md:pb-16 lg:px-20"
->
-  <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 text-[#111217] shadow-sm">
-    <div className="grid gap-10 p-8 md:grid-cols-[0.9fr_1.1fr] md:p-12">
-      <div>
-        <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
-          Kontakt
-        </p>
+      <section
+        id="contact"
+        className="scroll-mt-24 px-6 pb-14 md:px-10 md:pb-16 lg:px-20"
+      >
+        <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 text-[#111217] shadow-sm">
+          <div className="grid gap-10 p-8 md:grid-cols-[0.9fr_1.1fr] md:p-12">
+            <div>
+              <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
+                Kontakt
+              </p>
 
-        <h2 className="mb-6 text-3xl font-black leading-tight tracking-[-0.04em] md:text-5xl">
-          Lass uns in Verbindung bleiben.
-        </h2>
+              <h2 className="mb-6 text-3xl font-black leading-tight tracking-[-0.04em] md:text-5xl">
+                Lass uns in Verbindung bleiben.
+              </h2>
 
-        <p className="max-w-md text-base leading-8 text-black/70 md:text-lg">
-          Ob Laufen, Radfahren, Musik oder einfach Austausch über Bewegung
-          und Leidenschaft. Hier findest du meine wichtigsten Kanäle.
-        </p>
-      </div>
+              <p className="max-w-md text-base leading-8 text-black/70 md:text-lg">
+                Ob Laufen, Radfahren, Musik oder einfach Austausch über Bewegung
+                und Leidenschaft. Hier findest du meine wichtigsten Kanäle.
+              </p>
+            </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <ContactCard
-          title="Instagram"
-          text="Training, Ausdauer, Alltag und kleine Momente unterwegs."
-          href="https://www.instagram.com/threshold.peaks/"
-        />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <ContactCard
+                title="Instagram"
+                text="Training, Ausdauer, Alltag und kleine Momente unterwegs."
+                href="https://www.instagram.com/threshold.peaks/"
+              />
 
-        <ContactCard
-          title="Strava"
-          text="Läufe, Rides und sportliche Aktivitäten."
-          href="https://www.strava.com/athletes/47713057"
-        />
+              <ContactCard
+                title="Strava"
+                text="Läufe, Rides und sportliche Aktivitäten."
+                href="https://www.strava.com/athletes/47713057"
+              />
 
-        <ContactCard
-          title="SoundCloud"
-          text="DJ-Sets und elektronische Sounds folgen demnächst."
-          href="#"
-        />
+              <ContactCard
+                title="SoundCloud"
+                text="DJ-Sets und elektronische Sounds folgen demnächst."
+                href="#"
+              />
 
-        <ContactCard
-          title="E-Mail"
-          text="Schreib mir direkt an info@threshold-peaks.de"
-          href="mailto:info@threshold-peaks.de"
-        />
-      </div>
-    </div>
-  </div>
-</section>
+              <ContactCard
+                title="E-Mail"
+                text="Schreib mir direkt an info@threshold-peaks.de"
+                href="mailto:info@threshold-peaks.de"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* FOOTER */}
       <footer className="flex flex-col gap-6 px-6 pb-10 text-sm text-black/65 md:flex-row md:items-center md:justify-between md:px-10 lg:px-20">
@@ -621,7 +621,7 @@ function FocusSection({
           {text}
         </p>
 
-        <div className="mt-8 inline-flex w-fit rounded-full border border-black/10 bg-[#f7f7f5] px-5 py-3 text-xs font-black uppercase tracking-[0.25em] text-black/65">
+        <div className="mt-8 inline-flex w-fit rounded-full border border-black/10 bg-[#d7d5ce] px-5 py-3 text-xs font-black uppercase tracking-[0.25em] text-black/65">
           {meta}
         </div>
       </div>
@@ -669,7 +669,7 @@ function JournalCard({
       <p className="mb-8 leading-7 text-black/65">{text}</p>
 
       <div className="flex items-center justify-between gap-4">
-        <span className="inline-flex rounded-full border border-black/10 bg-[#f7f7f5] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-black/55">
+        <span className="inline-flex rounded-full border border-black/10 bg-[#d7d5ce] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-black/65">
           {tag}
         </span>
 
@@ -764,7 +764,7 @@ function EventCard({
           </p>
         </div>
 
-        <span className="rounded-full border border-black/10 bg-[#f7f7f5] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/55">
+        <span className="rounded-full border border-black/10 bg-[#d7d5ce] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/65">
           {status}
         </span>
       </div>
