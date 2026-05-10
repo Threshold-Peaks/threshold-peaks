@@ -48,6 +48,7 @@ export default function Home() {
             <NavLink href="#running">Running</NavLink>
             <NavLink href="#cycling">Cycling</NavLink>
             <NavLink href="#music">Music</NavLink>
+            <NavLink href="/journal">Journal</NavLink>
             <NavLink href="#contact">Contact</NavLink>
           </nav>
 
