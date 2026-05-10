@@ -51,7 +51,7 @@ export default function StravaLatest() {
           </div>
 
           <a
-            href="https://www.strava.com"
+            href="https://www.strava.com/athletes/47713057"
             target="_blank"
             rel="noreferrer"
             className="text-sm font-black text-black/70 transition hover:text-black"
