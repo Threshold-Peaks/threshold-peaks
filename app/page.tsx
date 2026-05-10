@@ -354,12 +354,12 @@ export default function Home() {
 
           <div className="grid gap-5 md:grid-cols-3">
             <EventCard
-              date="Demnächst"
-              title="Nächster Wettkampf"
-              type="Running"
-              text="Hier erscheint später dein nächster Lauf oder Wettkampf."
-              status="Geplant"
-            />
+  date="10. Juni 2026"
+  title="AOK-Firmenlauf Wiedenbrück"
+  type="Running"
+  text="Geplanter Lauftermin am Mittwoch, 10. Juni 2026. Ein sportliches Highlight im Kalender und ein guter Anlass, die Form weiter aufzubauen."
+  status="Angemeldet"
+/>
 
             <EventCard
               date="Demnächst"
