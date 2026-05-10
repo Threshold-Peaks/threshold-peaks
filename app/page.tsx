@@ -292,7 +292,7 @@ export default function Home() {
               <ContactCard
                 title="E-Mail"
                 text="Für direkten Kontakt und Anfragen."
-                href="mailto:deine-mail@example.com"
+                href="mailto:info@threshold-peaks.de"
               />
             </div>
           </div>
