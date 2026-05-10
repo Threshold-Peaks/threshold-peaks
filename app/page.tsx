@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import StravaLatest from "@/components/StravaLatest";
 
 export default function Home() {
   return (
@@ -91,10 +92,20 @@ export default function Home() {
           >
             Mehr entdecken <span>→</span>
           </a>
-        </div>
+          </div>
+         
+         {/* STRAVA FLOATING DESKTOP */}
+<div className="absolute left-[52%] top-[88px] z-20 hidden w-[860px] -translate-x-1/2 md:block xl:left-[53%] xl:top-[88px]">
+  <StravaLatest compact />
+</div>
 
+{/* STRAVA MOBILE */}
+<div className="relative z-10 mt-12 px-6 md:hidden">
+  <StravaLatest compact />
+</div>
+               
         {/* CARDS */}
-        <div className="relative z-10 mx-auto mt-16 grid max-w-[1500px] gap-5 px-6 sm:grid-cols-2 md:mt-24 md:grid-cols-3 md:px-10 lg:px-16">
+        <div className="relative z-10 mx-auto mt-16 grid max-w-[1500px] gap-5 px-6 sm:grid-cols-2 md:mt-10 md:grid-cols-3 md:px-10 lg:px-16">
           <FeatureCard
             href="#running"
             icon={<RunningIcon />}
