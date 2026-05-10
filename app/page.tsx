@@ -3,6 +3,9 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import StravaLatest from "@/components/StravaLatest";
 
+const grayButtonClass =
+  "inline-flex items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]";
+
 export default function Home() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f7f7f5] text-[#111217]">
@@ -100,7 +103,7 @@ export default function Home() {
 
           <a
             href="#about"
-            className="mt-8 inline-flex min-w-[210px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5] md:mt-9 md:min-w-[220px]"
+            className={`${grayButtonClass} mt-8 min-w-[210px] md:mt-9 md:min-w-[220px]`}
           >
             Mehr entdecken <span>→</span>
           </a>
@@ -178,7 +181,7 @@ export default function Home() {
 
           <a
             href="#section-running"
-            className="mt-8 inline-flex min-w-[210px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5] md:mt-9 md:min-w-[220px]"
+            className={`${grayButtonClass} mt-8 min-w-[210px] md:mt-9 md:min-w-[220px]`}
           >
             Zu meinen Bereichen <span>→</span>
           </a>
@@ -282,7 +285,7 @@ export default function Home() {
 
           <a
             href="/journal"
-            className="mt-8 inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]"
+            className={`${grayButtonClass} mt-8 min-w-[220px]`}
           >
             Alle Beiträge ansehen <span>→</span>
           </a>
@@ -342,7 +345,7 @@ export default function Home() {
 
           <a
             href="/gallery"
-            className="mt-8 inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]"
+            className={`${grayButtonClass} mt-8 min-w-[220px]`}
           >
             Alle Bilder ansehen <span>→</span>
           </a>
