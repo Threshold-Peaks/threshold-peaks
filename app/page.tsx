@@ -43,7 +43,7 @@ export default function Home() {
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="ml-12 hidden items-center gap-7 text-sm font-semibold md:flex">
+          <nav className="ml-10 hidden items-center gap-6 text-sm font-semibold md:flex">
             <NavLink href="#">Home</NavLink>
             <NavLink href="#about">About</NavLink>
             <NavLink href="#running">Running</NavLink>
@@ -61,7 +61,7 @@ export default function Home() {
               Menu
             </summary>
 
-            <div className="absolute right-0 top-14 w-56 overflow-hidden rounded-3xl border border-black/10 bg-white/90 p-3 shadow-xl backdrop-blur-xl">
+            <div className="absolute right-0 top-14 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
               <MobileNavLink href="#">Home</MobileNavLink>
               <MobileNavLink href="#about">About</MobileNavLink>
               <MobileNavLink href="#running">Running</MobileNavLink>
@@ -548,7 +548,7 @@ function MobileNavLink({
   return (
     <a
       href={href}
-      className="block rounded-2xl px-4 py-3 text-sm font-bold hover:bg-black/5"
+      className="block rounded-2xl px-4 py-2.5 text-sm font-bold hover:bg-black/5"
     >
       {children}
     </a>
