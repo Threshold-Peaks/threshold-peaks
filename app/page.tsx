@@ -362,20 +362,20 @@ export default function Home() {
 />
 
             <EventCard
-              date="Demnächst"
-              title="Gravelrunde"
-              type="Cycling"
-              text="Eine Tour, ein Ride oder ein kleines Abenteuer auf zwei Rädern."
-              status="Offen"
-            />
+  date="In Planung"
+  title="Gravelrunde rund um Verl"
+  type="Cycling"
+  text="Eine lockere Ausfahrt auf Rennrad oder Gravelbike. Sobald eine konkrete Route und ein Termin stehen, erscheint der Ride hier."
+  status="Offen"
+/>
 
             <EventCard
-              date="Demnächst"
-              title="DJ Mix"
-              type="Music"
-              text="Ein neues Set, ein Mix oder ein elektronischer Sound-Moment."
-              status="Folgt"
-            />
+  date="In Vorbereitung"
+  title="Threshold Peaks Mix"
+  type="Music"
+  text="Ein elektronischer Mix für lange Läufe, Rides und späte Abendstunden. Der SoundCloud-Link folgt, sobald der Account steht."
+  status="Folgt"
+/>
           </div>
         </div>
       </section>
