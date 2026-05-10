@@ -1,12 +1,13 @@
+import Link from "next/link";
 export default function WarumThresholdPeaksPage() {
   return (
     <main className="min-h-screen bg-[#f7f7f5] px-6 py-12 text-[#111217] md:px-10 lg:px-20">
-      <a
-        href="/#journal"
-        className="mb-12 inline-flex rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-bold shadow-sm transition hover:-translate-y-0.5"
-      >
-        ← Zurück zum Journal
-      </a>
+      <Link
+  href="/"
+  className="mb-12 inline-flex rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-bold shadow-sm transition hover:-translate-y-0.5"
+>
+  ← Zurück zur Startseite
+</Link>
 
       <article className="mx-auto max-w-3xl">
         <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
