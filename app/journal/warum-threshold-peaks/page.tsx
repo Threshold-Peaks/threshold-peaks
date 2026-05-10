@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Warum Threshold Peaks?",
+  description:
+    "Ein persönlicher Beitrag über Schwellen, kleine Peaks, Bewegung, Ausdauer und das Potenzial, das entsteht, wenn man bewusst weitergeht.",
+};
 import Link from "next/link";
 export default function WarumThresholdPeaksPage() {
   return (
