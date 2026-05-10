@@ -8,7 +8,7 @@ export default function ImpressumPage() {
         ← Zurück zur Startseite
       </a>
 
-      <section className="max-w-3xl">
+      <section className="mx-auto max-w-3xl">
         <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
           Rechtliches
         </p>
@@ -20,15 +20,15 @@ export default function ImpressumPage() {
         <div className="space-y-8 text-base leading-8 text-black/75">
           <section>
             <h2 className="mb-3 text-xl font-black text-black">
-              Angaben gemäß § 5 TMG
+              Anbieterkennzeichnung
             </h2>
 
             <p>
               Matthias Klenk
               <br />
-              Straße und Hausnummer
+              Libellenstraße 47
               <br />
-              PLZ Ort
+              33415 Verl
               <br />
               Deutschland
             </p>
@@ -38,9 +38,13 @@ export default function ImpressumPage() {
             <h2 className="mb-3 text-xl font-black text-black">Kontakt</h2>
 
             <p>
-              E-Mail: deine-mail@example.com
-              <br />
-              Telefon: optional
+              E-Mail:{" "}
+              <a
+                href="mailto:info@threshold-peaks.de"
+                className="font-bold underline underline-offset-4"
+              >
+                info@threshold-peaks.de
+              </a>
             </p>
           </section>
 
@@ -52,19 +56,36 @@ export default function ImpressumPage() {
             <p>
               Matthias Klenk
               <br />
-              Straße und Hausnummer
+              Libellenstraße 47
               <br />
-              PLZ Ort
+              33415 Verl
+              <br />
+              Deutschland
             </p>
           </section>
 
           <section>
-            <h2 className="mb-3 text-xl font-black text-black">Hinweis</h2>
+            <h2 className="mb-3 text-xl font-black text-black">
+              Haftung für Inhalte
+            </h2>
 
             <p>
-              Dies ist ein Platzhalter-Impressum. Bitte ersetze die Angaben vor
-              der Veröffentlichung durch deine korrekten Daten und prüfe, ob
-              weitere Angaben erforderlich sind.
+              Die Inhalte dieser Webseite wurden mit größtmöglicher Sorgfalt
+              erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der
+              Inhalte kann jedoch keine Gewähr übernommen werden.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="mb-3 text-xl font-black text-black">
+              Haftung für Links
+            </h2>
+
+            <p>
+              Diese Webseite enthält Links zu externen Webseiten Dritter, auf
+              deren Inhalte kein Einfluss besteht. Für diese fremden Inhalte
+              wird keine Gewähr übernommen. Für die Inhalte der verlinkten Seiten
+              ist stets der jeweilige Anbieter oder Betreiber verantwortlich.
             </p>
           </section>
         </div>
