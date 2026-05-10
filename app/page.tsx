@@ -230,12 +230,14 @@ export default function Home() {
   <div className="mx-auto flex max-w-[1280px] flex-col gap-8 rounded-2xl border border-black/10 bg-white/70 p-6 shadow-sm backdrop-blur-xl md:flex-row md:items-center md:justify-between md:p-7">
           <div>
             <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.45em]">
-              Aktuell läuft
-            </p>
-            <h3 className="text-lg font-black md:text-xl">
-              Massano - The Feeling
-            </h3>
-            <p className="mt-1 text-sm text-black/55">Dynamic</p>
+  Aktuell läuft
+</p>
+<h3 className="text-lg font-black md:text-xl">
+  Massano - The Feeling
+</h3>
+<p className="mt-1 text-sm text-black/55">
+  Electronic / Melodic Techno
+</p>
           </div>
 
           <div className="flex h-12 flex-1 items-center justify-start gap-[3px] overflow-hidden md:justify-center">
@@ -250,12 +252,9 @@ export default function Home() {
             ))}
           </div>
 
-          <a
-  href="#"
-  className="inline-flex justify-center rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-lg"
->
+          <span className="inline-flex justify-center rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-lg">
   SoundCloud folgt ●
-</a>
+</span>
         </div>
       </section>
 
