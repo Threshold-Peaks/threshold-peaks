@@ -94,14 +94,14 @@ export default function Home() {
           </a>
           </div>
          
-         {/* STRAVA FLOATING DESKTOP */}
+        {/* STRAVA FLOATING DESKTOP */}
 <div className="absolute left-[52%] top-[88px] z-20 hidden w-[860px] -translate-x-1/2 md:block xl:left-[53%] xl:top-[88px]">
-  <StravaLatest compact />
+  <StravaLatest />
 </div>
 
 {/* STRAVA MOBILE */}
 <div className="relative z-10 mt-12 px-6 md:hidden">
-  <StravaLatest compact />
+  <StravaLatest />
 </div>
                
         {/* CARDS */}
