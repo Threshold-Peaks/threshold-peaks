@@ -252,11 +252,12 @@ export default function Home() {
 
           <div className="grid gap-5 md:grid-cols-3">
             <JournalCard
-              category="Running Notes"
-              title="Training, Fokus und Fortschritt"
-              text="Gedanken rund ums Laufen, Bahntraining, Wettkämpfe und die kleinen Schritte, die am Ende den Unterschied machen."
-              tag="Laufen"
-            />
+  category="Journal"
+  title="Warum Threshold Peaks?"
+  text="Über persönliche Schwellen, kleine Peaks und das Potenzial, das entsteht, wenn man bewusst weitergeht."
+  tag="Story"
+  href="/journal/warum-threshold-peaks"
+/>
 
             <JournalCard
               category="Gravel Diaries"
