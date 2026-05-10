@@ -51,6 +51,7 @@ export default function Home() {
             <NavLink href="#music">Music</NavLink>
             <NavLink href="#journal">Journal</NavLink>
             <NavLink href="#gallery">Gallery</NavLink>
+            <NavLink href="#events">Events</NavLink>
             <NavLink href="#contact">Contact</NavLink>
           </nav>
 
@@ -68,6 +69,7 @@ export default function Home() {
               <MobileNavLink href="#music">Music</MobileNavLink>
               <MobileNavLink href="#journal">Journal</MobileNavLink>
               <MobileNavLink href="#gallery">Gallery</MobileNavLink>
+              <MobileNavLink href="#events">Events</MobileNavLink>
               <MobileNavLink href="#contact">Contact</MobileNavLink>
             </div>
           </details>
@@ -252,12 +254,12 @@ export default function Home() {
 
           <div className="grid gap-5 md:grid-cols-3">
             <JournalCard
-  category="Journal"
-  title="Warum Threshold Peaks?"
-  text="Über persönliche Schwellen, kleine Peaks und das Potenzial, das entsteht, wenn man bewusst weitergeht."
-  tag="Story"
-  href="/journal/warum-threshold-peaks"
-/>
+              category="Journal"
+              title="Warum Threshold Peaks?"
+              text="Über persönliche Schwellen, kleine Peaks und das Potenzial, das entsteht, wenn man bewusst weitergeht."
+              tag="Story"
+              href="/journal/warum-threshold-peaks"
+            />
 
             <JournalCard
               category="Gravel Diaries"
@@ -324,6 +326,55 @@ export default function Home() {
               category="Life"
               image="/images/about-matthias.webp"
               alt="Portrait von Matthias"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* EVENTS */}
+      <section
+        id="events"
+        className="scroll-mt-24 px-6 pb-14 md:px-10 md:pb-16 lg:px-20"
+      >
+        <div className="mx-auto max-w-[1280px]">
+          <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
+            Events
+          </p>
+
+          <div className="mb-10 max-w-3xl">
+            <h2 className="mb-6 text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
+              Kommende Termine und Highlights.
+            </h2>
+
+            <p className="max-w-2xl text-base leading-8 text-black/65 md:text-lg">
+              Läufe, Rides, Musikmomente und alles, was bei Threshold Peaks als
+              nächstes ansteht.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-3">
+            <EventCard
+              date="Demnächst"
+              title="Nächster Wettkampf"
+              type="Running"
+              text="Hier erscheint später dein nächster Lauf oder Wettkampf."
+              status="Geplant"
+            />
+
+            <EventCard
+              date="Demnächst"
+              title="Gravelrunde"
+              type="Cycling"
+              text="Eine Tour, ein Ride oder ein kleines Abenteuer auf zwei Rädern."
+              status="Offen"
+            />
+
+            <EventCard
+              date="Demnächst"
+              title="DJ Mix"
+              type="Music"
+              text="Ein neues Set, ein Mix oder ein elektronischer Sound-Moment."
+              status="Folgt"
             />
           </div>
         </div>
@@ -675,6 +726,46 @@ function GalleryCard({
           <h3 className="text-2xl font-black tracking-[-0.04em]">{title}</h3>
         </div>
       </div>
+    </article>
+  );
+}
+
+function EventCard({
+  date,
+  title,
+  type,
+  text,
+  status,
+}: {
+  date: string;
+  title: string;
+  type: string;
+  text: string;
+  status: string;
+}) {
+  return (
+    <article className="rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="mb-7 flex items-start justify-between gap-4">
+        <div>
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-black/45">
+            {type}
+          </p>
+
+          <p className="text-sm font-black uppercase tracking-[0.25em] text-black/60">
+            {date}
+          </p>
+        </div>
+
+        <span className="rounded-full border border-black/10 bg-[#f7f7f5] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/55">
+          {status}
+        </span>
+      </div>
+
+      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em]">
+        {title}
+      </h3>
+
+      <p className="leading-7 text-black/65">{text}</p>
     </article>
   );
 }
