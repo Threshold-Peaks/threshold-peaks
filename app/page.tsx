@@ -30,7 +30,10 @@ export default function Home() {
 
         {/* HEADER */}
         <header className="relative z-30 flex h-20 items-center justify-between px-6 md:h-24 md:justify-start md:px-10 lg:px-20">
-          <a href="#" className="flex items-center gap-3">
+          <a
+            href="#"
+            className="flex items-center gap-3 transition hover:text-orange-600"
+          >
             <ThresholdPeaksIcon />
 
             <div className="leading-none">
@@ -47,8 +50,8 @@ export default function Home() {
           <nav className="ml-10 hidden items-center gap-6 text-sm font-semibold md:flex">
             <NavLink href="#">Home</NavLink>
             <NavLink href="#about">About</NavLink>
-            <NavLink href="#running">Running</NavLink>
-            <NavLink href="#cycling">Cycling</NavLink>
+            <NavLink href="#section-running">Running</NavLink>
+            <NavLink href="#section-cycling">Cycling</NavLink>
             <NavLink href="#section-music">Music</NavLink>
             <NavLink href="#journal">Journal</NavLink>
             <NavLink href="#gallery">Gallery</NavLink>
@@ -58,15 +61,15 @@ export default function Home() {
 
           {/* Mobile Navigation */}
           <details className="group relative md:hidden">
-            <summary className="list-none rounded-full border border-black/10 bg-white/70 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition active:scale-95 [&::-webkit-details-marker]:hidden">
+            <summary className="list-none rounded-full border border-black/10 bg-white/70 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition hover:text-orange-600 active:scale-95 [&::-webkit-details-marker]:hidden">
               Menu
             </summary>
 
             <div className="absolute right-0 top-14 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
               <MobileNavLink href="#">Home</MobileNavLink>
               <MobileNavLink href="#about">About</MobileNavLink>
-              <MobileNavLink href="#running">Running</MobileNavLink>
-              <MobileNavLink href="#cycling">Cycling</MobileNavLink>
+              <MobileNavLink href="#section-running">Running</MobileNavLink>
+              <MobileNavLink href="#section-cycling">Cycling</MobileNavLink>
               <MobileNavLink href="#section-music">Music</MobileNavLink>
               <MobileNavLink href="#journal">Journal</MobileNavLink>
               <MobileNavLink href="#gallery">Gallery</MobileNavLink>
@@ -97,7 +100,7 @@ export default function Home() {
 
           <a
             href="#about"
-            className="mt-8 inline-flex min-w-[210px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl md:mt-9 md:min-w-[220px]"
+            className="mt-8 inline-flex min-w-[210px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5] md:mt-9 md:min-w-[220px]"
           >
             Mehr entdecken <span>→</span>
           </a>
@@ -116,25 +119,25 @@ export default function Home() {
         {/* CARDS */}
         <div className="relative z-10 mx-auto mt-16 grid max-w-[1500px] gap-5 px-6 sm:grid-cols-2 md:mt-20 md:grid-cols-3 md:px-10 lg:px-16">
           <FeatureCard
-  href="#section-running"
-  iconType="running"
-  title="LAUFEN"
-  text="Training, Ausdauer, Disziplin und der Moment, wenn der Kopf frei wird."
-/>
+            href="#section-running"
+            iconType="running"
+            title="LAUFEN"
+            text="Training, Ausdauer, Disziplin und der Moment, wenn der Kopf frei wird."
+          />
 
           <FeatureCard
-  href="#section-cycling"
-  iconType="cycling"
-  title="RADFAHREN"
-  text="Rennrad, Gravelbike und neue Wege als Ausgleich zum Lauftraining."
-/>
+            href="#section-cycling"
+            iconType="cycling"
+            title="RADFAHREN"
+            text="Rennrad, Gravelbike und neue Wege als Ausgleich zum Lauftraining."
+          />
 
           <FeatureCard
-  href="#section-music"
-  iconType="music"
-  title="MUSIK"
-  text="Elektronische Musik, DJ-Sets und Beats, die Bewegung antreiben."
-/>
+            href="#section-music"
+            iconType="music"
+            title="MUSIK"
+            text="Elektronische Musik, DJ-Sets und Beats, die Bewegung antreiben."
+          />
         </div>
       </section>
 
@@ -175,13 +178,13 @@ export default function Home() {
 
           <a
             href="#section-running"
-            className="mt-8 inline-flex min-w-[210px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl md:mt-9 md:min-w-[220px]"
+            className="mt-8 inline-flex min-w-[210px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5] md:mt-9 md:min-w-[220px]"
           >
             Zu meinen Bereichen <span>→</span>
           </a>
         </div>
 
-        <div className="relative mx-auto h-[400px] w-full max-w-[430px] overflow-hidden rounded-3xl shadow-sm md:h-[470px] md:ml-0">
+        <div className="relative mx-auto h-[400px] w-full max-w-[430px] overflow-hidden rounded-3xl shadow-sm md:ml-0 md:h-[470px]">
           <Image
             src="/images/about-matthias.webp"
             alt="Portrait von Matthias"
@@ -278,11 +281,11 @@ export default function Home() {
           </div>
 
           <a
-  href="/journal"
-  className="mt-8 inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
->
-  Alle Beiträge ansehen <span>→</span>
-</a>
+            href="/journal"
+            className="mt-8 inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]"
+          >
+            Alle Beiträge ansehen <span>→</span>
+          </a>
         </div>
       </section>
 
@@ -336,12 +339,13 @@ export default function Home() {
               alt="Portrait von Matthias"
             />
           </div>
+
           <a
-  href="/gallery"
-  className="mt-8 inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
->
-  Alle Bilder ansehen <span>→</span>
-</a>
+            href="/gallery"
+            className="mt-8 inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:text-orange-500 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]"
+          >
+            Alle Bilder ansehen <span>→</span>
+          </a>
         </div>
       </section>
 
@@ -368,28 +372,28 @@ export default function Home() {
 
           <div className="grid gap-5 md:grid-cols-3">
             <EventCard
-  date="10. Juni 2026"
-  title="AOK-Firmenlauf Wiedenbrück"
-  type="Running"
-  text="Geplanter Lauftermin am Mittwoch, 10. Juni 2026. Ein sportliches Highlight im Kalender und ein guter Anlass, die Form weiter aufzubauen."
-  status="Angemeldet"
-/>
+              date="10. Juni 2026"
+              title="AOK-Firmenlauf Wiedenbrück"
+              type="Running"
+              text="Geplanter Lauftermin am Mittwoch, 10. Juni 2026. Ein sportliches Highlight im Kalender und ein guter Anlass, die Form weiter aufzubauen."
+              status="Angemeldet"
+            />
 
             <EventCard
-  date="In Planung"
-  title="Gravelrunde rund um Verl"
-  type="Cycling"
-  text="Eine lockere Ausfahrt auf Rennrad oder Gravelbike. Sobald eine konkrete Route und ein Termin stehen, erscheint der Ride hier."
-  status="Offen"
-/>
+              date="In Planung"
+              title="Gravelrunde rund um Verl"
+              type="Cycling"
+              text="Eine lockere Ausfahrt auf Rennrad oder Gravelbike. Sobald eine konkrete Route und ein Termin stehen, erscheint der Ride hier."
+              status="Offen"
+            />
 
             <EventCard
-  date="In Vorbereitung"
-  title="Threshold Peaks Mix"
-  type="Music"
-  text="Ein elektronischer Mix für lange Läufe, Rides und späte Abendstunden. Der SoundCloud-Link folgt, sobald der Account steht."
-  status="Folgt"
-/>
+              date="In Vorbereitung"
+              title="Threshold Peaks Mix"
+              type="Music"
+              text="Ein elektronischer Mix für lange Läufe, Rides und späte Abendstunden. Der SoundCloud-Link folgt, sobald der Account steht."
+              status="Folgt"
+            />
           </div>
         </div>
       </section>
@@ -415,7 +419,9 @@ export default function Home() {
                 key={index}
                 className="w-[2px] shrink-0 rounded-full bg-black/45"
                 style={{
-                  height: `${8 + Math.abs(Math.sin(index * 0.55)) * 28}px`,
+                  height: `${Math.round(
+                    8 + Math.abs(Math.sin(index * 0.55)) * 28
+                  )}px`,
                 }}
               />
             ))}
@@ -490,8 +496,18 @@ export default function Home() {
         <p>© 2024 Threshold Peaks. Alle Rechte vorbehalten.</p>
 
         <div className="flex gap-10">
-          <a href="/impressum">Impressum</a>
-          <a href="/datenschutz">Datenschutz</a>
+          <a
+            href="/impressum"
+            className="transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
+          >
+            Impressum
+          </a>
+          <a
+            href="/datenschutz"
+            className="transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
+          >
+            Datenschutz
+          </a>
         </div>
       </footer>
     </main>
@@ -532,9 +548,12 @@ function NavLink({
   children: ReactNode;
 }) {
   return (
-    <a href={href} className="group relative pb-2">
+    <a
+      href={href}
+      className="group relative pb-2 text-black transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
+    >
       <span>{children}</span>
-      <span className="absolute bottom-0 left-0 h-[2px] w-0 bg-black transition-all duration-300 group-hover:w-full" />
+      <span className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-0 rounded-full bg-orange-500 transition-all group-hover:w-full" />
     </a>
   );
 }
@@ -549,7 +568,7 @@ function MobileNavLink({
   return (
     <a
       href={href}
-      className="block rounded-2xl px-4 py-2.5 text-sm font-bold hover:bg-black/5"
+      className="block rounded-2xl px-4 py-2.5 text-sm font-bold text-black transition hover:bg-black/5 hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
     >
       {children}
     </a>
@@ -620,6 +639,7 @@ function FocusSection({
     </article>
   );
 }
+
 function JournalCard({
   category,
   title,
@@ -639,7 +659,7 @@ function JournalCard({
         {category}
       </p>
 
-      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em]">
+      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
         {title}
       </h3>
 
@@ -651,7 +671,7 @@ function JournalCard({
         </span>
 
         {href ? (
-          <span className="font-black transition group-hover:translate-x-1">
+          <span className="font-black transition group-hover:translate-x-1 group-hover:text-orange-600">
             →
           </span>
         ) : null}
@@ -663,7 +683,7 @@ function JournalCard({
     return (
       <a
         href={href}
-        className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl"
+        className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]"
       >
         {content}
       </a>
@@ -706,7 +726,9 @@ function GalleryCard({
             {category}
           </p>
 
-          <h3 className="text-2xl font-black tracking-[-0.04em]">{title}</h3>
+          <h3 className="text-2xl font-black tracking-[-0.04em] transition group-hover:text-orange-500">
+            {title}
+          </h3>
         </div>
       </div>
     </article>
@@ -744,7 +766,7 @@ function EventCard({
         </span>
       </div>
 
-      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em]">
+      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition hover:text-orange-600">
         {title}
       </h3>
 
@@ -767,65 +789,18 @@ function ContactCard({
       href={href}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel={href.startsWith("http") ? "noreferrer" : undefined}
-      className="group rounded-3xl border border-white/10 bg-white/[0.06] p-6 transition hover:-translate-y-1 hover:bg-white/[0.1]"
+      className="group rounded-3xl border border-white/10 bg-white/[0.06] p-6 transition hover:-translate-y-1 hover:bg-white/[0.1] focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
     >
       <div className="mb-5 flex items-center justify-between">
-        <h3 className="text-lg font-black">{title}</h3>
-        <span className="transition group-hover:translate-x-1">→</span>
+        <h3 className="text-lg font-black transition group-hover:text-orange-500">
+          {title}
+        </h3>
+        <span className="transition group-hover:translate-x-1 group-hover:text-orange-500">
+          →
+        </span>
       </div>
 
       <p className="leading-7 text-white/60">{text}</p>
     </a>
-  );
-}
-
-function RunningIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className="h-full w-full">
-      <path
-        d="M28 8a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
-        fill="currentColor"
-      />
-      <path
-        d="M19 16l7-5 6 5 5 1M26 11l-4 12 8 6M22 23l-8 5-4 10M30 29l2 9 8 5"
-        stroke="currentColor"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function CyclingIcon() {
-  return (
-    <svg viewBox="0 0 64 64" fill="none" className="h-full w-full">
-      <circle cx="18" cy="43" r="11" stroke="currentColor" strokeWidth="4" />
-      <circle cx="48" cy="43" r="11" stroke="currentColor" strokeWidth="4" />
-      <path
-        d="M29 20h10l-8 23H18l11-23Zm10 0 9 23M34 13h8M30 20l-5-7"
-        stroke="currentColor"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="24" cy="10" r="4" fill="currentColor" />
-    </svg>
-  );
-}
-
-function MusicIcon() {
-  return (
-    <svg viewBox="0 0 48 48" fill="none" className="h-full w-full">
-      <path
-        d="M18 34V12l22-4v22"
-        stroke="currentColor"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="13" cy="35" r="6" fill="currentColor" />
-      <circle cx="35" cy="31" r="6" fill="currentColor" />
-    </svg>
   );
 }

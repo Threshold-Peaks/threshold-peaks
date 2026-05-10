@@ -54,7 +54,7 @@ export default function FeatureCard({
         <button
           type="button"
           onClick={scrollToSection}
-          className="text-sm font-black text-black transition hover:text-orange-600"
+          className="cursor-pointer rounded-sm text-sm font-black text-black transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5] active:scale-95"
         >
           Mehr erfahren <span className="ml-4">→</span>
         </button>

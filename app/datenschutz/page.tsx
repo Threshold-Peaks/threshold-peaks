@@ -3,7 +3,7 @@ export default function DatenschutzPage() {
     <main className="min-h-screen bg-[#f7f7f5] px-6 py-12 text-[#111217] md:px-10 lg:px-20">
       <a
         href="/"
-        className="mb-10 inline-flex rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-bold shadow-sm transition hover:-translate-y-0.5"
+        className="mb-10 inline-flex rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:-translate-y-0.5 hover:text-orange-600 hover:shadow-md"
       >
         ← Zurück zur Startseite
       </a>
@@ -13,7 +13,7 @@ export default function DatenschutzPage() {
           Rechtliches
         </p>
 
-        <h1 className="mb-8 text-4xl font-black tracking-[-0.04em] md:text-6xl">
+        <h1 className="mb-10 text-4xl font-black tracking-[-0.04em] text-black md:text-6xl">
           Datenschutz
         </h1>
 
@@ -52,7 +52,7 @@ export default function DatenschutzPage() {
               E-Mail:{" "}
               <a
                 href="mailto:info@threshold-peaks.de"
-                className="font-bold underline underline-offset-4"
+                className="font-bold text-black underline underline-offset-4 transition hover:text-orange-600"
               >
                 info@threshold-peaks.de
               </a>
@@ -73,9 +73,10 @@ export default function DatenschutzPage() {
             </p>
 
             <p className="mt-4">
-              Die Verarbeitung erfolgt, um die Webseite technisch bereitzustellen,
-              die Stabilität und Sicherheit zu gewährleisten und Missbrauch zu
-              verhindern. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO.
+              Die Verarbeitung erfolgt, um die Webseite technisch
+              bereitzustellen, die Stabilität und Sicherheit zu gewährleisten
+              und Missbrauch zu verhindern. Rechtsgrundlage ist Art. 6 Abs. 1
+              lit. f DSGVO.
             </p>
           </section>
 
@@ -121,21 +122,23 @@ export default function DatenschutzPage() {
               Auf dieser Webseite werden über eine serverseitige Schnittstelle
               aktuelle sportliche Aktivitäten aus Strava angezeigt. Dabei werden
               öffentlich bzw. autorisiert bereitgestellte Aktivitätsdaten wie
-              Aktivitätsname, Sportart, Distanz, Dauer, Höhenmeter, Datum und ein
-              Link zur jeweiligen Aktivität verarbeitet und auf der Webseite
+              Aktivitätsname, Sportart, Distanz, Dauer, Höhenmeter, Datum und
+              ein Link zur jeweiligen Aktivität verarbeitet und auf der Webseite
               dargestellt.
             </p>
 
             <p className="mt-4">
-              Die Abfrage erfolgt serverseitig über die Strava API. Strava-Zugangsdaten
-              werden nicht im Browser veröffentlicht. Die Verarbeitung dient der
-              Darstellung aktueller sportlicher Aktivitäten auf dieser Webseite.
-              Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO.
+              Die Abfrage erfolgt serverseitig über die Strava API.
+              Strava-Zugangsdaten werden nicht im Browser veröffentlicht. Die
+              Verarbeitung dient der Darstellung aktueller sportlicher
+              Aktivitäten auf dieser Webseite. Rechtsgrundlage ist Art. 6 Abs. 1
+              lit. f DSGVO.
             </p>
 
             <p className="mt-4">
-              Beim Anklicken eines Strava-Links wirst du zu Strava weitergeleitet.
-              Für die dortige Datenverarbeitung ist Strava verantwortlich.
+              Beim Anklicken eines Strava-Links wirst du zu Strava
+              weitergeleitet. Für die dortige Datenverarbeitung ist Strava
+              verantwortlich.
             </p>
           </section>
 
@@ -158,8 +161,8 @@ export default function DatenschutzPage() {
             </h2>
 
             <p>
-              Diese Webseite verwendet derzeit keine eigenen Tracking-Cookies und
-              keine Analysewerkzeuge wie Google Analytics. Sollten später
+              Diese Webseite verwendet derzeit keine eigenen Tracking-Cookies
+              und keine Analysewerkzeuge wie Google Analytics. Sollten später
               entsprechende Dienste eingebunden werden, wird diese
               Datenschutzerklärung angepasst.
             </p>
