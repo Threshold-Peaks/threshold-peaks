@@ -1,3 +1,4 @@
+import FeatureCard from "./FeatureCard";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import StravaLatest from "@/components/StravaLatest";
@@ -48,7 +49,7 @@ export default function Home() {
             <NavLink href="#about">About</NavLink>
             <NavLink href="#running">Running</NavLink>
             <NavLink href="#cycling">Cycling</NavLink>
-            <NavLink href="#music">Music</NavLink>
+            <NavLink href="#section-music">Music</NavLink>
             <NavLink href="#journal">Journal</NavLink>
             <NavLink href="#gallery">Gallery</NavLink>
             <NavLink href="#events">Events</NavLink>
@@ -66,7 +67,7 @@ export default function Home() {
               <MobileNavLink href="#about">About</MobileNavLink>
               <MobileNavLink href="#running">Running</MobileNavLink>
               <MobileNavLink href="#cycling">Cycling</MobileNavLink>
-              <MobileNavLink href="#music">Music</MobileNavLink>
+              <MobileNavLink href="#section-music">Music</MobileNavLink>
               <MobileNavLink href="#journal">Journal</MobileNavLink>
               <MobileNavLink href="#gallery">Gallery</MobileNavLink>
               <MobileNavLink href="#events">Events</MobileNavLink>
@@ -115,25 +116,25 @@ export default function Home() {
         {/* CARDS */}
         <div className="relative z-10 mx-auto mt-16 grid max-w-[1500px] gap-5 px-6 sm:grid-cols-2 md:mt-20 md:grid-cols-3 md:px-10 lg:px-16">
           <FeatureCard
-            href="#running"
-            icon={<RunningIcon />}
-            title="LAUFEN"
-            text="Training, Ausdauer, Disziplin und der Moment, wenn der Kopf frei wird."
-          />
+  href="#section-running"
+  iconType="running"
+  title="LAUFEN"
+  text="Training, Ausdauer, Disziplin und der Moment, wenn der Kopf frei wird."
+/>
 
           <FeatureCard
-            href="#cycling"
-            icon={<CyclingIcon />}
-            title="RADFAHREN"
-            text="Rennrad, Gravelbike und neue Wege als Ausgleich zum Lauftraining."
-          />
+  href="#section-cycling"
+  iconType="cycling"
+  title="RADFAHREN"
+  text="Rennrad, Gravelbike und neue Wege als Ausgleich zum Lauftraining."
+/>
 
           <FeatureCard
-            href="#music"
-            icon={<MusicIcon />}
-            title="MUSIK"
-            text="Elektronische Musik, DJ-Sets und Beats, die Bewegung antreiben."
-          />
+  href="#section-music"
+  iconType="music"
+  title="MUSIK"
+  text="Elektronische Musik, DJ-Sets und Beats, die Bewegung antreiben."
+/>
         </div>
       </section>
 
@@ -173,7 +174,7 @@ export default function Home() {
           </p>
 
           <a
-            href="#running"
+            href="#section-running"
             className="mt-8 inline-flex min-w-[210px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl md:mt-9 md:min-w-[220px]"
           >
             Zu meinen Bereichen <span>→</span>
@@ -195,7 +196,7 @@ export default function Home() {
       <section className="px-6 py-14 md:px-10 md:py-16 lg:px-20">
         <div className="mx-auto grid max-w-[1280px] gap-8">
           <FocusSection
-            id="running"
+            id="section-running"
             label="Laufen"
             title="Jeder Lauf bringt mich weiter."
             text="Laufen ist für mich mehr als Training. Es ist der Moment, in dem der Kopf frei wird und aus Bewegung Fokus entsteht. Ob Bahntraining, Dauerlauf oder Wettkampf, jeder Lauf bringt mich ein Stück weiter."
@@ -207,7 +208,7 @@ export default function Home() {
           />
 
           <FocusSection
-            id="cycling"
+            id="section-cycling"
             label="Radfahren"
             title="Ausgleich auf zwei Rädern."
             text="Radfahren ist für mich Bewegung mit einem anderen Gefühl. Rennrad und Gravelbike bringen Abwechslung, neue Wege und den perfekten Ausgleich zum Lauftraining."
@@ -219,7 +220,7 @@ export default function Home() {
           />
 
           <FocusSection
-            id="music"
+            id="section-music"
             label="Musik"
             title="Beats, die Bewegung antreiben."
             text="Elektronische Musik begleitet mich seit vielen Jahren. Seit 2008 lege ich hobbymäßig als DJ auf. Beats, Energie und Atmosphäre geben vielen Momenten ihren eigenen Rhythmus."
@@ -619,37 +620,6 @@ function FocusSection({
     </article>
   );
 }
-
-function FeatureCard({
-  href,
-  icon,
-  title,
-  text,
-}: {
-  href: string;
-  icon: ReactNode;
-  title: string;
-  text: string;
-}) {
-  return (
-    <article className="flex min-h-[130px] gap-5 rounded-2xl border border-black/10 bg-white/75 p-6 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl md:min-h-[140px] md:p-6">
-      <div className="mt-1 h-9 w-9 shrink-0 md:h-10 md:w-10">{icon}</div>
-
-      <div>
-        <h3 className="mb-3 text-base font-black tracking-wide">{title}</h3>
-
-        <p className="mb-5 max-w-[260px] text-sm leading-6 text-black/65">
-          {text}
-        </p>
-
-        <a href={href} className="text-sm font-black">
-          Mehr erfahren <span className="ml-4">→</span>
-        </a>
-      </div>
-    </article>
-  );
-}
-
 function JournalCard({
   category,
   title,
