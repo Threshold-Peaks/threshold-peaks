@@ -1,5 +1,7 @@
 "use client";
 
+import { IconActivity, IconBike, IconHeadphones } from "@tabler/icons-react";
+
 type IconType = "running" | "cycling" | "music";
 
 export default function FeatureCard({
@@ -36,10 +38,8 @@ export default function FeatureCard({
 
   return (
     <article className="flex min-h-[130px] gap-5 rounded-2xl border border-black/10 bg-white/75 p-6 text-black shadow-sm transition hover:-translate-y-1 hover:shadow-xl md:min-h-[180px]">
-      <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center text-4xl text-black md:h-10 md:w-10">
-        {iconType === "running" && "♟"}
-        {iconType === "cycling" && "♙"}
-        {iconType === "music" && "♫"}
+      <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center text-black">
+        <FeatureIcon type={iconType} />
       </div>
 
       <div>
@@ -61,4 +61,16 @@ export default function FeatureCard({
       </div>
     </article>
   );
+}
+
+function FeatureIcon({ type }: { type: IconType }) {
+  if (type === "cycling") {
+    return <IconBike className="h-10 w-10" stroke={2.4} />;
+  }
+
+  if (type === "music") {
+    return <IconHeadphones className="h-10 w-10" stroke={2.4} />;
+  }
+
+  return <IconActivity className="h-10 w-10" stroke={2.4} />;
 }
