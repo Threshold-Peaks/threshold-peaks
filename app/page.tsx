@@ -518,7 +518,7 @@ export default function Home() {
           <span>☁</span>
         </div>
 
-        <p>© 2024 Threshold Peaks. Alle Rechte vorbehalten.</p>
+        <p>© 2026 Threshold Peaks. Alle Rechte vorbehalten.</p>
 
         <div className="flex gap-10">
           <a
