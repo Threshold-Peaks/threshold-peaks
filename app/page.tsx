@@ -590,14 +590,16 @@ function JournalCard({
   title,
   text,
   tag,
+  href,
 }: {
   category: string;
   title: string;
   text: string;
   tag: string;
+  href?: string;
 }) {
-  return (
-    <article className="rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
+  const content = (
+    <>
       <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-black/45">
         {category}
       </p>
@@ -608,9 +610,34 @@ function JournalCard({
 
       <p className="mb-8 leading-7 text-black/65">{text}</p>
 
-      <span className="inline-flex rounded-full border border-black/10 bg-[#f7f7f5] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-black/55">
-        {tag}
-      </span>
+      <div className="flex items-center justify-between gap-4">
+        <span className="inline-flex rounded-full border border-black/10 bg-[#f7f7f5] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-black/55">
+          {tag}
+        </span>
+
+        {href ? (
+          <span className="font-black transition group-hover:translate-x-1">
+            →
+          </span>
+        ) : null}
+      </div>
+    </>
+  );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl"
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <article className="rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
+      {content}
     </article>
   );
 }
