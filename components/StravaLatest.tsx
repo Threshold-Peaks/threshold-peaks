@@ -54,7 +54,7 @@ export default function StravaLatest() {
             href="https://www.strava.com/athletes/47713057"
             target="_blank"
             rel="noreferrer"
-            className="text-sm font-black text-black/70 transition hover:text-black"
+            className="text-sm font-bold text-neutral-800 transition hover:text-[#f97316]"
           >
             Auf Strava ansehen →
           </a>
@@ -74,7 +74,7 @@ export default function StravaLatest() {
                 href={activity.url}
                 target="_blank"
                 rel="noreferrer"
-                className="group rounded-2xl border border-black/10 bg-[#f7f7f5] p-4 transition hover:-translate-y-1 hover:shadow-lg"
+                className="group rounded-2xl border border-black/10 bg-[#f5f3ee] p-4 transition hover:-translate-y-1 hover:shadow-lg"
               >
                 <div className="mb-5 flex items-start justify-between gap-4">
                   <div>

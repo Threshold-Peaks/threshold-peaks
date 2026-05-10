@@ -1,6 +1,6 @@
 export default function NotFound() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f7f7f5] px-6 py-12 text-[#111217]">
+    <main className="flex min-h-screen items-center justify-center bg-[#f5f3ee] px-6 py-12 text-[#111217]">
       <section className="mx-auto max-w-3xl text-center">
         <div className="mb-8 inline-flex rounded-full border border-black/10 bg-white/70 px-5 py-3 text-xs font-black uppercase tracking-[0.35em] shadow-sm">
           Threshold Peaks

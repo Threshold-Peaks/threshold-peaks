@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 import Link from "next/link";
 export default function WarumThresholdPeaksPage() {
   return (
-    <main className="min-h-screen bg-[#f7f7f5] px-6 py-12 text-[#111217] md:px-10 lg:px-20">
+    <main className="min-h-screen bg-[#f5f3ee] px-6 py-12 text-[#111217] md:px-10 lg:px-20">
       <Link
   href="/"
   className="mb-12 inline-flex rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-bold shadow-sm transition hover:-translate-y-0.5"

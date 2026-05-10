@@ -1,119 +1,86 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const galleryItems = [
   {
-    title: "Checkpoint Run",
-    category: "Running",
-    image: "/images/running-checkpoint.webp",
-    alt: "Matthias beim Lauf am Checkpoint Charlie",
-    text: "Wettkampfgefühl, Fokus und Bewegung mitten in Berlin.",
+    title: "Running",
+    text: "Momente von der Strecke, vom Training und von Wettkämpfen.",
+    image: "/images/running-checkpoint-1.webp",
   },
   {
-    title: "Gravel Woods",
-    category: "Cycling",
-    image: "/images/cycling-gravel.webp",
-    alt: "Gravelbike im Wald",
-    text: "Ruhige Wege, Waldluft und Ausgleich auf zwei Rädern.",
+    title: "Radfahren",
+    text: "Touren, Räder, Straßen und kleine Abenteuer auf zwei Rädern.",
+    image: "/images/running-checkpoint-1.webp",
   },
   {
-    title: "Sound & Motion",
-    category: "Music",
-    image: "/images/music-dj.webp",
-    alt: "DJ-Setup mit Controller",
-    text: "Elektronische Musik, Atmosphäre und kreative Energie.",
+    title: "Musik",
+    text: "Sounds, Setups und elektronische Stimmung rund um Threshold Peaks.",
+    image: "/images/running-checkpoint-1.webp",
   },
   {
-    title: "About Matthias",
-    category: "Life",
-    image: "/images/about-matthias.webp",
-    alt: "Portrait von Matthias",
-    text: "Der Mensch hinter Threshold Peaks.",
+    title: "Story",
+    text: "Bilder, die kleine Geschichten erzählen.",
+    image: "/images/running-checkpoint-1.webp",
   },
 ];
 
-export default function GalleryPage() {
+export default function GaleriePage() {
   return (
-    <main className="min-h-screen bg-[#f7f7f5] px-6 py-12 text-[#111217] md:px-10 lg:px-20">
-      <a
-        href="/"
-        className="mb-12 inline-flex rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-bold shadow-sm transition hover:-translate-y-0.5"
-      >
-        ← Zurück zur Startseite
-      </a>
+    <main className="min-h-screen bg-[#f5f3ee] text-black">
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="mb-10">
+  <Link
+    href="/"
+    className="inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
+  >
+    ← Zurück zur Startseite
+  </Link>
+</div>
+        <div className="mb-12">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-neutral-500">
+            Threshold Peaks
+          </p>
 
-      <section className="mx-auto max-w-[1280px]">
-        <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
-          Galerie
-        </p>
-
-        <div className="mb-12 max-w-3xl">
-          <h1 className="mb-6 text-5xl font-black leading-none tracking-[-0.06em] md:text-7xl">
-            Momente aus Bewegung, Klang und Freiheit.
+          <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
+            Galerie
           </h1>
 
-          <p className="max-w-2xl text-base leading-8 text-black/65 md:text-lg">
-            Eine Sammlung aus Läufen, Touren, Musikmomenten, Alltag und allem,
-            was Threshold Peaks sichtbar macht.
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-neutral-700">
+            Eine kleine Sammlung aus Bewegung, Ausdauer, Musik und Momenten,
+            die den Puls der Seite sichtbar machen.
           </p>
         </div>
 
-        <div className="mb-10 flex flex-wrap gap-3">
-          {["Alle", "Running", "Cycling", "Music", "Life"].map((filter) => (
-            <span
-              key={filter}
-              className="rounded-full border border-black/10 bg-white/70 px-5 py-3 text-xs font-black uppercase tracking-[0.25em] text-black/60 shadow-sm"
-            >
-              {filter}
-            </span>
-          ))}
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2">
           {galleryItems.map((item) => (
             <article
               key={item.title}
-              className="group overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl"
+              className="overflow-hidden rounded-3xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
             >
-              <div className="relative h-[360px] overflow-hidden">
+              <div className="relative h-72 w-full overflow-hidden bg-neutral-200">
                 <Image
                   src={item.image}
-                  alt={item.alt}
+                  alt={item.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, 25vw"
-                  className="object-cover transition duration-500 group-hover:scale-105"
+                  className="object-cover"
                 />
+              </div>
 
-                <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
-
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/65">
-                    {item.category}
-                  </p>
-
-                  <h2 className="mb-3 text-2xl font-black tracking-[-0.04em]">
-                    {item.title}
-                  </h2>
-
-                  <p className="leading-6 text-white/70">{item.text}</p>
+              <div className="p-7">
+                <div className="mb-5 inline-flex rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-neutral-700">
+                  Galerie
                 </div>
+
+                <h2 className="text-2xl font-bold text-black">
+                  {item.title}
+                </h2>
+
+                <p className="mt-4 leading-7 text-neutral-700">
+                  {item.text}
+                </p>
               </div>
             </article>
           ))}
-        </div>
-        
-        <div className="mt-12 rounded-[2rem] border border-black/10 bg-[#111217] p-8 text-white shadow-xl md:p-10">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-white/45">
-            Bald mehr
-          </p>
-
-          <h2 className="mb-4 text-3xl font-black tracking-[-0.04em] md:text-4xl">
-            Die Galerie wächst mit neuen Momenten.
-          </h2>
-
-          <p className="max-w-2xl leading-8 text-white/65">
-            Später können hier weitere Bilder aus Wettkämpfen, Trainings,
-            Gravelrunden, DJ-Sets und Momenten mit Sikari und Snow erscheinen.
-          </p>
         </div>
       </section>
     </main>

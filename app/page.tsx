@@ -4,11 +4,11 @@ import type { ReactNode } from "react";
 import StravaLatest from "@/components/StravaLatest";
 
 const grayButtonClass =
-  "inline-flex items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]";
+  "inline-flex items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]";
 
 export default function Home() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f7f7f5] text-[#111217]">
+    <main className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]">
       {/* HERO */}
       <section className="relative overflow-hidden pb-14 md:pb-16">
         {/* HERO BACKGROUND */}
@@ -23,11 +23,11 @@ export default function Home() {
               className="object-cover object-[72%_top] opacity-35 contrast-105 saturate-105 brightness-105 md:object-[82%_top] md:opacity-100 md:contrast-110 md:saturate-110"
             />
 
-            <div className="pointer-events-none absolute inset-0 bg-[#f7f7f5]/55 md:hidden" />
+            <div className="pointer-events-none absolute inset-0 bg-[#f5f3ee]/55 md:hidden" />
 
-            <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-[520px] bg-gradient-to-r from-[#f7f7f5] via-[#f7f7f5]/55 to-transparent md:block" />
+            <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-[520px] bg-gradient-to-r from-[#f5f3ee] via-[#f5f3ee]/55 to-transparent md:block" />
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#f7f7f5] via-[#f7f7f5]/80 to-transparent md:h-56" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#f5f3ee] via-[#f5f3ee]/80 to-transparent md:h-56" />
           </div>
         </div>
 
@@ -394,7 +394,7 @@ export default function Home() {
               date="In Vorbereitung"
               title="Threshold Peaks Mix"
               type="Music"
-              text="Ein elektronischer Mix für lange Läufe, Rides und späte Abendstunden. Der SoundCloud-Link folgt, sobald der Account steht."
+              text="Ein elektronischer Mix für lange Läufe, Rides und späte Abendstunden. Der SoundCloud-Bereich ist vorbereitet."
               status="Folgt"
             />
           </div>
@@ -403,36 +403,59 @@ export default function Home() {
 
       {/* MUSIC BAR */}
       <section className="px-6 pb-12 md:px-10 lg:px-20">
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-8 rounded-2xl border border-black/10 bg-white/70 p-6 shadow-sm backdrop-blur-xl md:flex-row md:items-center md:justify-between md:p-7">
-          <div>
-            <p className="mb-2 text-xs font-extrabold uppercase tracking-[0.45em]">
-              Aktuell läuft
-            </p>
-            <h3 className="text-lg font-black md:text-xl">
-              Massano - The Feeling
-            </h3>
-            <p className="mt-1 text-sm text-black/55">
-              Electronic / Melodic Techno
-            </p>
-          </div>
+        <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 p-8 shadow-sm backdrop-blur-xl md:p-10">
+          <div className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-center">
+            <div>
+              <div className="mb-5 inline-flex rounded-full bg-[#d7d5ce] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-black/65">
+                SoundCloud
+              </div>
 
-          <div className="flex h-12 flex-1 items-center justify-start gap-[3px] overflow-hidden md:justify-center">
-            {Array.from({ length: 70 }).map((_, index) => (
-              <span
-                key={index}
-                className="w-[2px] shrink-0 rounded-full bg-black/45"
-                style={{
-                  height: `${Math.round(
-                    8 + Math.abs(Math.sin(index * 0.55)) * 28
-                  )}px`,
-                }}
-              />
-            ))}
-          </div>
+              <h2 className="text-3xl font-black leading-tight tracking-[-0.04em] md:text-4xl">
+                Mixsets folgen bald.
+              </h2>
 
-          <span className="inline-flex justify-center rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm">
-  SoundCloud folgt ●
-</span>
+              <p className="mt-5 max-w-xl text-base leading-8 text-black/65 md:text-lg">
+                Elektronische Sounds für lange Läufe, Rides und späte
+                Abendstunden. Der Bereich ist vorbereitet, bis eigene oder
+                rechtssichere Mixsets online gehen.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-black/10 bg-[#f5f3ee] p-6 shadow-sm">
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-black/45">
+                In Vorbereitung
+              </p>
+
+              <div className="mb-6 flex h-20 items-center gap-[4px] overflow-hidden">
+                {Array.from({ length: 58 }).map((_, index) => (
+                  <span
+                    key={index}
+                    className="w-[3px] shrink-0 rounded-full bg-black/40"
+                    style={{
+                      height: `${Math.round(
+                        10 + Math.abs(Math.sin(index * 0.5)) * 46
+                      )}px`,
+                    }}
+                  />
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between gap-4 border-t border-black/10 pt-5">
+                <div>
+                  <h3 className="text-lg font-black text-black">
+                    Threshold Peaks Mix
+                  </h3>
+                  <p className="mt-1 text-sm text-black/55">
+                    Electronic / Melodic / Running Energy
+                  </p>
+                </div>
+
+                <span className="inline-flex rounded-full bg-[#d7d5ce] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-black/65">
+                  Folgt
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -686,7 +709,7 @@ function JournalCard({
     return (
       <a
         href={href}
-        className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]"
+        className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
       >
         {content}
       </a>
@@ -792,7 +815,7 @@ function ContactCard({
       href={href}
       target={href.startsWith("http") ? "_blank" : undefined}
       rel={href.startsWith("http") ? "noreferrer" : undefined}
-      className="group rounded-3xl border border-black/10 bg-[#d7d5ce] p-6 text-[#111217] shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f7f7f5]"
+      className="group rounded-3xl border border-black/10 bg-[#d7d5ce] p-6 text-[#111217] shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
     >
       <div className="mb-5 flex items-center justify-between">
         <h3 className="text-lg font-black transition group-hover:text-orange-600">

@@ -1,14 +1,14 @@
 export default function DatenschutzPage() {
   return (
-    <main className="min-h-screen bg-[#f7f7f5] px-6 py-12 text-[#111217] md:px-10 lg:px-20">
-      <a
-        href="/"
-        className="mb-10 inline-flex rounded-full border border-black/10 bg-white/70 px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:-translate-y-0.5 hover:text-orange-600 hover:shadow-md"
-      >
-        ← Zurück zur Startseite
-      </a>
-
+    <main className="min-h-screen bg-[#f5f3ee] px-6 py-16 text-[#111217] md:px-10 lg:px-20">
       <section className="mx-auto max-w-3xl">
+        <a
+          href="/"
+          className="mb-10 inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
+        >
+          ← Zurück zur Startseite
+        </a>
+
         <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
           Rechtliches
         </p>
