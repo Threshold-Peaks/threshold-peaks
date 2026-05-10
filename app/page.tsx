@@ -284,8 +284,8 @@ export default function Home() {
             <div className="grid gap-4 sm:grid-cols-2">
               <ContactCard
                 title="Instagram"
-                text="Einblicke in Training, Alltag und Musik."
-                href="#"
+                text="Training, Ausdauer, Alltag und kleine Momente unterwegs."
+                href="https://www.instagram.com/threshold.peaks/"
               />
 
               <ContactCard
