@@ -275,6 +275,13 @@ export default function Home() {
               tag="Musik"
             />
           </div>
+
+          <a
+  href="/journal"
+  className="mt-8 inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
+>
+  Alle Beiträge ansehen <span>→</span>
+</a>
         </div>
       </section>
 
