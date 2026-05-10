@@ -290,7 +290,7 @@ export default function Home() {
               <ContactCard
                 title="Strava"
                 text="Läufe, Rides und sportliche Aktivitäten."
-                href="#"
+                href="https://www.strava.com/athletes/47713057"
               />
 
               <ContactCard
