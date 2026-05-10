@@ -254,7 +254,7 @@ export default function Home() {
   href="#"
   className="inline-flex justify-center rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-lg"
 >
-  Auf SoundCloud hören ●
+  SoundCloud folgt ●
 </a>
         </div>
       </section>
@@ -296,7 +296,7 @@ export default function Home() {
 
               <ContactCard
   title="SoundCloud"
-  text="DJ-Sets, elektronische Sounds und musikalische Projekte."
+  text="DJ-Sets und elektronische Sounds folgen demnächst."
   href="#"
 />
 
