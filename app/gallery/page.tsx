@@ -100,13 +100,7 @@ export default function GalleryPage() {
             </article>
           ))}
         </div>
-        <a
-  href="/gallery"
-  className="mt-8 inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
->
-  Alle Bilder ansehen <span>→</span>
-</a>
-
+        
         <div className="mt-12 rounded-[2rem] border border-black/10 bg-[#111217] p-8 text-white shadow-xl md:p-10">
           <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-white/45">
             Bald mehr
