@@ -416,8 +416,7 @@ export default function Home() {
 
               <p className="mt-5 max-w-xl text-base leading-8 text-black/65 md:text-lg">
                 Elektronische Sounds für lange Läufe, Rides und späte
-                Abendstunden. Der Bereich ist vorbereitet, bis eigene oder
-                rechtssichere Mixsets online gehen.
+                Abendstunden. 
               </p>
             </div>
 
