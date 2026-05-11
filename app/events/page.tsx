@@ -1,4 +1,5 @@
 import BackHeader from "@/components/BackHeader";
+import Link from "next/link";
 import { client } from "@/sanity/lib/client";
 
 export const revalidate = 60;
@@ -91,7 +92,7 @@ function formatEventType(type?: string) {
     radfahren: "Cycling",
     music: "Music",
     musik: "Music",
-    lifestyle: "Life",
+    lifestyle: "Lifestyle",
     event: "Event",
     race: "Running",
     ride: "Cycling",
@@ -105,6 +106,8 @@ function formatEventStatus(status?: string) {
     angemeldet: "Angemeldet",
     geplant: "Geplant",
     offen: "Offen",
+    erledigt: "Erledigt",
+    rueckblick: "Rückblick",
     folgt: "Folgt",
     confirmed: "Fix",
     planned: "Geplant",
@@ -112,6 +115,18 @@ function formatEventStatus(status?: string) {
   };
 
   return status ? statuses[status] ?? status : "Geplant";
+}
+
+function getEventHref(event: EventPageItem) {
+  if (event.slug?.current) {
+    return `/events/${event.slug.current}`;
+  }
+
+  return event.externalUrl;
+}
+
+function isExternalEventHref(event: EventPageItem) {
+  return !event.slug?.current && Boolean(event.externalUrl);
 }
 
 export default async function EventsPage() {
@@ -137,8 +152,8 @@ export default async function EventsPage() {
 
             <p className="max-w-2xl text-base leading-8 text-black/65 md:text-lg">
               Läufe, Rides, Musikmomente und alles, was rund um Threshold Peaks
-              geplant ist. Hier sammelt sich, was bald passiert oder schon Spuren
-              hinterlassen hat.
+              geplant ist. Hier sammelt sich, was bald passiert oder schon
+              Spuren hinterlassen hat.
             </p>
           </div>
 
@@ -170,7 +185,8 @@ export default async function EventsPage() {
                     }
                     status={formatEventStatus(event.status)}
                     location={event.location}
-                    href={event.externalUrl}
+                    href={getEventHref(event)}
+                    external={isExternalEventHref(event)}
                   />
                 ))}
               </div>
@@ -205,7 +221,8 @@ export default async function EventsPage() {
                     }
                     status={formatEventStatus(event.status)}
                     location={event.location}
-                    href={event.externalUrl}
+                    href={getEventHref(event)}
+                    external={isExternalEventHref(event)}
                     muted
                   />
                 ))}
@@ -227,6 +244,7 @@ function EventOverviewCard({
   status,
   location,
   href,
+  external = false,
   muted = false,
 }: {
   date: string;
@@ -237,6 +255,7 @@ function EventOverviewCard({
   status: string;
   location?: string;
   href?: string;
+  external?: boolean;
   muted?: boolean;
 }) {
   const content = (
@@ -289,20 +308,23 @@ function EventOverviewCard({
     muted ? "opacity-70" : ""
   }`;
 
-  if (href) {
+  if (!href) {
+    return <article className={className}>{content}</article>;
+  }
+
+  if (external) {
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        className={className}
-      >
+      <a href={href} target="_blank" rel="noreferrer" className={className}>
         {content}
       </a>
     );
   }
 
-  return <article className={className}>{content}</article>;
+  return (
+    <Link href={href} className={className}>
+      {content}
+    </Link>
+  );
 }
 
 function EmptyState({ text }: { text: string }) {
