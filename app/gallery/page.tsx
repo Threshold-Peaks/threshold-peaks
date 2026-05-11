@@ -1,3 +1,4 @@
+import BackHeader from "@/components/BackHeader";
 import Link from "next/link";
 import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
@@ -64,17 +65,10 @@ export default async function GaleriePage() {
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <section className="px-6 py-16 md:px-10 lg:px-20">
-        <div className="mx-auto max-w-[1280px]">
-          <div className="mb-10">
-            <Link
-              href="/"
-              className="inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
-            >
-              ← Zurück zur Startseite
-            </Link>
-          </div>
+      <BackHeader />
 
+      <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
+        <div className="mx-auto max-w-[1280px]">
           <div className="mb-12 max-w-3xl">
             <p className="mb-5 text-xs font-bold uppercase tracking-[0.55em] text-neutral-500">
               Threshold Peaks

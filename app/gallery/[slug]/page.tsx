@@ -1,4 +1,4 @@
-import Link from "next/link";
+import BackHeader from "@/components/BackHeader";
 import { notFound } from "next/navigation";
 import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
@@ -69,17 +69,10 @@ export default async function GalleryAlbumPage({
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <section className="px-6 py-16 md:px-10 lg:px-20">
-        <div className="mx-auto max-w-[1280px]">
-          <div className="mb-10">
-            <Link
-              href="/gallery"
-              className="inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
-            >
-              ← Zurück zur Galerie
-            </Link>
-          </div>
+      <BackHeader backHref="/gallery" />
 
+      <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
+        <div className="mx-auto max-w-[1280px]">
           <div className="max-w-3xl">
             <div className="mb-8 flex flex-wrap items-center gap-3">
               <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-neutral-700">

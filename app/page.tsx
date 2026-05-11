@@ -11,6 +11,7 @@ export const revalidate = 60;
 
 const grayButtonClass =
   "inline-flex items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]";
+
 type HomeJournalPost = {
   _id: string;
   title: string;
@@ -38,6 +39,21 @@ type HomeGalleryAlbum = {
   images?: HomeGalleryImage[];
 };
 
+type HomeEvent = {
+  _id: string;
+  title: string;
+  slug?: {
+    current?: string;
+  };
+  startDate?: string;
+  endDate?: string;
+  location?: string;
+  eventType?: string;
+  teaser?: string;
+  status?: string;
+  externalUrl?: string;
+};
+
 const latestJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc)[0...3] {
   _id,
   title,
@@ -56,6 +72,19 @@ const latestGalleryQuery = `*[_type == "galleryAlbum"] | order(date desc)[0...4]
   images
 }`;
 
+const latestEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(startDate, date, eventDate))] | order(coalesce(startDate, date, eventDate) asc) {
+  _id,
+  "title": coalesce(title, name),
+  slug,
+  "startDate": coalesce(startDate, date, eventDate),
+  endDate,
+  location,
+  "eventType": coalesce(eventType, category, type),
+  "teaser": coalesce(teaser, excerpt, description, shortDescription),
+  "status": coalesce(status, registrationStatus),
+  externalUrl
+}`;
+
 function formatHomeDate(date?: string) {
   if (!date) return "Journal";
 
@@ -64,6 +93,56 @@ function formatHomeDate(date?: string) {
     month: "long",
     year: "numeric",
   }).format(new Date(date));
+}
+
+function getTodayKey() {
+  return new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Europe/Berlin",
+  }).format(new Date());
+}
+
+function getDateKey(date?: string) {
+  return date?.slice(0, 10) ?? "";
+}
+
+function isUpcomingHomeEvent(event: HomeEvent) {
+  const eventDate = getDateKey(event.endDate ?? event.startDate);
+
+  if (!eventDate) {
+    return false;
+  }
+
+  return eventDate >= getTodayKey();
+}
+
+function formatHomeEventDate(startDate?: string, endDate?: string) {
+  if (!startDate) return "Termin folgt";
+
+  const formatter = new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : null;
+
+  if (end && getDateKey(startDate) !== getDateKey(endDate)) {
+    return `${formatter.format(start)} bis ${formatter.format(end)}`;
+  }
+
+  return formatter.format(start);
+}
+
+function formatHomeEventTime(startDate?: string) {
+  if (!startDate || !startDate.includes("T")) {
+    return undefined;
+  }
+
+  return `${new Intl.DateTimeFormat("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(startDate))} Uhr`;
 }
 
 function formatJournalCategory(category?: string) {
@@ -89,11 +168,46 @@ function formatGalleryCategory(category?: string) {
 
   return category ? categories[category] ?? category : "Galerie";
 }
+
+function formatEventType(type?: string) {
+  const types: Record<string, string> = {
+    running: "Running",
+    laufen: "Running",
+    cycling: "Cycling",
+    radfahren: "Cycling",
+    music: "Music",
+    musik: "Music",
+    lifestyle: "Life",
+    event: "Event",
+    race: "Running",
+    ride: "Cycling",
+  };
+
+  return type ? types[type] ?? type : "Event";
+}
+
+function formatEventStatus(status?: string) {
+  const statuses: Record<string, string> = {
+    angemeldet: "Angemeldet",
+    geplant: "Geplant",
+    offen: "Offen",
+    folgt: "Folgt",
+    confirmed: "Fix",
+    planned: "Geplant",
+    open: "Offen",
+  };
+
+  return status ? statuses[status] ?? status : "Geplant";
+}
+
 export default async function Home() {
-  const [latestPosts, latestAlbums] = await Promise.all([
+  const [latestPosts, latestAlbums, allEvents] = await Promise.all([
     client.fetch<HomeJournalPost[]>(latestJournalQuery),
     client.fetch<HomeGalleryAlbum[]>(latestGalleryQuery),
+    client.fetch<HomeEvent[]>(latestEventsQuery),
   ]);
+
+  const latestEvents = allEvents.filter(isUpcomingHomeEvent).slice(0, 3);
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]">
@@ -348,54 +462,54 @@ export default async function Home() {
           </div>
 
           <div className="grid gap-5 md:grid-cols-3">
-  {latestPosts.length > 0 ? (
-    latestPosts.map((post) => {
-      const href = post.slug?.current
-        ? `/journal/${post.slug.current}`
-        : "/journal";
+            {latestPosts.length > 0 ? (
+              latestPosts.map((post) => {
+                const href = post.slug?.current
+                  ? `/journal/${post.slug.current}`
+                  : "/journal";
 
-      return (
-        <JournalCard
-          key={post._id}
-          category={formatHomeDate(post.publishedAt)}
-          title={post.title}
-          text={
-            post.excerpt ||
-            "Ein neuer Beitrag aus dem Threshold Peaks Journal."
-          }
-          tag={formatJournalCategory(post.category)}
-          href={href}
-        />
-      );
-    })
-  ) : (
-    <>
-      <JournalCard
-        category="Journal"
-        title="Warum Threshold Peaks?"
-        text="Über persönliche Schwellen, kleine Peaks und das Potenzial, das entsteht, wenn man bewusst weitergeht."
-        tag="Story"
-        href="/journal"
-      />
+                return (
+                  <JournalCard
+                    key={post._id}
+                    category={formatHomeDate(post.publishedAt)}
+                    title={post.title}
+                    text={
+                      post.excerpt ||
+                      "Ein neuer Beitrag aus dem Threshold Peaks Journal."
+                    }
+                    tag={formatJournalCategory(post.category)}
+                    href={href}
+                  />
+                );
+              })
+            ) : (
+              <>
+                <JournalCard
+                  category="Journal"
+                  title="Warum Threshold Peaks?"
+                  text="Über persönliche Schwellen, kleine Peaks und das Potenzial, das entsteht, wenn man bewusst weitergeht."
+                  tag="Story"
+                  href="/journal"
+                />
 
-      <JournalCard
-        category="Gravel Diaries"
-        title="Wege, Wälder und Ausgleich"
-        text="Rennrad, Gravelbike und Touren draußen. Alles, was Bewegung leichter macht und den Kopf freipustet."
-        tag="Radfahren"
-        href="/journal"
-      />
+                <JournalCard
+                  category="Gravel Diaries"
+                  title="Wege, Wälder und Ausgleich"
+                  text="Rennrad, Gravelbike und Touren draußen. Alles, was Bewegung leichter macht und den Kopf freipustet."
+                  tag="Radfahren"
+                  href="/journal"
+                />
 
-      <JournalCard
-        category="Sound & Motion"
-        title="Beats für lange Strecken"
-        text="Elektronische Musik, DJ-Sets, Tracks und die Verbindung zwischen Rhythmus, Energie und Bewegung."
-        tag="Musik"
-        href="/journal"
-      />
-    </>
-  )}
-</div>
+                <JournalCard
+                  category="Sound & Motion"
+                  title="Beats für lange Strecken"
+                  text="Elektronische Musik, DJ-Sets, Tracks und die Verbindung zwischen Rhythmus, Energie und Bewegung."
+                  tag="Musik"
+                  href="/journal"
+                />
+              </>
+            )}
+          </div>
 
           <a
             href="/journal"
@@ -428,55 +542,55 @@ export default async function Home() {
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-  {latestAlbums.length > 0 ? (
-    latestAlbums.map((album) => {
-      const image = album.coverImage || album.images?.[0];
-      const href = album.slug?.current
-        ? `/gallery/${album.slug.current}`
-        : "/gallery";
+            {latestAlbums.length > 0 ? (
+              latestAlbums.map((album) => {
+                const image = album.coverImage || album.images?.[0];
+                const href = album.slug?.current
+                  ? `/gallery/${album.slug.current}`
+                  : "/gallery";
 
-      return (
-        <SanityGalleryCard
-          key={album._id}
-          title={album.title}
-          category={formatGalleryCategory(album.category)}
-          image={image}
-          href={href}
-        />
-      );
-    })
-  ) : (
-    <>
-      <GalleryCard
-        title="Checkpoint Run"
-        category="Running"
-        image="/images/running-checkpoint.webp"
-        alt="Matthias beim Lauf am Checkpoint Charlie"
-      />
+                return (
+                  <SanityGalleryCard
+                    key={album._id}
+                    title={album.title}
+                    category={formatGalleryCategory(album.category)}
+                    image={image}
+                    href={href}
+                  />
+                );
+              })
+            ) : (
+              <>
+                <GalleryCard
+                  title="Checkpoint Run"
+                  category="Running"
+                  image="/images/running-checkpoint.webp"
+                  alt="Matthias beim Lauf am Checkpoint Charlie"
+                />
 
-      <GalleryCard
-        title="Gravel Woods"
-        category="Cycling"
-        image="/images/cycling-gravel.webp"
-        alt="Gravelbike im Wald"
-      />
+                <GalleryCard
+                  title="Gravel Woods"
+                  category="Cycling"
+                  image="/images/cycling-gravel.webp"
+                  alt="Gravelbike im Wald"
+                />
 
-      <GalleryCard
-        title="Sound & Motion"
-        category="Music"
-        image="/images/music-dj.webp"
-        alt="DJ-Setup mit Controller"
-      />
+                <GalleryCard
+                  title="Sound & Motion"
+                  category="Music"
+                  image="/images/music-dj.webp"
+                  alt="DJ-Setup mit Controller"
+                />
 
-      <GalleryCard
-        title="About Matthias"
-        category="Life"
-        image="/images/about-matthias.webp"
-        alt="Portrait von Matthias"
-      />
-    </>
-  )}
-</div>
+                <GalleryCard
+                  title="About Matthias"
+                  category="Life"
+                  image="/images/about-matthias.webp"
+                  alt="Portrait von Matthias"
+                />
+              </>
+            )}
+          </div>
 
           <a
             href="/gallery"
@@ -487,7 +601,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* EVENTS */}
+            {/* EVENTS */}
       <section
         id="events"
         className="scroll-mt-24 px-6 pb-14 md:px-10 md:pb-16 lg:px-20"
@@ -509,33 +623,60 @@ export default async function Home() {
           </div>
 
           <div className="grid gap-5 md:grid-cols-3">
-            <EventCard
-              date="10. Juni 2026"
-              title="AOK-Firmenlauf Wiedenbrück"
-              type="Running"
-              text="Geplanter Lauftermin am Mittwoch, 10. Juni 2026. Ein sportliches Highlight im Kalender und ein guter Anlass, die Form weiter aufzubauen."
-              status="Angemeldet"
-            />
+            {latestEvents.length > 0 ? (
+              latestEvents.map((event) => (
+                <EventCard
+                  key={event._id}
+                  date={formatHomeEventDate(event.startDate, event.endDate)}
+                  time={formatHomeEventTime(event.startDate)}
+                  title={event.title}
+                  type={formatEventType(event.eventType)}
+                  text={
+                    event.teaser ||
+                    "Ein kommender Termin im Threshold Peaks Kalender."
+                  }
+                  status={formatEventStatus(event.status)}
+                  location={event.location}
+                  href={event.externalUrl}
+                />
+              ))
+            ) : (
+              <>
+                <EventCard
+                  date="10. Juni 2026"
+                  title="AOK-Firmenlauf Wiedenbrück"
+                  type="Running"
+                  text="Geplanter Lauftermin am Mittwoch, 10. Juni 2026. Ein sportliches Highlight im Kalender und ein guter Anlass, die Form weiter aufzubauen."
+                  status="Angemeldet"
+                />
 
-            <EventCard
-              date="In Planung"
-              title="Gravelrunde rund um Verl"
-              type="Cycling"
-              text="Eine lockere Ausfahrt auf Rennrad oder Gravelbike. Sobald eine konkrete Route und ein Termin stehen, erscheint der Ride hier."
-              status="Offen"
-            />
+                <EventCard
+                  date="In Planung"
+                  title="Gravelrunde rund um Verl"
+                  type="Cycling"
+                  text="Eine lockere Ausfahrt auf Rennrad oder Gravelbike. Sobald eine konkrete Route und ein Termin stehen, erscheint der Ride hier."
+                  status="Offen"
+                />
 
-            <EventCard
-              date="In Vorbereitung"
-              title="Threshold Peaks Mix"
-              type="Music"
-              text="Ein elektronischer Mix für lange Läufe, Rides und späte Abendstunden. Der SoundCloud-Bereich ist vorbereitet."
-              status="Folgt"
-            />
+                <EventCard
+                  date="In Vorbereitung"
+                  title="Threshold Peaks Mix"
+                  type="Music"
+                  text="Ein elektronischer Mix für lange Läufe, Rides und späte Abendstunden. Der SoundCloud-Bereich ist vorbereitet."
+                  status="Folgt"
+                />
+              </>
+            )}
           </div>
+
+          <a
+            href="/events"
+            className={`${grayButtonClass} mt-8 min-w-[220px]`}
+          >
+            Alle Termine ansehen <span>→</span>
+          </a>
         </div>
       </section>
-
       {/* MUSIC BAR */}
       <section className="px-6 pb-12 md:px-10 lg:px-20">
         <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 p-8 shadow-sm backdrop-blur-xl md:p-10">
@@ -551,7 +692,7 @@ export default async function Home() {
 
               <p className="mt-5 max-w-xl text-base leading-8 text-black/65 md:text-lg">
                 Elektronische Sounds für lange Läufe, Rides und späte
-                Abendstunden. 
+                Abendstunden.
               </p>
             </div>
 
@@ -856,6 +997,7 @@ function JournalCard({
     </article>
   );
 }
+
 function SanityGalleryCard({
   title,
   category,
@@ -904,6 +1046,7 @@ function SanityGalleryCard({
     </a>
   );
 }
+
 function GalleryCard({
   title,
   category,
@@ -944,19 +1087,25 @@ function GalleryCard({
 
 function EventCard({
   date,
+  time,
   title,
   type,
   text,
   status,
+  location,
+  href,
 }: {
   date: string;
+  time?: string;
   title: string;
   type: string;
   text: string;
   status: string;
+  location?: string;
+  href?: string;
 }) {
-  return (
-    <article className="rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
+  const content = (
+    <>
       <div className="mb-7 flex items-start justify-between gap-4">
         <div>
           <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-black/45">
@@ -966,6 +1115,12 @@ function EventCard({
           <p className="text-sm font-black uppercase tracking-[0.25em] text-black/60">
             {date}
           </p>
+
+          {time ? (
+            <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-black/45">
+              {time}
+            </p>
+          ) : null}
         </div>
 
         <span className="rounded-full border border-black/10 bg-[#d7d5ce] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/65">
@@ -973,11 +1128,44 @@ function EventCard({
         </span>
       </div>
 
-      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition hover:text-orange-600">
+      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
         {title}
       </h3>
 
+      {location ? (
+        <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-black/45">
+          {location}
+        </p>
+      ) : null}
+
       <p className="leading-7 text-black/65">{text}</p>
+
+      {href ? (
+        <div className="mt-7 flex justify-end">
+          <span className="font-black transition group-hover:translate-x-1 group-hover:text-orange-600">
+            →
+          </span>
+        </div>
+      ) : null}
+    </>
+  );
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <article className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
+      {content}
     </article>
   );
 }

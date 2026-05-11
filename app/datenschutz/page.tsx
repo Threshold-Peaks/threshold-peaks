@@ -1,14 +1,11 @@
+import BackHeader from "@/components/BackHeader";
+
 export default function DatenschutzPage() {
   return (
-    <main className="min-h-screen bg-[#f5f3ee] px-6 py-16 text-[#111217] md:px-10 lg:px-20">
-      <section className="mx-auto max-w-3xl">
-        <a
-          href="/"
-          className="mb-10 inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
-        >
-          ← Zurück zur Startseite
-        </a>
+    <main className="min-h-screen bg-[#f5f3ee] text-[#111217]">
+      <BackHeader />
 
+      <section className="mx-auto max-w-3xl px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
         <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
           Rechtliches
         </p>
@@ -60,9 +57,7 @@ export default function DatenschutzPage() {
           </section>
 
           <section>
-            <h2 className="mb-3 text-xl font-black text-black">
-              3. Hosting
-            </h2>
+            <h2 className="mb-3 text-xl font-black text-black">3. Hosting</h2>
 
             <p>
               Diese Webseite wird über Vercel Inc. bereitgestellt. Beim Besuch

@@ -1,16 +1,11 @@
+import BackHeader from "@/components/BackHeader";
+
 export default function ImpressumPage() {
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-[#111217]">
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="mb-10">
-          <a
-            href="/"
-            className="inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
-          >
-            ← Zurück zur Startseite
-          </a>
-        </div>
+      <BackHeader />
 
+      <section className="mx-auto max-w-6xl px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
         <div className="max-w-3xl">
           <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
             Rechtliches

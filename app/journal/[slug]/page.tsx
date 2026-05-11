@@ -1,3 +1,4 @@
+import BackHeader from "@/components/BackHeader";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
@@ -66,17 +67,10 @@ export default async function JournalPostPage({
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <section className="px-6 py-16 md:px-10 lg:px-20">
-        <div className="mx-auto max-w-[1280px]">
-          <div className="mb-10">
-            <Link
-              href="/journal"
-              className="inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
-            >
-              ← Zurück zum Journal
-            </Link>
-          </div>
+      <BackHeader backHref="/journal" />
 
+      <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
+        <div className="mx-auto max-w-[1280px]">
           <article>
             <div className="max-w-3xl">
               <div className="mb-8 flex flex-wrap items-center gap-3">
