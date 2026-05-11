@@ -57,6 +57,7 @@ type HomeEvent = {
   };
   startDate?: string;
   endDate?: string;
+  time?: string;
   location?: string;
   eventType?: string;
   teaser?: string;
@@ -88,6 +89,7 @@ const latestEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(st
   slug,
   "startDate": coalesce(startDate, date, eventDate),
   endDate,
+  time,
   location,
   "eventType": coalesce(eventType, category, type),
   "teaser": coalesce(teaser, excerpt, description, shortDescription),
@@ -614,7 +616,7 @@ export default async function Home() {
                 <EventCard
                   key={event._id}
                   date={formatHomeEventDate(event.startDate, event.endDate)}
-                  time={formatHomeEventTime(event.startDate)}
+                  time={event.time || formatHomeEventTime(event.startDate)}
                   title={event.title}
                   type={formatEventType(event.eventType)}
                   text={

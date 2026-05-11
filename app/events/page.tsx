@@ -25,6 +25,7 @@ const eventsPageQuery = `*[_type in ["event", "termin"] && defined(coalesce(star
   slug,
   "startDate": coalesce(startDate, date, eventDate),
   endDate,
+  time,
   location,
   "eventType": coalesce(eventType, category, type),
   "teaser": coalesce(teaser, excerpt, description, shortDescription),
