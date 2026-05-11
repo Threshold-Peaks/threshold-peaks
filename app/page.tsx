@@ -13,6 +13,15 @@ export const revalidate = 60;
 const grayButtonClass =
   "inline-flex items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]";
 
+const homeCardClass =
+  "group flex min-h-[320px] flex-col rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]";
+
+const homeTagClass =
+  "inline-flex rounded-full border border-black/10 bg-[#d7d5ce] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-black/65";
+
+const homeArrowClass =
+  "font-black transition group-hover:translate-x-1 group-hover:text-orange-600";
+
 type HomeJournalPost = {
   _id: string;
   title: string;
@@ -824,33 +833,31 @@ export default async function Home() {
             </div>
 
             <div>
-  <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-black/45">
-    Rechtliches
-  </p>
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-black/45">
+                Rechtliches
+              </p>
 
-  <div className="grid gap-3">
-    <a
-      href="/impressum"
-      className="font-bold transition hover:text-orange-600"
-    >
-      Impressum
-    </a>
-
-    <a
-      href="/datenschutz"
-      className="font-bold transition hover:text-orange-600"
-    >
-      Datenschutz
-    </a>
-
-    <a
-      href="/studio"
-      className="font-bold transition hover:text-orange-600"
-    >
-      CMS Login
-    </a>
-  </div>
-</div>
+              <div className="grid gap-3">
+                <a
+                  href="/impressum"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  Impressum
+                </a>
+                <a
+                  href="/datenschutz"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  Datenschutz
+                </a>
+                <a
+                  href="/studio"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  CMS Login
+                </a>
+              </div>
+            </div>
           </div>
 
           <div className="mt-8 flex flex-col gap-4 border-t border-black/10 pt-6 text-xs text-black/50 md:flex-row md:items-center md:justify-between">
@@ -1038,46 +1045,35 @@ function JournalCard({
 }) {
   const content = (
     <>
-      <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-black/45">
-        {category}
-      </p>
+      <div>
+        <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-black/45">
+          {category}
+        </p>
 
-      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
-        {title}
-      </h3>
+        <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+          {title}
+        </h3>
 
-      <p className="mb-8 leading-7 text-black/65">{text}</p>
+        <p className="leading-7 text-black/65">{text}</p>
+      </div>
 
-      <div className="flex items-center justify-between gap-4">
-        <span className="inline-flex rounded-full border border-black/10 bg-[#d7d5ce] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-black/65">
-          {tag}
-        </span>
+      <div className="mt-auto flex items-center justify-between gap-4 border-t border-black/10 pt-6">
+        <span className={homeTagClass}>{tag}</span>
 
-        {href ? (
-          <span className="font-black transition group-hover:translate-x-1 group-hover:text-orange-600">
-            →
-          </span>
-        ) : null}
+        {href ? <span className={homeArrowClass}>→</span> : null}
       </div>
     </>
   );
 
   if (href) {
     return (
-      <a
-        href={href}
-        className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
-      >
+      <a href={href} className={homeCardClass}>
         {content}
       </a>
     );
   }
 
-  return (
-    <article className="rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
-      {content}
-    </article>
-  );
+  return <article className={homeCardClass}>{content}</article>;
 }
 
 function SanityGalleryCard({
@@ -1094,10 +1090,10 @@ function SanityGalleryCard({
   return (
     <a
       href={href}
-      className="group overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
+      className="group flex min-h-[320px] flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
     >
-      <article>
-        <div className="relative h-[300px] overflow-hidden bg-[#d7d5ce]">
+      <article className="h-full">
+        <div className="relative h-[320px] overflow-hidden bg-[#d7d5ce]">
           {image ? (
             <SanityImage
               src={urlFor(image).width(700).height(900).url()}
@@ -1141,8 +1137,8 @@ function GalleryCard({
   alt: string;
 }) {
   return (
-    <article className="group overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
-      <div className="relative h-[300px] overflow-hidden">
+    <article className="group flex min-h-[320px] flex-col overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative h-[320px] overflow-hidden">
         <Image
           src={image}
           alt={alt}
@@ -1188,68 +1184,59 @@ function EventCard({
 }) {
   const content = (
     <>
-      <div className="mb-7 flex items-start justify-between gap-4">
-        <div>
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-black/45">
-            {type}
-          </p>
-
-          <p className="text-sm font-black uppercase tracking-[0.25em] text-black/60">
-            {date}
-          </p>
-
-          {time ? (
-            <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-black/45">
-              {time}
+      <div>
+        <div className="mb-7 flex items-start justify-between gap-4">
+          <div>
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-black/45">
+              {type}
             </p>
-          ) : null}
-        </div>
 
-        <span className="rounded-full border border-black/10 bg-[#d7d5ce] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/65">
-          {status}
-        </span>
-      </div>
+            <p className="text-sm font-black uppercase tracking-[0.25em] text-black/60">
+              {date}
+            </p>
 
-      <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
-        {title}
-      </h3>
+            {time ? (
+              <p className="mt-2 text-xs font-black uppercase tracking-[0.2em] text-black/45">
+                {time}
+              </p>
+            ) : null}
+          </div>
 
-      {location ? (
-        <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-black/45">
-          {location}
-        </p>
-      ) : null}
-
-      <p className="leading-7 text-black/65">{text}</p>
-
-      {href ? (
-        <div className="mt-7 flex justify-end">
-          <span className="font-black transition group-hover:translate-x-1 group-hover:text-orange-600">
-            →
+          <span className="rounded-full border border-black/10 bg-[#d7d5ce] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/65">
+            {status}
           </span>
         </div>
-      ) : null}
+
+        <h3 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+          {title}
+        </h3>
+
+        {location ? (
+          <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-black/45">
+            {location}
+          </p>
+        ) : null}
+
+        <p className="leading-7 text-black/65">{text}</p>
+      </div>
+
+      <div className="mt-auto flex items-center justify-between gap-4 border-t border-black/10 pt-6">
+        <span className={homeTagClass}>{type}</span>
+
+        {href ? <span className={homeArrowClass}>→</span> : <span />}
+      </div>
     </>
   );
 
   if (href) {
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noreferrer"
-        className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
-      >
+      <a href={href} target="_blank" rel="noreferrer" className={homeCardClass}>
         {content}
       </a>
     );
   }
 
-  return (
-    <article className="group rounded-[2rem] border border-black/10 bg-white/75 p-7 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl">
-      {content}
-    </article>
-  );
+  return <article className={homeCardClass}>{content}</article>;
 }
 
 function ContactCard({
