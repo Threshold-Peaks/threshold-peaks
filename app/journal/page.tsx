@@ -5,7 +5,7 @@ import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 
-const filters = ["Alle", "Running", "Cycling", "Music", "Story"];
+export const revalidate = 60;
 
 type SanityJournalPost = {
   _id: string;
@@ -21,6 +21,21 @@ type SanityJournalPost = {
     alt?: string;
   };
 };
+
+type JournalPageProps = {
+  searchParams?: Promise<{
+    category?: string;
+  }>;
+};
+
+const categoryFilters = [
+  { label: "Alle", value: "all" },
+  { label: "Running", value: "running" },
+  { label: "Cycling", value: "cycling" },
+  { label: "Music", value: "music" },
+  { label: "Lifestyle", value: "lifestyle" },
+  { label: "Event", value: "event" },
+];
 
 const query = `*[_type == "journalPost"] | order(publishedAt desc) {
   _id,
@@ -45,18 +60,38 @@ function formatDate(date?: string) {
 
 function formatCategory(category?: string) {
   const categories: Record<string, string> = {
+    running: "Running",
+    cycling: "Cycling",
+    music: "Music",
+    lifestyle: "Lifestyle",
+    event: "Event",
+
     laufen: "Running",
     radfahren: "Cycling",
     musik: "Music",
-    lifestyle: "Story",
-    event: "Event",
   };
 
-  return category ? categories[category] ?? category : "Story";
+  return category ? categories[category] ?? category : "Journal";
 }
 
-export default async function JournalPage() {
+function getFilterHref(category: string) {
+  if (category === "all") {
+    return "/journal";
+  }
+
+  return `/journal?category=${category}`;
+}
+
+export default async function JournalPage({ searchParams }: JournalPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const selectedCategory = resolvedSearchParams.category || "all";
+
   const posts = await client.fetch<SanityJournalPost[]>(query);
+
+  const filteredPosts =
+    selectedCategory === "all"
+      ? posts
+      : posts.filter((post) => post.category === selectedCategory);
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
@@ -64,7 +99,7 @@ export default async function JournalPage() {
 
       <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
         <div className="mx-auto max-w-[1280px]">
-          <div className="max-w-3xl">
+          <div className="mb-10 max-w-3xl">
             <p className="mb-5 text-xs font-bold uppercase tracking-[0.55em] text-neutral-500">
               Journal
             </p>
@@ -80,92 +115,120 @@ export default async function JournalPage() {
             </p>
           </div>
 
-          <div className="mt-12 flex flex-wrap gap-3">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                className="rounded-full bg-[#ded9cf] px-5 py-3 text-xs font-bold uppercase tracking-[0.25em] text-neutral-700 shadow-sm transition hover:bg-[#d1ccc3]"
-              >
-                {filter}
-              </button>
-            ))}
+          <div className="mb-10 flex flex-wrap gap-3">
+            {categoryFilters.map((filter) => {
+              const isActive = selectedCategory === filter.value;
+
+              return (
+                <Link
+                  key={filter.value}
+                  href={getFilterHref(filter.value)}
+                  className={`rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:text-orange-600 ${
+                    isActive
+                      ? "bg-black text-white hover:text-white"
+                      : "bg-[#ded9cf] text-black/65"
+                  }`}
+                >
+                  {filter.label}
+                </Link>
+              );
+            })}
           </div>
 
-          {posts.length === 0 ? (
-            <div className="mt-10 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/10">
+          {filteredPosts.length === 0 ? (
+            <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/10">
               <h2 className="text-2xl font-black tracking-tight">
-                Noch keine Beiträge veröffentlicht.
+                Keine Beiträge in dieser Kategorie.
               </h2>
 
               <p className="mt-4 text-base leading-8 text-neutral-600">
-                Sobald du im Sanity Studio einen Journal-Beitrag
-                veröffentlichst, erscheint er hier automatisch.
+                Sobald du im Sanity Studio passende Journal-Beiträge
+                veröffentlichst, erscheinen sie hier.
               </p>
+
+              <Link
+                href="/journal"
+                className="mt-6 inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-black/65 transition hover:text-orange-600"
+              >
+                Alle Beiträge anzeigen
+              </Link>
             </div>
           ) : (
-            <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {posts.map((post) => {
-                const slug = post.slug?.current;
-                const href = slug ? `/journal/${slug}` : "#";
+            <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+              {filteredPosts.map((post) => {
+                const href = post.slug?.current
+                  ? `/journal/${post.slug.current}`
+                  : "/journal";
 
                 return (
-                  <article
+                  <Link
                     key={post._id}
-                    className="rounded-3xl bg-white p-7 shadow-sm ring-1 ring-black/10 transition hover:-translate-y-1 hover:shadow-md"
+                    href={href}
+                    className="group block overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/10 transition hover:-translate-y-1 hover:shadow-md"
                   >
-                    {post.mainImage && (
-                      <div className="mb-6 overflow-hidden rounded-2xl bg-[#ded9cf]">
-                        <Image
-                          src={urlFor(post.mainImage)
-                            .width(800)
-                            .height(520)
-                            .url()}
-                          alt={post.mainImage.alt || post.title}
-                          width={800}
-                          height={520}
-                          className="h-56 w-full object-cover"
-                        />
-                      </div>
-                    )}
+                    <article className="flex h-full flex-col">
+                      {post.mainImage ? (
+                        <div className="overflow-hidden bg-[#ded9cf]">
+                          <Image
+                            src={urlFor(post.mainImage)
+                              .width(900)
+                              .height(600)
+                              .url()}
+                            alt={post.mainImage.alt || post.title}
+                            width={900}
+                            height={600}
+                            className="aspect-[16/10] w-full object-cover transition duration-500 group-hover:scale-105"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex aspect-[16/10] items-center justify-center bg-[#ded9cf] px-8 text-center">
+                          <p className="text-xs font-black uppercase tracking-[0.32em] text-black/40">
+                            Threshold Peaks Journal
+                          </p>
+                        </div>
+                      )}
 
-                    <div className="mb-8 flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.45em] text-neutral-400">
-                          {formatCategory(post.category)}
-                        </p>
+                      <div className="flex flex-1 flex-col p-7">
+                        <div className="mb-6 flex flex-wrap items-center gap-3">
+                          <span className="inline-flex rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-neutral-700">
+                            {formatCategory(post.category)}
+                          </span>
 
-                        <p className="mt-3 text-sm font-black uppercase tracking-[0.25em] text-neutral-500">
+                          {post.featured ? (
+                            <span className="inline-flex rounded-full bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white">
+                              Featured
+                            </span>
+                          ) : (
+                            <span className="inline-flex rounded-full bg-[#f5f3ee] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-neutral-500 ring-1 ring-black/10">
+                              Live
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="mb-4 text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
                           {formatDate(post.publishedAt)}
                         </p>
+
+                        <h2 className="text-2xl font-black leading-tight tracking-tight text-black transition group-hover:text-orange-600">
+                          {post.title}
+                        </h2>
+
+                        <p className="mt-5 leading-7 text-neutral-600">
+                          {post.excerpt ||
+                            "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
+                        </p>
+
+                        <div className="mt-auto border-t border-neutral-200 pt-5">
+                          <div className="flex items-center justify-between text-sm font-black text-black">
+                            <span>Lesen</span>
+                            <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
+                              →
+                            </span>
+                          </div>
+                        </div>
                       </div>
-
-                      <div className="rounded-full bg-[#ded9cf] px-4 py-2 text-[10px] font-bold uppercase tracking-[0.25em] text-neutral-700 shadow-sm">
-                        {post.featured ? "Featured" : "Live"}
-                      </div>
-                    </div>
-
-                    <h2 className="text-2xl font-black leading-tight tracking-tight text-black">
-                      {post.title}
-                    </h2>
-
-                    <p className="mt-5 min-h-24 text-base leading-8 text-neutral-600">
-                      {post.excerpt ||
-                        "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
-                    </p>
-
-                    <div className="mt-8 border-t border-neutral-200 pt-5">
-                      <Link
-                        href={href}
-                        className="group flex items-center justify-between text-sm font-black text-black"
-                      >
-                        <span>Lesen</span>
-                        <span className="transition group-hover:translate-x-1">
-                          →
-                        </span>
-                      </Link>
-                    </div>
-                  </article>
+                    </article>
+                  </Link>
                 );
               })}
             </div>
