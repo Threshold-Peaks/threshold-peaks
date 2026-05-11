@@ -1,10 +1,10 @@
-import BackToTopButton from "@/components/BackToTopButton";
 import FeatureCard from "./FeatureCard";
 import Image from "next/image";
 import { Image as SanityImage } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import type { ReactNode } from "react";
 import StravaLatest from "@/components/StravaLatest";
+import BackToTopButton from "@/components/BackToTopButton";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 
@@ -212,9 +212,9 @@ export default async function Home() {
 
   return (
     <main
-  id="top"
-  className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]"
->
+      id="top"
+      className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]"
+    >
       {/* HERO */}
       <section className="relative overflow-hidden pb-14 md:pb-16">
         {/* HERO BACKGROUND */}
@@ -240,7 +240,7 @@ export default async function Home() {
         {/* HEADER */}
         <header className="relative z-30 flex h-20 items-center justify-between px-6 md:h-24 md:justify-start md:px-10 lg:px-20">
           <a
-            href="#"
+            href="#top"
             className="flex items-center gap-3 transition hover:text-orange-600"
           >
             <ThresholdPeaksIcon />
@@ -257,7 +257,7 @@ export default async function Home() {
 
           {/* Desktop Navigation */}
           <nav className="ml-10 hidden items-center gap-6 text-sm font-semibold md:flex">
-            <NavLink href="#">Home</NavLink>
+            <NavLink href="#top">Home</NavLink>
             <NavLink href="#about">About</NavLink>
             <NavLink href="#section-running">Running</NavLink>
             <NavLink href="#section-cycling">Cycling</NavLink>
@@ -275,7 +275,7 @@ export default async function Home() {
             </summary>
 
             <div className="absolute right-0 top-14 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
-              <MobileNavLink href="#">Home</MobileNavLink>
+              <MobileNavLink href="#top">Home</MobileNavLink>
               <MobileNavLink href="#about">About</MobileNavLink>
               <MobileNavLink href="#section-running">Running</MobileNavLink>
               <MobileNavLink href="#section-cycling">Cycling</MobileNavLink>
@@ -450,20 +450,11 @@ export default async function Home() {
         className="scroll-mt-24 px-6 py-14 md:px-10 md:py-16 lg:px-20"
       >
         <div className="mx-auto max-w-[1280px]">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
-            Journal
-          </p>
-
-          <div className="mb-10 max-w-3xl">
-            <h2 className="mb-6 text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
-              Geschichten aus Bewegung, Klang und Alltag.
-            </h2>
-
-            <p className="max-w-2xl text-base leading-8 text-black/65 md:text-lg">
-              Hier entsteht ein persönlicher Bereich für Training, Touren, Musik
-              und alles, was Threshold Peaks ausmacht.
-            </p>
-          </div>
+          <HomeSectionHeader
+            label="Journal"
+            title="Geschichten aus Bewegung, Klang und Alltag."
+            text="Hier entsteht ein persönlicher Bereich für Training, Touren, Musik und alles, was Threshold Peaks ausmacht."
+          />
 
           <div className="grid gap-5 md:grid-cols-3">
             {latestPosts.length > 0 ? (
@@ -527,23 +518,14 @@ export default async function Home() {
       {/* GALLERY */}
       <section
         id="gallery"
-        className="scroll-mt-24 px-6 pb-14 md:px-10 md:pb-16 lg:px-20"
+        className="scroll-mt-24 px-6 py-14 md:px-10 md:py-16 lg:px-20"
       >
         <div className="mx-auto max-w-[1280px]">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
-            Galerie
-          </p>
-
-          <div className="mb-10 max-w-3xl">
-            <h2 className="mb-6 text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
-              Momente aus Bewegung, Klang und Freiheit.
-            </h2>
-
-            <p className="max-w-2xl text-base leading-8 text-black/65 md:text-lg">
-              Eine kleine Sammlung aus Läufen, Touren, Musikmomenten und allem,
-              was Threshold Peaks sichtbar macht.
-            </p>
-          </div>
+          <HomeSectionHeader
+            label="Galerie"
+            title="Momente aus Bewegung, Klang und Freiheit."
+            text="Eine kleine Sammlung aus Läufen, Touren, Musikmomenten und allem, was Threshold Peaks sichtbar macht."
+          />
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {latestAlbums.length > 0 ? (
@@ -605,26 +587,17 @@ export default async function Home() {
         </div>
       </section>
 
-            {/* EVENTS */}
+      {/* EVENTS */}
       <section
         id="events"
-        className="scroll-mt-24 px-6 pb-14 md:px-10 md:pb-16 lg:px-20"
+        className="scroll-mt-24 px-6 py-14 md:px-10 md:py-16 lg:px-20"
       >
         <div className="mx-auto max-w-[1280px]">
-          <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
-            Events
-          </p>
-
-          <div className="mb-10 max-w-3xl">
-            <h2 className="mb-6 text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
-              Kommende Termine und Highlights.
-            </h2>
-
-            <p className="max-w-2xl text-base leading-8 text-black/65 md:text-lg">
-              Läufe, Rides, Musikmomente und alles, was bei Threshold Peaks als
-              nächstes ansteht.
-            </p>
-          </div>
+          <HomeSectionHeader
+            label="Events"
+            title="Kommende Termine und Highlights."
+            text="Läufe, Rides, Musikmomente und alles, was bei Threshold Peaks als nächstes ansteht."
+          />
 
           <div className="grid gap-5 md:grid-cols-3">
             {latestEvents.length > 0 ? (
@@ -681,6 +654,7 @@ export default async function Home() {
           </a>
         </div>
       </section>
+
       {/* MUSIC BAR */}
       <section className="px-6 pb-12 md:px-10 lg:px-20">
         <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 p-8 shadow-sm backdrop-blur-xl md:p-10">
@@ -789,7 +763,7 @@ export default async function Home() {
         </div>
       </section>
 
-            {/* FOOTER */}
+      {/* FOOTER */}
       <footer className="px-6 pb-10 pt-4 md:px-10 lg:px-20">
         <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/60 p-7 text-sm text-black/65 shadow-sm backdrop-blur-xl md:p-8">
           <div className="grid gap-8 md:grid-cols-[1.2fr_0.8fr_0.8fr] md:items-start">
@@ -850,25 +824,33 @@ export default async function Home() {
             </div>
 
             <div>
-              <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-black/45">
-                Rechtliches
-              </p>
+  <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-black/45">
+    Rechtliches
+  </p>
 
-              <div className="grid gap-3">
-                <a
-                  href="/impressum"
-                  className="font-bold transition hover:text-orange-600"
-                >
-                  Impressum
-                </a>
-                <a
-                  href="/datenschutz"
-                  className="font-bold transition hover:text-orange-600"
-                >
-                  Datenschutz
-                </a>
-              </div>
-            </div>
+  <div className="grid gap-3">
+    <a
+      href="/impressum"
+      className="font-bold transition hover:text-orange-600"
+    >
+      Impressum
+    </a>
+
+    <a
+      href="/datenschutz"
+      className="font-bold transition hover:text-orange-600"
+    >
+      Datenschutz
+    </a>
+
+    <a
+      href="/studio"
+      className="font-bold transition hover:text-orange-600"
+    >
+      CMS Login
+    </a>
+  </div>
+</div>
           </div>
 
           <div className="mt-8 flex flex-col gap-4 border-t border-black/10 pt-6 text-xs text-black/50 md:flex-row md:items-center md:justify-between">
@@ -1012,6 +994,32 @@ function FocusSection({
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
       </div>
     </article>
+  );
+}
+
+function HomeSectionHeader({
+  label,
+  title,
+  text,
+}: {
+  label: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="mb-10 max-w-3xl">
+      <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/55">
+        {label}
+      </p>
+
+      <h2 className="mb-6 text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
+        {title}
+      </h2>
+
+      <p className="max-w-2xl text-base leading-8 text-black/65 md:text-lg">
+        {text}
+      </p>
+    </div>
   );
 }
 
