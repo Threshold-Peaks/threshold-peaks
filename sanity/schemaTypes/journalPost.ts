@@ -6,21 +6,22 @@ export const journalPost = defineType({
   type: 'document',
   fields: [
     defineField({
-  name: 'category',
-  title: 'Kategorie',
-  type: 'string',
-  options: {
-    list: [
-      {title: 'Running', value: 'running'},
-      {title: 'Cycling', value: 'cycling'},
-      {title: 'Music', value: 'music'},
-      {title: 'Lifestyle', value: 'lifestyle'},
-      {title: 'Event', value: 'event'},
-    ],
-    layout: 'radio',
-  },
-  validation: (Rule) => Rule.required(),
-}),
+      name: 'title',
+      title: 'Titel',
+      type: 'string',
+      validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
+      name: 'slug',
+      title: 'URL-Name',
+      type: 'slug',
+      options: {
+        source: 'title',
+        maxLength: 96,
+      },
+      validation: (Rule) => Rule.required(),
+    }),
 
     defineField({
       name: 'publishedAt',
@@ -29,7 +30,24 @@ export const journalPost = defineType({
       validation: (Rule) => Rule.required(),
     }),
 
-        defineField({
+    defineField({
+      name: 'category',
+      title: 'Kategorie',
+      type: 'string',
+      options: {
+        list: [
+          {title: 'Running', value: 'running'},
+          {title: 'Cycling', value: 'cycling'},
+          {title: 'Music', value: 'music'},
+          {title: 'Lifestyle', value: 'lifestyle'},
+          {title: 'Event', value: 'event'},
+        ],
+        layout: 'radio',
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
       name: 'excerpt',
       title: 'Kurzbeschreibung',
       type: 'text',
@@ -69,12 +87,14 @@ export const journalPost = defineType({
       name: 'stravaUrl',
       title: 'Strava-Link',
       type: 'url',
+      description: 'Optionaler Link zu einer Strava-Aktivität.',
     }),
 
     defineField({
       name: 'soundcloudUrl',
       title: 'SoundCloud-Link',
       type: 'url',
+      description: 'Optionaler Link zu einem SoundCloud-Set oder Track.',
     }),
 
     defineField({
@@ -90,6 +110,21 @@ export const journalPost = defineType({
       title: 'title',
       subtitle: 'category',
       media: 'mainImage',
+    },
+    prepare({title, subtitle, media}) {
+      const categories: Record<string, string> = {
+        running: 'Running',
+        cycling: 'Cycling',
+        music: 'Music',
+        lifestyle: 'Lifestyle',
+        event: 'Event',
+      }
+
+      return {
+        title: title || 'Untitled',
+        subtitle: subtitle ? categories[subtitle] ?? subtitle : 'Ohne Kategorie',
+        media,
+      }
     },
   },
 })
