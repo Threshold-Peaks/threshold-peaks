@@ -1,40 +1,34 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 
 type GalleryImage = SanityImageSource & {
+  _key?: string;
   alt?: string;
   caption?: string;
 };
 
 type GalleryAlbum = {
-  _id: string;
   title: string;
-  slug?: {
-    current?: string;
-  };
   date?: string;
   location?: string;
   category?: string;
   description?: string;
   coverImage?: GalleryImage;
   images?: GalleryImage[];
-  featured?: boolean;
 };
 
-const query = `*[_type == "galleryAlbum"] | order(date desc) {
-  _id,
+const query = `*[_type == "galleryAlbum" && slug.current == $slug][0]{
   title,
-  slug,
   date,
   location,
   category,
   description,
   coverImage,
-  images,
-  featured
+  images
 }`;
 
 function formatDate(date?: string) {
@@ -59,143 +53,110 @@ function formatCategory(category?: string) {
   return category ? categories[category] ?? category : "Galerie";
 }
 
-export default async function GaleriePage() {
-  const albums = await client.fetch<GalleryAlbum[]>(query);
+export default async function GalleryAlbumPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const album = await client.fetch<GalleryAlbum | null>(query, { slug });
+
+  if (!album) {
+    notFound();
+  }
+
+  const images = album.images || [];
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <section className="mx-auto max-w-6xl px-6 py-16">
-        <div className="mb-10">
-          <Link
-            href="/"
-            className="inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
-          >
-            ← Zurück zur Startseite
-          </Link>
-        </div>
-
-        <div className="mb-12">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-neutral-500">
-            Threshold Peaks
-          </p>
-
-          <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-            Galerie
-          </h1>
-
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-neutral-700">
-            Eine kleine Sammlung aus Bewegung, Ausdauer, Musik und Momenten,
-            die den Puls der Seite sichtbar machen.
-          </p>
-        </div>
-
-        {albums.length === 0 ? (
-          <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/10">
-            <h2 className="text-2xl font-black tracking-tight">
-              Noch keine Galerie-Alben veröffentlicht.
-            </h2>
-
-            <p className="mt-4 text-base leading-8 text-neutral-600">
-              Sobald du im Sanity Studio ein Galerie-Album veröffentlichst,
-              erscheint es hier automatisch.
-            </p>
+      <section className="px-6 py-16 md:px-10 lg:px-20">
+        <div className="mx-auto max-w-[1280px]">
+          <div className="mb-10">
+            <Link
+              href="/gallery"
+              className="inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-sm font-bold text-black shadow-sm transition hover:bg-[#d1ccc3]"
+            >
+              ← Zurück zur Galerie
+            </Link>
           </div>
-        ) : (
-          <div className="grid gap-8 md:grid-cols-2">
-            {albums.map((album) => {
-              const coverImage = album.coverImage || album.images?.[0];
-              const previewImages = album.images?.slice(0, 4) || [];
-              const href = album.slug?.current
-                ? `/gallery/${album.slug.current}`
-                : "#";
 
-              return (
-                <article
-                  key={album._id}
-                  className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/10 transition hover:-translate-y-1 hover:shadow-md"
+          <div className="max-w-3xl">
+            <div className="mb-8 flex flex-wrap items-center gap-3">
+              <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-neutral-700">
+                {formatCategory(album.category)}
+              </span>
+
+              <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
+                {formatDate(album.date)}
+              </span>
+
+              {album.location && (
+                <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
+                  {album.location}
+                </span>
+              )}
+            </div>
+
+            <h1 className="text-5xl font-black leading-none tracking-tight md:text-7xl">
+              {album.title}
+            </h1>
+
+            {album.description && (
+              <p className="mt-8 text-xl leading-9 text-neutral-600">
+                {album.description}
+              </p>
+            )}
+          </div>
+
+          {album.coverImage && (
+            <div className="mt-12 overflow-hidden rounded-3xl bg-[#ded9cf] shadow-sm ring-1 ring-black/10">
+              <Image
+                src={urlFor(album.coverImage).width(1400).height(800).url()}
+                alt={album.coverImage.alt || album.title}
+                width={1400}
+                height={800}
+                priority
+                className="aspect-[16/9] w-full object-cover"
+              />
+            </div>
+          )}
+
+          {images.length === 0 ? (
+            <div className="mt-12 max-w-3xl rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/10">
+              <h2 className="text-2xl font-black tracking-tight">
+                Noch keine Bilder im Album.
+              </h2>
+
+              <p className="mt-4 text-base leading-8 text-neutral-600">
+                Sobald du im Sanity Studio Bilder hinzufügst und
+                veröffentlichst, erscheinen sie hier.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-12 grid gap-8 md:grid-cols-2">
+              {images.map((image, index) => (
+                <figure
+                  key={image._key || index}
+                  className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/10"
                 >
-                  {coverImage && (
-                    <div className="overflow-hidden bg-[#ded9cf]">
-                      <Image
-                        src={urlFor(coverImage).width(1000).height(650).url()}
-                        alt={coverImage.alt || album.title}
-                        width={1000}
-                        height={650}
-                        className="h-72 w-full object-cover"
-                      />
-                    </div>
+                  <Image
+                    src={urlFor(image).width(1000).height(750).url()}
+                    alt={image.alt || `${album.title} Bild ${index + 1}`}
+                    width={1000}
+                    height={750}
+                    className="aspect-[4/3] w-full object-cover"
+                  />
+
+                  {image.caption && (
+                    <figcaption className="p-5 text-base leading-7 text-neutral-700">
+                      {image.caption}
+                    </figcaption>
                   )}
-
-                  <div className="p-7">
-                    <div className="mb-5 flex flex-wrap items-center gap-3">
-                      <div className="inline-flex rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-neutral-700">
-                        {formatCategory(album.category)}
-                      </div>
-
-                      {album.featured && (
-                        <div className="inline-flex rounded-full bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white">
-                          Featured
-                        </div>
-                      )}
-                    </div>
-
-                    <h2 className="text-2xl font-bold text-black">
-                      {album.title}
-                    </h2>
-
-                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                      <span>{formatDate(album.date)}</span>
-                      {album.location && <span>{album.location}</span>}
-                    </div>
-
-                    {album.description && (
-                      <p className="mt-4 leading-7 text-neutral-700">
-                        {album.description}
-                      </p>
-                    )}
-
-                    {previewImages.length > 0 && (
-                      <div className="mt-7 grid grid-cols-2 gap-3">
-                        {previewImages.map((image, index) => (
-                          <figure
-                            key={`${album._id}-${index}`}
-                            className="overflow-hidden rounded-2xl bg-[#f5f3ee]"
-                          >
-                            <Image
-                              src={urlFor(image).width(600).height(450).url()}
-                              alt={image.alt || album.title}
-                              width={600}
-                              height={450}
-                              className="h-40 w-full object-cover"
-                            />
-
-                            {image.caption && (
-                              <figcaption className="p-3 text-sm leading-6 text-neutral-700">
-                                {image.caption}
-                              </figcaption>
-                            )}
-                          </figure>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="mt-8 border-t border-neutral-200 pt-5">
-                      <Link
-                        href={href}
-                        className="group flex items-center justify-between text-sm font-black text-black"
-                      >
-                        <span>Album ansehen</span>
-                        <span className="transition group-hover:translate-x-1">
-                          →
-                        </span>
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
+                </figure>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     </main>
   );
