@@ -1,9 +1,12 @@
 import BackHeader from "@/components/BackHeader";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
+
+const baseUrl = "https://www.threshold-peaks.de";
 
 type GalleryImage = SanityImageSource & {
   _key?: string;
@@ -30,6 +33,79 @@ const query = `*[_type == "galleryAlbum" && slug.current == $slug][0]{
   coverImage,
   images
 }`;
+
+async function getGalleryAlbum(slug: string) {
+  return client.fetch<GalleryAlbum | null>(query, { slug });
+}
+
+function getMetaDescription(album: GalleryAlbum) {
+  return (
+    album.description ||
+    "Ein Galerie-Album von Threshold Peaks mit Momenten aus Bewegung, Ausdauer, Musik und aktivem Lifestyle."
+  );
+}
+
+function getOgImage(album: GalleryAlbum) {
+  const image = album.coverImage || album.images?.[0];
+
+  if (!image) {
+    return `${baseUrl}/opengraph-image`;
+  }
+
+  return urlFor(image).width(1200).height(630).fit("crop").url();
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const album = await getGalleryAlbum(slug);
+
+  if (!album) {
+    return {
+      title: "Album nicht gefunden | Threshold Peaks",
+      description:
+        "Dieses Galerie-Album wurde nicht gefunden oder ist nicht mehr verfügbar.",
+    };
+  }
+
+  const title = album.title;
+  const description = getMetaDescription(album);
+  const url = `${baseUrl}/gallery/${slug}`;
+  const image = getOgImage(album);
+  const imageAlt = album.coverImage?.alt || album.images?.[0]?.alt || album.title;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title,
+      description,
+      url,
+      siteName: "Threshold Peaks",
+      type: "article",
+      images: [
+        {
+          url: image,
+          width: 1200,
+          height: 630,
+          alt: imageAlt,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
 
 function formatDate(date?: string) {
   if (!date) return "Ohne Datum";
@@ -59,7 +135,7 @@ export default async function GalleryAlbumPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const album = await client.fetch<GalleryAlbum | null>(query, { slug });
+  const album = await getGalleryAlbum(slug);
 
   if (!album) {
     notFound();
