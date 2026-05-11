@@ -212,6 +212,12 @@ function formatEventStatus(status?: string) {
   return status ? statuses[status] ?? status : "Geplant";
 }
 
+function getHomeEventHref(event: HomeEvent) {
+  return event.slug?.current
+    ? `/events/${event.slug.current}`
+    : event.externalUrl;
+}
+
 export default async function Home() {
   const [latestPosts, latestAlbums, allEvents] = await Promise.all([
     client.fetch<HomeJournalPost[]>(latestJournalQuery),
@@ -625,7 +631,7 @@ export default async function Home() {
                   }
                   status={formatEventStatus(event.status)}
                   location={event.location}
-                  href={event.externalUrl}
+                  href={getHomeEventHref(event)}
                 />
               ))
             ) : (
@@ -1231,8 +1237,15 @@ function EventCard({
   );
 
   if (href) {
+    const isExternal = href.startsWith("http");
+
     return (
-      <a href={href} target="_blank" rel="noreferrer" className={homeCardClass}>
+      <a
+        href={href}
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noreferrer" : undefined}
+        className={homeCardClass}
+      >
         {content}
       </a>
     );
