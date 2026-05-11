@@ -28,6 +28,21 @@ type GalleryAlbum = {
   featured?: boolean;
 };
 
+type GaleriePageProps = {
+  searchParams?: Promise<{
+    category?: string;
+  }>;
+};
+
+const categoryFilters = [
+  { label: "Alle", value: "all" },
+  { label: "Running", value: "running" },
+  { label: "Cycling", value: "cycling" },
+  { label: "Music", value: "music" },
+  { label: "Lifestyle", value: "lifestyle" },
+  { label: "Event", value: "event" },
+];
+
 const query = `*[_type == "galleryAlbum"] | order(date desc) {
   _id,
   title,
@@ -71,8 +86,24 @@ function formatImageCount(count?: number) {
   return `${count} Bilder`;
 }
 
-export default async function GaleriePage() {
+function getFilterHref(category: string) {
+  if (category === "all") {
+    return "/gallery";
+  }
+
+  return `/gallery?category=${category}`;
+}
+
+export default async function GaleriePage({ searchParams }: GaleriePageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const selectedCategory = resolvedSearchParams.category || "all";
+
   const albums = await client.fetch<GalleryAlbum[]>(query);
+
+  const filteredAlbums =
+    selectedCategory === "all"
+      ? albums
+      : albums.filter((album) => album.category === selectedCategory);
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
@@ -80,7 +111,7 @@ export default async function GaleriePage() {
 
       <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
         <div className="mx-auto max-w-[1280px]">
-          <div className="mb-12 max-w-3xl">
+          <div className="mb-10 max-w-3xl">
             <p className="mb-5 text-xs font-bold uppercase tracking-[0.55em] text-neutral-500">
               Threshold Peaks
             </p>
@@ -95,20 +126,47 @@ export default async function GaleriePage() {
             </p>
           </div>
 
-          {albums.length === 0 ? (
+          <div className="mb-10 flex flex-wrap gap-3">
+            {categoryFilters.map((filter) => {
+              const isActive = selectedCategory === filter.value;
+
+              return (
+                <Link
+                  key={filter.value}
+                  href={getFilterHref(filter.value)}
+                  className={`rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:text-orange-600 ${
+                    isActive
+                      ? "bg-black text-white hover:text-white"
+                      : "bg-[#ded9cf] text-black/65"
+                  }`}
+                >
+                  {filter.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          {filteredAlbums.length === 0 ? (
             <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/10">
               <h2 className="text-2xl font-black tracking-tight">
-                Noch keine Galerie-Alben veröffentlicht.
+                Keine Alben in dieser Kategorie.
               </h2>
 
               <p className="mt-4 text-base leading-8 text-neutral-600">
-                Sobald du im Sanity Studio ein Galerie-Album veröffentlichst,
-                erscheint es hier automatisch.
+                Sobald du im Sanity Studio passende Galerie-Alben
+                veröffentlichst, erscheinen sie hier.
               </p>
+
+              <Link
+                href="/gallery"
+                className="mt-6 inline-flex rounded-full bg-[#ded9cf] px-5 py-3 text-xs font-black uppercase tracking-[0.24em] text-black/65 transition hover:text-orange-600"
+              >
+                Alle Alben anzeigen
+              </Link>
             </div>
           ) : (
             <div className="grid gap-8 md:grid-cols-2">
-              {albums.map((album) => {
+              {filteredAlbums.map((album) => {
                 const previewImages = album.previewImages || [];
                 const coverImage = album.coverImage || previewImages[0];
                 const href = album.slug?.current
