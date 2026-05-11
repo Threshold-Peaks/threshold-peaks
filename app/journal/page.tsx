@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { Image } from "next-sanity/image";
+import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
 
 const filters = ["Alle", "Running", "Cycling", "Music", "Story"];
 
@@ -13,6 +16,9 @@ type SanityJournalPost = {
   category?: string;
   excerpt?: string;
   featured?: boolean;
+  mainImage?: SanityImageSource & {
+    alt?: string;
+  };
 };
 
 const query = `*[_type == "journalPost"] | order(publishedAt desc) {
@@ -22,7 +28,8 @@ const query = `*[_type == "journalPost"] | order(publishedAt desc) {
   publishedAt,
   category,
   excerpt,
-  featured
+  featured,
+  mainImage
 }`;
 
 function formatDate(date?: string) {
@@ -111,6 +118,18 @@ export default async function JournalPage() {
                   key={post._id}
                   className="rounded-3xl bg-white p-7 shadow-sm ring-1 ring-black/10 transition hover:-translate-y-1 hover:shadow-md"
                 >
+                  {post.mainImage && (
+                    <div className="mb-6 overflow-hidden rounded-2xl bg-[#ded9cf]">
+                      <Image
+                        src={urlFor(post.mainImage).width(800).height(520).url()}
+                        alt={post.mainImage.alt || post.title}
+                        width={800}
+                        height={520}
+                        className="h-56 w-full object-cover"
+                      />
+                    </div>
+                  )}
+
                   <div className="mb-8 flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-bold uppercase tracking-[0.45em] text-neutral-400">
@@ -131,7 +150,8 @@ export default async function JournalPage() {
                   </h2>
 
                   <p className="mt-5 min-h-24 text-base leading-8 text-neutral-600">
-                    {post.excerpt || "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
+                    {post.excerpt ||
+                      "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
                   </p>
 
                   <div className="mt-8 border-t border-neutral-200 pt-5">

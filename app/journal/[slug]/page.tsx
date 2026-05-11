@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PortableText } from "@portabletext/react";
+import { Image } from "next-sanity/image";
+import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
 
 type JournalPost = {
   title: string;
@@ -11,6 +14,9 @@ type JournalPost = {
   body?: any[];
   stravaUrl?: string;
   soundcloudUrl?: string;
+  mainImage?: SanityImageSource & {
+    alt?: string;
+  };
 };
 
 const query = `*[_type == "journalPost" && slug.current == $slug][0]{
@@ -20,7 +26,8 @@ const query = `*[_type == "journalPost" && slug.current == $slug][0]{
   excerpt,
   body,
   stravaUrl,
-  soundcloudUrl
+  soundcloudUrl,
+  mainImage
 }`;
 
 function formatDate(date?: string) {
@@ -87,6 +94,19 @@ export default async function JournalPostPage({
           <p className="mt-8 text-xl leading-9 text-neutral-600">
             {post.excerpt}
           </p>
+        )}
+
+        {post.mainImage && (
+          <div className="mt-10 overflow-hidden rounded-3xl bg-[#ded9cf] shadow-sm ring-1 ring-black/10">
+            <Image
+              src={urlFor(post.mainImage).width(1200).height(675).url()}
+              alt={post.mainImage.alt || post.title}
+              width={1200}
+              height={675}
+              priority
+              className="aspect-video w-full object-cover"
+            />
+          </div>
         )}
 
         <div className="mt-12 rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/10">
