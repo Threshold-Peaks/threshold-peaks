@@ -5,6 +5,8 @@ import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 
+export const revalidate = 60;
+
 type GalleryImage = SanityImageSource & {
   alt?: string;
   caption?: string;
@@ -21,7 +23,8 @@ type GalleryAlbum = {
   category?: string;
   description?: string;
   coverImage?: GalleryImage;
-  images?: GalleryImage[];
+  previewImages?: GalleryImage[];
+  imageCount?: number;
   featured?: boolean;
 };
 
@@ -34,7 +37,8 @@ const query = `*[_type == "galleryAlbum"] | order(date desc) {
   category,
   description,
   coverImage,
-  images,
+  "previewImages": images[0...4],
+  "imageCount": count(images[]),
   featured
 }`;
 
@@ -58,6 +62,13 @@ function formatCategory(category?: string) {
   };
 
   return category ? categories[category] ?? category : "Galerie";
+}
+
+function formatImageCount(count?: number) {
+  if (!count) return "Keine Bilder";
+  if (count === 1) return "1 Bild";
+
+  return `${count} Bilder`;
 }
 
 export default async function GaleriePage() {
@@ -98,8 +109,8 @@ export default async function GaleriePage() {
           ) : (
             <div className="grid gap-8 md:grid-cols-2">
               {albums.map((album) => {
-                const coverImage = album.coverImage || album.images?.[0];
-                const previewImages = album.images?.slice(0, 4) || [];
+                const previewImages = album.previewImages || [];
+                const coverImage = album.coverImage || previewImages[0];
                 const href = album.slug?.current
                   ? `/gallery/${album.slug.current}`
                   : "/gallery";
@@ -146,6 +157,7 @@ export default async function GaleriePage() {
                         <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold uppercase tracking-[0.18em] text-neutral-500">
                           <span>{formatDate(album.date)}</span>
                           {album.location && <span>{album.location}</span>}
+                          <span>{formatImageCount(album.imageCount)}</span>
                         </div>
 
                         {album.description && (
@@ -161,34 +173,34 @@ export default async function GaleriePage() {
                                 key={`${album._id}-${index}`}
                                 className="overflow-hidden rounded-2xl bg-[#f5f3ee]"
                               >
-                               <Image
-  src={urlFor(image)
-    .width(800)
-    .height(600)
-    .url()}
-  alt={image.alt || album.title}
-  width={800}
-  height={600}
-  className="aspect-[4/3] w-full object-cover"
-/>
+                                <Image
+                                  src={urlFor(image)
+                                    .width(800)
+                                    .height(600)
+                                    .url()}
+                                  alt={image.alt || album.title}
+                                  width={800}
+                                  height={600}
+                                  className="aspect-[4/3] w-full object-cover"
+                                />
 
                                 {image.caption && (
-  <figcaption className="min-h-[92px] border-t border-black/10 bg-[#f5f3ee]/85 px-4 py-4">
-    <div className="flex items-start gap-3">
-      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+                                  <figcaption className="min-h-[92px] border-t border-black/10 bg-[#f5f3ee]/85 px-4 py-4">
+                                    <div className="flex items-start gap-3">
+                                      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
 
-      <div>
-        <p className="mb-1 text-[9px] font-black uppercase tracking-[0.28em] text-black/35">
-          Moment
-        </p>
+                                      <div>
+                                        <p className="mb-1 text-[9px] font-black uppercase tracking-[0.28em] text-black/35">
+                                          Moment
+                                        </p>
 
-        <p className="text-sm font-semibold leading-6 text-black/70">
-          {image.caption}
-        </p>
-      </div>
-    </div>
-  </figcaption>
-)}
+                                        <p className="text-sm font-semibold leading-6 text-black/70">
+                                          {image.caption}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </figcaption>
+                                )}
                               </figure>
                             ))}
                           </div>
