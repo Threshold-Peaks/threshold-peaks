@@ -105,78 +105,93 @@ export default async function GaleriePage() {
             {albums.map((album) => {
               const coverImage = album.coverImage || album.images?.[0];
               const previewImages = album.images?.slice(0, 4) || [];
+              const href = album.slug?.current
+                ? `/gallery/${album.slug.current}`
+                : "/gallery";
 
               return (
-                <article
+                <Link
                   key={album._id}
-                  className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/10 transition hover:-translate-y-1 hover:shadow-md"
+                  href={href}
+                  className="group block overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/10 transition hover:-translate-y-1 hover:shadow-md"
                 >
-                  {coverImage && (
-                    <div className="overflow-hidden bg-[#ded9cf]">
-                      <Image
-                        src={urlFor(coverImage).width(1000).height(650).url()}
-                        alt={coverImage.alt || album.title}
-                        width={1000}
-                        height={650}
-                        className="h-72 w-full object-cover"
-                      />
-                    </div>
-                  )}
+                  <article>
+                    {coverImage && (
+                      <div className="overflow-hidden bg-[#ded9cf]">
+                        <Image
+                          src={urlFor(coverImage).width(1000).height(650).url()}
+                          alt={coverImage.alt || album.title}
+                          width={1000}
+                          height={650}
+                          className="h-72 w-full object-cover transition duration-500 group-hover:scale-105"
+                        />
+                      </div>
+                    )}
 
-                  <div className="p-7">
-                    <div className="mb-5 flex flex-wrap items-center gap-3">
-                      <div className="inline-flex rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-neutral-700">
-                        {formatCategory(album.category)}
+                    <div className="p-7">
+                      <div className="mb-5 flex flex-wrap items-center gap-3">
+                        <div className="inline-flex rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-neutral-700">
+                          {formatCategory(album.category)}
+                        </div>
+
+                        {album.featured && (
+                          <div className="inline-flex rounded-full bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white">
+                            Featured
+                          </div>
+                        )}
                       </div>
 
-                      {album.featured && (
-                        <div className="inline-flex rounded-full bg-black px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-white">
-                          Featured
+                      <h2 className="text-2xl font-bold text-black">
+                        {album.title}
+                      </h2>
+
+                      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold uppercase tracking-[0.18em] text-neutral-500">
+                        <span>{formatDate(album.date)}</span>
+                        {album.location && <span>{album.location}</span>}
+                      </div>
+
+                      {album.description && (
+                        <p className="mt-4 leading-7 text-neutral-700">
+                          {album.description}
+                        </p>
+                      )}
+
+                      {previewImages.length > 0 && (
+                        <div className="mt-7 grid grid-cols-2 gap-3">
+                          {previewImages.map((image, index) => (
+                            <figure
+                              key={`${album._id}-${index}`}
+                              className="overflow-hidden rounded-2xl bg-[#f5f3ee]"
+                            >
+                              <Image
+                                src={urlFor(image).width(600).height(450).url()}
+                                alt={image.alt || album.title}
+                                width={600}
+                                height={450}
+                                className="h-40 w-full object-cover"
+                              />
+
+                              {image.caption && (
+                                <figcaption className="p-3 text-sm leading-6 text-neutral-700">
+                                  {image.caption}
+                                </figcaption>
+                              )}
+                            </figure>
+                          ))}
                         </div>
                       )}
-                    </div>
 
-                    <h2 className="text-2xl font-bold text-black">
-                      {album.title}
-                    </h2>
-
-                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                      <span>{formatDate(album.date)}</span>
-                      {album.location && <span>{album.location}</span>}
-                    </div>
-
-                    {album.description && (
-                      <p className="mt-4 leading-7 text-neutral-700">
-                        {album.description}
-                      </p>
-                    )}
-
-                    {previewImages.length > 0 && (
-                      <div className="mt-7 grid grid-cols-2 gap-3">
-                        {previewImages.map((image, index) => (
-                          <figure
-                            key={`${album._id}-${index}`}
-                            className="overflow-hidden rounded-2xl bg-[#f5f3ee]"
-                          >
-                            <Image
-                              src={urlFor(image).width(600).height(450).url()}
-                              alt={image.alt || album.title}
-                              width={600}
-                              height={450}
-                              className="h-40 w-full object-cover"
-                            />
-
-                            {image.caption && (
-                              <figcaption className="p-3 text-sm leading-6 text-neutral-700">
-                                {image.caption}
-                              </figcaption>
-                            )}
-                          </figure>
-                        ))}
+                      <div className="mt-8 border-t border-neutral-200 pt-5">
+                        <div className="flex items-center justify-between text-sm font-black text-black">
+                          <span>Album ansehen</span>
+                          <span className="transition group-hover:translate-x-1">
+                            →
+                          </span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </article>
+                    </div>
+                  </article>
+                </Link>
               );
             })}
           </div>
