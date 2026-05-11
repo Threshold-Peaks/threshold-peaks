@@ -210,7 +210,10 @@ export default async function Home() {
   const latestEvents = allEvents.filter(isUpcomingHomeEvent).slice(0, 3);
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]">
+    <main
+  id="top"
+  className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]"
+>
       {/* HERO */}
       <section className="relative overflow-hidden pb-14 md:pb-16">
         {/* HERO BACKGROUND */}
@@ -810,7 +813,16 @@ export default async function Home() {
             Datenschutz
           </a>
         </div>
-      </footer>
+            </footer>
+
+      <a
+        href="#top"
+        aria-label="Nach oben"
+        className="fixed bottom-6 left-6 z-50 inline-flex items-center gap-2 rounded-md border border-black/10 bg-[#d7d5ce] px-4 py-3 text-xs font-black uppercase tracking-[0.22em] text-[#111217] shadow-md transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
+      >
+        <span>↑</span>
+        <span className="hidden sm:inline">Top</span>
+      </a>
     </main>
   );
 }
