@@ -121,7 +121,7 @@ export default async function GaleriePage() {
                             alt={coverImage.alt || album.title}
                             width={1000}
                             height={650}
-                            className="h-72 w-full object-cover transition duration-500 group-hover:scale-105"
+                            className="aspect-[16/10] w-full object-cover transition duration-500 group-hover:scale-105"
                           />
                         </div>
                       )}
@@ -161,19 +161,19 @@ export default async function GaleriePage() {
                                 key={`${album._id}-${index}`}
                                 className="overflow-hidden rounded-2xl bg-[#f5f3ee]"
                               >
-                                <Image
-                                  src={urlFor(image)
-                                    .width(600)
-                                    .height(450)
-                                    .url()}
-                                  alt={image.alt || album.title}
-                                  width={600}
-                                  height={450}
-                                  className="h-40 w-full object-cover"
-                                />
+                               <Image
+  src={urlFor(image)
+    .width(800)
+    .height(600)
+    .url()}
+  alt={image.alt || album.title}
+  width={800}
+  height={600}
+  className="aspect-[4/3] w-full object-cover"
+/>
 
                                 {image.caption && (
-  <figcaption className="border-t border-black/10 bg-[#f5f3ee]/85 px-4 py-4">
+  <figcaption className="min-h-[92px] border-t border-black/10 bg-[#f5f3ee]/85 px-4 py-4">
     <div className="flex items-start gap-3">
       <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
 

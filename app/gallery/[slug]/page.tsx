@@ -178,18 +178,40 @@ export default async function GalleryAlbumPage({
           </div>
 
           {album.coverImage && (
-            <div className="mt-12 overflow-hidden rounded-3xl bg-[#ded9cf] shadow-sm ring-1 ring-black/10">
-              <Image
-                src={urlFor(album.coverImage).width(1400).height(800).url()}
-                alt={album.coverImage.alt || album.title}
-                width={1400}
-                height={800}
-                priority
-                className="aspect-[16/9] w-full object-cover"
-              />
-            </div>
-          )}
+  <div className="mt-12 max-w-5xl">
+    <div className="mb-4 flex items-center gap-3">
+      <span className="rounded-full bg-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white">
+        Album-Cover
+      </span>
 
+      <span className="text-xs font-black uppercase tracking-[0.25em] text-black/40">
+        Auftakt
+      </span>
+    </div>
+
+    <div className="overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-black/10">
+      <div className="overflow-hidden rounded-[1.5rem] bg-[#ded9cf]">
+        <Image
+          src={urlFor(album.coverImage).width(1100).height(700).url()}
+          alt={album.coverImage.alt || album.title}
+          width={1100}
+          height={700}
+          priority
+          className="aspect-[16/10] w-full object-cover"
+        />
+      </div>
+    </div>
+  </div>
+)}
+<div className="mt-16 mb-7">
+  <p className="mb-3 text-xs font-black uppercase tracking-[0.35em] text-black/40">
+    Galerie
+  </p>
+
+  <h2 className="text-3xl font-black leading-tight tracking-[-0.04em]">
+    Bilder aus dem Album
+  </h2>
+</div>
           {images.length === 0 ? (
             <div className="mt-12 max-w-3xl rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/10">
               <h2 className="text-2xl font-black tracking-tight">
