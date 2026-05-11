@@ -11,6 +11,7 @@ type EventPageItem = {
   };
   startDate?: string;
   endDate?: string;
+  time?: string;
   location?: string;
   eventType?: string;
   teaser?: string;
@@ -159,7 +160,7 @@ export default async function EventsPage() {
                   <EventOverviewCard
                     key={event._id}
                     date={formatEventDate(event.startDate, event.endDate)}
-                    time={formatEventTime(event.startDate)}
+                    time={event.time || formatEventTime(event.startDate)}
                     title={event.title}
                     type={formatEventType(event.eventType)}
                     text={
@@ -194,7 +195,7 @@ export default async function EventsPage() {
                   <EventOverviewCard
                     key={event._id}
                     date={formatEventDate(event.startDate, event.endDate)}
-                    time={formatEventTime(event.startDate)}
+                    time={event.time || formatEventTime(event.startDate)}
                     title={event.title}
                     type={formatEventType(event.eventType)}
                     text={
