@@ -1,12 +1,100 @@
 import FeatureCard from "./FeatureCard";
 import Image from "next/image";
+import { Image as SanityImage } from "next-sanity/image";
+import type { SanityImageSource } from "@sanity/image-url";
 import type { ReactNode } from "react";
 import StravaLatest from "@/components/StravaLatest";
+import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
+
+export const revalidate = 60;
 
 const grayButtonClass =
   "inline-flex items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]";
+type HomeJournalPost = {
+  _id: string;
+  title: string;
+  slug?: {
+    current?: string;
+  };
+  publishedAt?: string;
+  category?: string;
+  excerpt?: string;
+};
 
-export default function Home() {
+type HomeGalleryImage = SanityImageSource & {
+  alt?: string;
+  caption?: string;
+};
+
+type HomeGalleryAlbum = {
+  _id: string;
+  title: string;
+  slug?: {
+    current?: string;
+  };
+  category?: string;
+  coverImage?: HomeGalleryImage;
+  images?: HomeGalleryImage[];
+};
+
+const latestJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc)[0...3] {
+  _id,
+  title,
+  slug,
+  publishedAt,
+  category,
+  excerpt
+}`;
+
+const latestGalleryQuery = `*[_type == "galleryAlbum"] | order(date desc)[0...4] {
+  _id,
+  title,
+  slug,
+  category,
+  coverImage,
+  images
+}`;
+
+function formatHomeDate(date?: string) {
+  if (!date) return "Journal";
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
+function formatJournalCategory(category?: string) {
+  const categories: Record<string, string> = {
+    laufen: "Running",
+    radfahren: "Cycling",
+    musik: "Music",
+    lifestyle: "Story",
+    event: "Event",
+  };
+
+  return category ? categories[category] ?? category : "Story";
+}
+
+function formatGalleryCategory(category?: string) {
+  const categories: Record<string, string> = {
+    running: "Running",
+    cycling: "Cycling",
+    music: "Music",
+    lifestyle: "Life",
+    event: "Event",
+  };
+
+  return category ? categories[category] ?? category : "Galerie";
+}
+export default async function Home() {
+  const [latestPosts, latestAlbums] = await Promise.all([
+    client.fetch<HomeJournalPost[]>(latestJournalQuery),
+    client.fetch<HomeGalleryAlbum[]>(latestGalleryQuery),
+  ]);
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]">
       {/* HERO */}
@@ -260,28 +348,54 @@ export default function Home() {
           </div>
 
           <div className="grid gap-5 md:grid-cols-3">
-            <JournalCard
-              category="Journal"
-              title="Warum Threshold Peaks?"
-              text="Über persönliche Schwellen, kleine Peaks und das Potenzial, das entsteht, wenn man bewusst weitergeht."
-              tag="Story"
-              href="/journal/warum-threshold-peaks"
-            />
+  {latestPosts.length > 0 ? (
+    latestPosts.map((post) => {
+      const href = post.slug?.current
+        ? `/journal/${post.slug.current}`
+        : "/journal";
 
-            <JournalCard
-              category="Gravel Diaries"
-              title="Wege, Wälder und Ausgleich"
-              text="Rennrad, Gravelbike und Touren draußen. Alles, was Bewegung leichter macht und den Kopf freipustet."
-              tag="Radfahren"
-            />
+      return (
+        <JournalCard
+          key={post._id}
+          category={formatHomeDate(post.publishedAt)}
+          title={post.title}
+          text={
+            post.excerpt ||
+            "Ein neuer Beitrag aus dem Threshold Peaks Journal."
+          }
+          tag={formatJournalCategory(post.category)}
+          href={href}
+        />
+      );
+    })
+  ) : (
+    <>
+      <JournalCard
+        category="Journal"
+        title="Warum Threshold Peaks?"
+        text="Über persönliche Schwellen, kleine Peaks und das Potenzial, das entsteht, wenn man bewusst weitergeht."
+        tag="Story"
+        href="/journal"
+      />
 
-            <JournalCard
-              category="Sound & Motion"
-              title="Beats für lange Strecken"
-              text="Elektronische Musik, DJ-Sets, Tracks und die Verbindung zwischen Rhythmus, Energie und Bewegung."
-              tag="Musik"
-            />
-          </div>
+      <JournalCard
+        category="Gravel Diaries"
+        title="Wege, Wälder und Ausgleich"
+        text="Rennrad, Gravelbike und Touren draußen. Alles, was Bewegung leichter macht und den Kopf freipustet."
+        tag="Radfahren"
+        href="/journal"
+      />
+
+      <JournalCard
+        category="Sound & Motion"
+        title="Beats für lange Strecken"
+        text="Elektronische Musik, DJ-Sets, Tracks und die Verbindung zwischen Rhythmus, Energie und Bewegung."
+        tag="Musik"
+        href="/journal"
+      />
+    </>
+  )}
+</div>
 
           <a
             href="/journal"
@@ -314,34 +428,55 @@ export default function Home() {
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <GalleryCard
-              title="Checkpoint Run"
-              category="Running"
-              image="/images/running-checkpoint.webp"
-              alt="Matthias beim Lauf am Checkpoint Charlie"
-            />
+  {latestAlbums.length > 0 ? (
+    latestAlbums.map((album) => {
+      const image = album.coverImage || album.images?.[0];
+      const href = album.slug?.current
+        ? `/gallery/${album.slug.current}`
+        : "/gallery";
 
-            <GalleryCard
-              title="Gravel Woods"
-              category="Cycling"
-              image="/images/cycling-gravel.webp"
-              alt="Gravelbike im Wald"
-            />
+      return (
+        <SanityGalleryCard
+          key={album._id}
+          title={album.title}
+          category={formatGalleryCategory(album.category)}
+          image={image}
+          href={href}
+        />
+      );
+    })
+  ) : (
+    <>
+      <GalleryCard
+        title="Checkpoint Run"
+        category="Running"
+        image="/images/running-checkpoint.webp"
+        alt="Matthias beim Lauf am Checkpoint Charlie"
+      />
 
-            <GalleryCard
-              title="Sound & Motion"
-              category="Music"
-              image="/images/music-dj.webp"
-              alt="DJ-Setup mit Controller"
-            />
+      <GalleryCard
+        title="Gravel Woods"
+        category="Cycling"
+        image="/images/cycling-gravel.webp"
+        alt="Gravelbike im Wald"
+      />
 
-            <GalleryCard
-              title="About Matthias"
-              category="Life"
-              image="/images/about-matthias.webp"
-              alt="Portrait von Matthias"
-            />
-          </div>
+      <GalleryCard
+        title="Sound & Motion"
+        category="Music"
+        image="/images/music-dj.webp"
+        alt="DJ-Setup mit Controller"
+      />
+
+      <GalleryCard
+        title="About Matthias"
+        category="Life"
+        image="/images/about-matthias.webp"
+        alt="Portrait von Matthias"
+      />
+    </>
+  )}
+</div>
 
           <a
             href="/gallery"
@@ -721,7 +856,54 @@ function JournalCard({
     </article>
   );
 }
+function SanityGalleryCard({
+  title,
+  category,
+  image,
+  href,
+}: {
+  title: string;
+  category: string;
+  image?: HomeGalleryImage;
+  href: string;
+}) {
+  return (
+    <a
+      href={href}
+      className="group overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl transition hover:-translate-y-1 hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
+    >
+      <article>
+        <div className="relative h-[300px] overflow-hidden bg-[#d7d5ce]">
+          {image ? (
+            <SanityImage
+              src={urlFor(image).width(700).height(900).url()}
+              alt={image.alt || title}
+              width={700}
+              height={900}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center px-6 text-center text-sm font-black uppercase tracking-[0.28em] text-black/45">
+              Kein Bild hinterlegt
+            </div>
+          )}
 
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+
+          <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/65">
+              {category}
+            </p>
+
+            <h3 className="text-2xl font-black tracking-[-0.04em] transition group-hover:text-orange-500">
+              {title}
+            </h3>
+          </div>
+        </div>
+      </article>
+    </a>
+  );
+}
 function GalleryCard({
   title,
   category,
