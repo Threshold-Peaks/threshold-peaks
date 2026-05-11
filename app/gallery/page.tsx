@@ -173,10 +173,22 @@ export default async function GaleriePage() {
                                 />
 
                                 {image.caption && (
-                                  <figcaption className="p-3 text-sm leading-6 text-neutral-700">
-                                    {image.caption}
-                                  </figcaption>
-                                )}
+  <figcaption className="border-t border-black/10 bg-[#f5f3ee]/85 px-4 py-4">
+    <div className="flex items-start gap-3">
+      <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
+
+      <div>
+        <p className="mb-1 text-[9px] font-black uppercase tracking-[0.28em] text-black/35">
+          Moment
+        </p>
+
+        <p className="text-sm font-semibold leading-6 text-black/70">
+          {image.caption}
+        </p>
+      </div>
+    </div>
+  </figcaption>
+)}
                               </figure>
                             ))}
                           </div>
