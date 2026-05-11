@@ -1,3 +1,4 @@
+import BackToTopButton from "@/components/BackToTopButton";
 import FeatureCard from "./FeatureCard";
 import Image from "next/image";
 import { Image as SanityImage } from "next-sanity/image";
@@ -788,41 +789,102 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="flex flex-col gap-6 px-6 pb-10 text-sm text-black/65 md:flex-row md:items-center md:justify-between md:px-10 lg:px-20">
-        <div className="flex gap-6 text-xl text-black">
-          <span>◎</span>
-          <span>↯</span>
-          <span>●</span>
-          <span>☁</span>
+            {/* FOOTER */}
+      <footer className="px-6 pb-10 pt-4 md:px-10 lg:px-20">
+        <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/60 p-7 text-sm text-black/65 shadow-sm backdrop-blur-xl md:p-8">
+          <div className="grid gap-8 md:grid-cols-[1.2fr_0.8fr_0.8fr] md:items-start">
+            <div>
+              <a
+                href="#top"
+                className="inline-flex items-center gap-3 text-black transition hover:text-orange-600"
+              >
+                <ThresholdPeaksIcon />
+
+                <div className="leading-none">
+                  <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
+                    Threshold Peaks
+                  </div>
+                  <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
+                    Beat the extra mile
+                  </div>
+                </div>
+              </a>
+
+              <p className="mt-5 max-w-md leading-7 text-black/60">
+                Ausdauer, elektronische Musik und aktiver Lifestyle. Ein Ort für
+                Bewegung, Rhythmus und kleine Peaks im Alltag.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-black/45">
+                Bereiche
+              </p>
+
+              <div className="grid gap-3">
+                <a
+                  href="#journal"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  Journal
+                </a>
+                <a
+                  href="#gallery"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  Galerie
+                </a>
+                <a
+                  href="#events"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  Events
+                </a>
+                <a
+                  href="#contact"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  Kontakt
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.3em] text-black/45">
+                Rechtliches
+              </p>
+
+              <div className="grid gap-3">
+                <a
+                  href="/impressum"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  Impressum
+                </a>
+                <a
+                  href="/datenschutz"
+                  className="font-bold transition hover:text-orange-600"
+                >
+                  Datenschutz
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-4 border-t border-black/10 pt-6 text-xs text-black/50 md:flex-row md:items-center md:justify-between">
+            <p>© 2026 Threshold Peaks. Alle Rechte vorbehalten.</p>
+
+            <div className="flex gap-5 text-lg text-black/70">
+              <span>◎</span>
+              <span>↯</span>
+              <span>●</span>
+              <span>☁</span>
+            </div>
+          </div>
         </div>
+      </footer>
 
-        <p>© 2026 Threshold Peaks. Alle Rechte vorbehalten.</p>
-
-        <div className="flex gap-10">
-          <a
-            href="/impressum"
-            className="transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
-          >
-            Impressum
-          </a>
-          <a
-            href="/datenschutz"
-            className="transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
-          >
-            Datenschutz
-          </a>
-        </div>
-            </footer>
-
-      <a
-        href="#top"
-        aria-label="Nach oben"
-        className="fixed bottom-6 left-6 z-50 inline-flex items-center gap-2 rounded-md border border-black/10 bg-[#d7d5ce] px-4 py-3 text-xs font-black uppercase tracking-[0.22em] text-[#111217] shadow-md transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]"
-      >
-        <span>↑</span>
-        <span className="hidden sm:inline">Top</span>
-      </a>
+      <BackToTopButton />
     </main>
   );
 }
