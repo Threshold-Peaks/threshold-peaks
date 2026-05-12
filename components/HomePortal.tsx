@@ -233,12 +233,7 @@ export default function HomePortal({
       if (nextTab) {
         setActiveTab(nextTab);
 
-        window.setTimeout(() => {
-          document.getElementById("portal")?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }, 50);
+        
       }
     }
 

@@ -143,9 +143,10 @@ export default async function EventDetailPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-neutral-950">
       <BackHeader
-        href="/#portal-events"
-        label="Zurück zu den Events"
-      />
+  href="/#portal-events"
+  backHref="/#portal-events"
+  label="Zurück zu den Events"
+/>
 
       <article className="mx-auto w-full max-w-5xl px-6 pb-20 pt-10">
         <header className="mb-8">

@@ -133,9 +133,10 @@ export default async function GalleryDetailPage({ params }: PageProps) {
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-neutral-950">
       <BackHeader
-        href="/#portal-galerie"
-        label="Zurück zur Galerie"
-      />
+  href="/#portal-gallery"
+  backHref="/#portal-gallery"
+  label="Zurück zur Galerie"
+/>
 
       <article className="mx-auto w-full max-w-5xl px-6 pb-20 pt-10">
         <header className="mb-8">

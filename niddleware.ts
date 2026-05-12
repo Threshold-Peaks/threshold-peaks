@@ -1,13 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  if (request.nextUrl.pathname.startsWith("/startseite-test")) {
-    return NextResponse.redirect(new URL("/", request.url), 308);
+  const url = request.nextUrl;
+
+  if (url.pathname === "/startseite-test") {
+    const redirectUrl = url.clone();
+    redirectUrl.pathname = "/";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/startseite-test/:path*"],
+  matcher: ["/startseite-test"],
 };

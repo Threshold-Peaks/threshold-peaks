@@ -167,9 +167,9 @@ export default async function StartseiteTest() {
   <NavLink href="#top">Home</NavLink>
   <NavLink href="#portal-about">About</NavLink>
   <NavLink href="#portal-journal">Journal</NavLink>
-  <NavLink href="#portal-galerie">Galerie</NavLink>
+  <NavLink href="#portal-gallery">Galerie</NavLink>
   <NavLink href="#portal-events">Events</NavLink>
-  <NavLink href="#portal-kontakt">Kontakt</NavLink>
+  <NavLink href="#portal-contact">Kontakt</NavLink>
 </nav>
 
           <details className="group relative md:hidden">
