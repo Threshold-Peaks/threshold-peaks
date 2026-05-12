@@ -29,6 +29,7 @@ type HomeGalleryAlbum = {
     current?: string;
   };
   category?: string;
+  description?: string;
   coverImage?: HomeGalleryImage;
   images?: HomeGalleryImage[];
 };
@@ -50,11 +51,15 @@ type HomeEvent = {
 };
 
 type PortalTab = "about" | "journal" | "gallery" | "events" | "contact";
+type PortalContentTab = Exclude<PortalTab, "about" | "contact">;
 
 type HomePortalProps = {
   latestPosts: HomeJournalPost[];
+  allPosts: HomeJournalPost[];
   latestAlbums: HomeGalleryAlbum[];
+  allAlbums: HomeGalleryAlbum[];
   latestEvents: HomeEvent[];
+  allEvents: HomeEvent[];
 };
 
 const tabs: Array<{
@@ -194,20 +199,52 @@ function formatEventStatus(status?: string) {
   return status ? statuses[status] ?? status : "Geplant";
 }
 
-function getHomeEventHref(event: HomeEvent) {
-  if (event.slug?.current) {
-    return `/events/${event.slug.current}`;
-  }
-
-  return event.externalUrl;
-}
-
 export default function HomePortal({
   latestPosts,
+  allPosts,
   latestAlbums,
+  allAlbums,
   latestEvents,
+  allEvents,
 }: HomePortalProps) {
   const [activeTab, setActiveTab] = useState<PortalTab>("about");
+  const [selectedPost, setSelectedPost] = useState<HomeJournalPost | null>(
+    null
+  );
+  const [selectedAlbum, setSelectedAlbum] = useState<HomeGalleryAlbum | null>(
+    null
+  );
+  const [selectedEvent, setSelectedEvent] = useState<HomeEvent | null>(null);
+  const [showAllContent, setShowAllContent] = useState<
+    Record<PortalContentTab, boolean>
+  >({
+    journal: false,
+    gallery: false,
+    events: false,
+  });
+
+  function clearPortalDetails() {
+    setSelectedPost(null);
+    setSelectedAlbum(null);
+    setSelectedEvent(null);
+  }
+
+  function resetShowAllContent() {
+    setShowAllContent({
+      journal: false,
+      gallery: false,
+      events: false,
+    });
+  }
+
+  function toggleShowAllContent(tab: PortalContentTab) {
+    clearPortalDetails();
+
+    setShowAllContent((current) => ({
+      ...current,
+      [tab]: !current[tab],
+    }));
+  }
 
   useEffect(() => {
     function getTabIdFromHash(): PortalTab | undefined {
@@ -232,6 +269,8 @@ export default function HomePortal({
       if (!nextTab) return;
 
       setActiveTab(nextTab);
+      clearPortalDetails();
+      resetShowAllContent();
 
       const portalElement = document.getElementById("portal");
 
@@ -263,6 +302,15 @@ export default function HomePortal({
 
   const activeTabMeta = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
 
+  const visiblePosts =
+    showAllContent.journal && allPosts.length > 0 ? allPosts : latestPosts;
+
+  const visibleAlbums =
+    showAllContent.gallery && allAlbums.length > 0 ? allAlbums : latestAlbums;
+
+  const visibleEvents =
+    showAllContent.events && allEvents.length > 0 ? allEvents : latestEvents;
+
   return (
     <section id="portal" className="px-6 pb-16 md:px-10 lg:px-20">
       <div className="mx-auto max-w-[1280px]">
@@ -286,21 +334,54 @@ export default function HomePortal({
                 </p>
               </div>
 
-              <PortalMainLink activeTab={activeTab} />
+              {!selectedPost && !selectedAlbum && !selectedEvent ? (
+                <PortalMainLink
+                  activeTab={activeTab}
+                  showAllContent={showAllContent}
+                  onToggleShowAll={toggleShowAllContent}
+                />
+              ) : null}
             </div>
 
             {activeTab === "about" ? <AboutPanel /> : null}
 
             {activeTab === "journal" ? (
-              <JournalPanel posts={latestPosts} />
+              selectedPost ? (
+                <JournalPortalDetail
+                  post={selectedPost}
+                  onBack={() => setSelectedPost(null)}
+                />
+              ) : (
+                <JournalPanel posts={visiblePosts} onOpenPost={setSelectedPost} />
+              )
             ) : null}
 
             {activeTab === "gallery" ? (
-              <GalleryPanel albums={latestAlbums} />
+              selectedAlbum ? (
+                <GalleryAlbumPortalDetail
+                  album={selectedAlbum}
+                  onBack={() => setSelectedAlbum(null)}
+                />
+              ) : (
+                <GalleryPanel
+                  albums={visibleAlbums}
+                  onOpenAlbum={setSelectedAlbum}
+                />
+              )
             ) : null}
 
             {activeTab === "events" ? (
-              <EventsPanel events={latestEvents} />
+              selectedEvent ? (
+                <EventPortalDetail
+                  event={selectedEvent}
+                  onBack={() => setSelectedEvent(null)}
+                />
+              ) : (
+                <EventsPanel
+                  events={visibleEvents}
+                  onOpenEvent={setSelectedEvent}
+                />
+              )
             ) : null}
 
             {activeTab === "contact" ? <ContactPanel /> : null}
@@ -311,35 +392,55 @@ export default function HomePortal({
   );
 }
 
-function PortalMainLink({ activeTab }: { activeTab: PortalTab }) {
+function PortalMainLink({
+  activeTab,
+  showAllContent,
+  onToggleShowAll,
+}: {
+  activeTab: PortalTab;
+  showAllContent: Record<PortalContentTab, boolean>;
+  onToggleShowAll: (tab: PortalContentTab) => void;
+}) {
+  const buttonClass =
+    "inline-flex min-w-[220px] items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-6 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md";
+
   if (activeTab === "about") {
     return null;
   }
 
-  const hrefs: Record<Exclude<PortalTab, "about">, string> = {
-    journal: "/journal",
-    gallery: "/gallery",
-    events: "/events",
-    contact: "mailto:info@threshold-peaks.de",
-  };
+  if (activeTab === "contact") {
+    return (
+      <Link href="mailto:info@threshold-peaks.de" className={buttonClass}>
+        E-Mail schreiben <span>→</span>
+      </Link>
+    );
+  }
 
-  const labels: Record<Exclude<PortalTab, "about">, string> = {
+  const key = activeTab;
+
+  const showAllLabels: Record<PortalContentTab, string> = {
     journal: "Alle Beiträge ansehen",
     gallery: "Alle Alben ansehen",
     events: "Alle Termine ansehen",
-    contact: "E-Mail schreiben",
   };
 
-  const key = activeTab as Exclude<PortalTab, "about">;
-  const href = hrefs[key];
+  const showLessLabels: Record<PortalContentTab, string> = {
+    journal: "Weniger Beiträge anzeigen",
+    gallery: "Weniger Alben anzeigen",
+    events: "Weniger Termine anzeigen",
+  };
+
+  const isShowingAll = showAllContent[key];
 
   return (
-    <Link
-      href={href}
-      className="inline-flex min-w-[220px] items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-6 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+    <button
+      type="button"
+      onClick={() => onToggleShowAll(key)}
+      className={buttonClass}
     >
-      {labels[key]} <span>→</span>
-    </Link>
+      {isShowingAll ? showLessLabels[key] : showAllLabels[key]}
+      <span>{isShowingAll ? "↑" : "→"}</span>
+    </button>
   );
 }
 
@@ -401,7 +502,13 @@ function AboutPanel() {
   );
 }
 
-function JournalPanel({ posts }: { posts: HomeJournalPost[] }) {
+function JournalPanel({
+  posts,
+  onOpenPost,
+}: {
+  posts: HomeJournalPost[];
+  onOpenPost: (post: HomeJournalPost) => void;
+}) {
   const fallbackPosts: HomeJournalPost[] = [
     {
       _id: "fallback-journal-1",
@@ -430,47 +537,96 @@ function JournalPanel({ posts }: { posts: HomeJournalPost[] }) {
 
   return (
     <div className="grid gap-5 md:grid-cols-3">
-      {items.map((post) => {
-        const href = post.slug?.current
-          ? `/journal/${post.slug.current}`
-          : "/journal";
+      {items.map((post) => (
+        <button
+          key={post._id}
+          type="button"
+          onClick={() => onOpenPost(post)}
+          className="group flex min-h-[300px] flex-col rounded-[1.5rem] border border-black/10 bg-[#111217] p-6 text-left text-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+        >
+          <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-white/40">
+            {formatHomeDate(post.publishedAt)}
+          </p>
 
-        return (
-          <Link
-            key={post._id}
-            href={href}
-            className="group flex min-h-[300px] flex-col rounded-[1.5rem] border border-black/10 bg-[#111217] p-6 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
-          >
-            <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-white/40">
-              {formatHomeDate(post.publishedAt)}
-            </p>
+          <h4 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-400">
+            {post.title}
+          </h4>
 
-            <h4 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-400">
-              {post.title}
-            </h4>
+          <p className="leading-7 text-white/65">
+            {post.excerpt ||
+              "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
+          </p>
 
-            <p className="leading-7 text-white/65">
-              {post.excerpt ||
-                "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
-            </p>
+          <div className="mt-auto flex items-center justify-between border-t border-white/10 pt-5">
+            <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/60">
+              {formatJournalCategory(post.category)}
+            </span>
 
-            <div className="mt-auto flex items-center justify-between border-t border-white/10 pt-5">
-              <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/60">
-                {formatJournalCategory(post.category)}
-              </span>
-
-              <span className="transition group-hover:translate-x-1 group-hover:text-orange-400">
-                →
-              </span>
-            </div>
-          </Link>
-        );
-      })}
+            <span className="transition group-hover:translate-x-1 group-hover:text-orange-400">
+              →
+            </span>
+          </div>
+        </button>
+      ))}
     </div>
   );
 }
 
-function GalleryPanel({ albums }: { albums: HomeGalleryAlbum[] }) {
+function JournalPortalDetail({
+  post,
+  onBack,
+}: {
+  post: HomeJournalPost;
+  onBack: () => void;
+}) {
+  return (
+    <article>
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-8 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+      >
+        ← Zurück zum Journal
+      </button>
+
+      <div className="max-w-3xl">
+        <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-black/45">
+          {formatJournalCategory(post.category)}
+        </p>
+
+        <h4 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
+          {post.title}
+        </h4>
+
+        <p className="mt-4 text-sm font-black uppercase tracking-[0.22em] text-black/40">
+          {formatHomeDate(post.publishedAt)}
+        </p>
+
+        <p className="mt-8 text-lg leading-9 text-black/70">
+          {post.excerpt ||
+            "Dieser Beitrag wird im Journal weiter ausgearbeitet. Hier erscheint später der vollständige Text aus dem CMS."}
+        </p>
+
+        {post.slug?.current ? (
+          <Link
+            href={`/journal/${post.slug.current}`}
+            className="mt-8 inline-flex items-center rounded-md border border-black/10 bg-[#111217] px-6 py-4 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:text-orange-400 hover:shadow-md"
+          >
+            Vollständige Seite öffnen <span className="ml-3">→</span>
+          </Link>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
+function GalleryPanel({
+  albums,
+  onOpenAlbum,
+}: {
+  albums: HomeGalleryAlbum[];
+  onOpenAlbum: (album: HomeGalleryAlbum) => void;
+}) {
   if (albums.length === 0) {
     return (
       <div className="rounded-[1.5rem] border border-black/10 bg-[#f5f3ee] p-7">
@@ -489,15 +645,13 @@ function GalleryPanel({ albums }: { albums: HomeGalleryAlbum[] }) {
     <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
       {albums.map((album, index) => {
         const image = album.coverImage || album.images?.[0];
-        const href = album.slug?.current
-          ? `/gallery/${album.slug.current}`
-          : "/gallery";
 
         return (
-          <Link
+          <button
             key={album._id}
-            href={href}
-            className="group relative min-h-[340px] overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+            type="button"
+            onClick={() => onOpenAlbum(album)}
+            className="group relative min-h-[340px] overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
           >
             {image ? (
               <SanityImage
@@ -525,94 +679,145 @@ function GalleryPanel({ albums }: { albums: HomeGalleryAlbum[] }) {
                 {album.title}
               </h4>
             </div>
-          </Link>
+          </button>
         );
       })}
     </div>
   );
 }
 
-function EventsPanel({ events }: { events: HomeEvent[] }) {
-  const fallbackEvents = [
+function GalleryAlbumPortalDetail({
+  album,
+  onBack,
+}: {
+  album: HomeGalleryAlbum;
+  onBack: () => void;
+}) {
+  const images = album.images || [];
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-8 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+      >
+        ← Zurück zur Galerie-Übersicht
+      </button>
+
+      <div className="mb-10 max-w-3xl">
+        <p className="mb-3 text-xs font-black uppercase tracking-[0.35em] text-black/45">
+          {formatGalleryCategory(album.category)}
+        </p>
+
+        <h4 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
+          {album.title}
+        </h4>
+
+        {album.description ? (
+          <p className="mt-5 text-base font-semibold leading-8 text-black/60">
+            {album.description}
+          </p>
+        ) : null}
+      </div>
+
+      {images.length === 0 ? (
+        <div className="rounded-[1.5rem] border border-black/10 bg-[#f5f3ee] p-7">
+          <p className="leading-8 text-black/65">
+            In diesem Album sind noch keine Bilder hinterlegt.
+          </p>
+        </div>
+      ) : (
+        <div className="columns-1 gap-5 space-y-5 sm:columns-2 lg:columns-3">
+          {images.map((image, index) => {
+            const isLarge = index % 5 === 0;
+            const isTall = index % 5 === 2;
+            const isWide = index % 5 === 4;
+
+            const imageRatioClass = isLarge
+              ? "aspect-[4/5]"
+              : isTall
+                ? "aspect-[3/4]"
+                : isWide
+                  ? "aspect-[5/4]"
+                  : "aspect-[4/3]";
+
+            return (
+              <figure
+                key={`${album._id}-${index}`}
+                className="mb-5 break-inside-avoid overflow-hidden rounded-[1.5rem] border border-black/10 bg-white shadow-sm"
+              >
+                <div
+                  className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}
+                >
+                  <SanityImage
+                    src={urlFor(image)
+                      .width(1200)
+                      .height(1600)
+                      .fit("crop")
+                      .url()}
+                    alt={image.alt || `${album.title} Bild ${index + 1}`}
+                    width={1200}
+                    height={1600}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+
+                {image.caption ? (
+                  <figcaption className="px-5 py-4 text-sm leading-6 text-black/60">
+                    {image.caption}
+                  </figcaption>
+                ) : null}
+              </figure>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EventsPanel({
+  events,
+  onOpenEvent,
+}: {
+  events: HomeEvent[];
+  onOpenEvent: (event: HomeEvent) => void;
+}) {
+  const fallbackEvents: HomeEvent[] = [
     {
       _id: "fallback-event-1",
-      date: "10. Juni 2026",
+      startDate: "2026-06-10",
       title: "AOK-Firmenlauf Wiedenbrück",
-      type: "Running",
+      eventType: "Running",
       status: "Angemeldet",
-      text: "Geplanter Lauftermin am Mittwoch, 10. Juni 2026.",
+      teaser: "Geplanter Lauftermin am Mittwoch, 10. Juni 2026.",
     },
     {
       _id: "fallback-event-2",
-      date: "In Planung",
       title: "Gravelrunde rund um Verl",
-      type: "Cycling",
+      eventType: "Cycling",
       status: "Offen",
-      text: "Eine lockere Ausfahrt auf Rennrad oder Gravelbike.",
+      teaser: "Eine lockere Ausfahrt auf Rennrad oder Gravelbike.",
     },
   ];
 
-  if (events.length === 0) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2">
-        {fallbackEvents.map((event) => (
-          <article
-            key={event._id}
-            className="rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 shadow-sm"
-          >
-            <EventCardContent
-              date={event.date}
-              title={event.title}
-              type={event.type}
-              status={event.status}
-              text={event.text}
-            />
-          </article>
-        ))}
-      </div>
-    );
-  }
+  const items = events.length > 0 ? events : fallbackEvents;
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      {events.map((event) => {
-        const href = getHomeEventHref(event);
+      {items.map((event) => {
         const date = formatHomeEventDate(event.startDate, event.endDate);
         const time = event.time || formatHomeEventTime(event.startDate);
         const type = formatEventType(event.eventType);
         const status = formatEventStatus(event.status);
 
-        if (!href) {
-          return (
-            <article
-              key={event._id}
-              className="rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 shadow-sm"
-            >
-              <EventCardContent
-                date={date}
-                time={time}
-                title={event.title}
-                type={type}
-                status={status}
-                text={
-                  event.teaser ||
-                  "Ein kommender Termin im Threshold Peaks Kalender."
-                }
-                location={event.location}
-              />
-            </article>
-          );
-        }
-
-        const isExternal = href.startsWith("http");
-
         return (
-          <Link
+          <button
             key={event._id}
-            href={href}
-            target={isExternal ? "_blank" : undefined}
-            rel={isExternal ? "noreferrer" : undefined}
-            className="group rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl"
+            type="button"
+            onClick={() => onOpenEvent(event)}
+            className="group rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 text-left shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl"
           >
             <EventCardContent
               date={date}
@@ -627,7 +832,7 @@ function EventsPanel({ events }: { events: HomeEvent[] }) {
               location={event.location}
               linked
             />
-          </Link>
+          </button>
         );
       })}
     </div>
@@ -685,6 +890,80 @@ function EventCardContent({
         ) : null}
       </div>
     </>
+  );
+}
+
+function EventPortalDetail({
+  event,
+  onBack,
+}: {
+  event: HomeEvent;
+  onBack: () => void;
+}) {
+  const date = formatHomeEventDate(event.startDate, event.endDate);
+  const time = event.time || formatHomeEventTime(event.startDate);
+  const type = formatEventType(event.eventType);
+  const status = formatEventStatus(event.status);
+
+  return (
+    <article>
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-8 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+      >
+        ← Zurück zu den Events
+      </button>
+
+      <div className="max-w-3xl">
+        <div className="mb-5 flex flex-wrap items-center gap-3">
+          <span className="inline-flex rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-black/65">
+            {type}
+          </span>
+
+          <span className="rounded-full bg-[#111217] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white">
+            {status}
+          </span>
+        </div>
+
+        <h4 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
+          {event.title}
+        </h4>
+
+        <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-black uppercase tracking-[0.2em] text-black/45">
+          <span>{date}</span>
+          {time ? <span>{time}</span> : null}
+          {event.location ? <span>{event.location}</span> : null}
+        </div>
+
+        <p className="mt-8 text-lg leading-9 text-black/70">
+          {event.teaser ||
+            "Dieser Termin wird im Kalender weiter ausgearbeitet."}
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          {event.slug?.current ? (
+            <Link
+              href={`/events/${event.slug.current}`}
+              className="inline-flex items-center rounded-md border border-black/10 bg-[#111217] px-6 py-4 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:text-orange-400 hover:shadow-md"
+            >
+              Vollständige Seite öffnen <span className="ml-3">→</span>
+            </Link>
+          ) : null}
+
+          {event.externalUrl ? (
+            <Link
+              href={event.externalUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-6 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+            >
+              Externe Seite öffnen <span className="ml-3">→</span>
+            </Link>
+          ) : null}
+        </div>
+      </div>
+    </article>
   );
 }
 

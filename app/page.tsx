@@ -55,7 +55,7 @@ type HomeEvent = {
   externalUrl?: string;
 };
 
-const latestJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc)[0...3] {
+const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
   _id,
   title,
   slug,
@@ -64,16 +64,17 @@ const latestJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc)[
   excerpt
 }`;
 
-const latestGalleryQuery = `*[_type == "galleryAlbum"] | order(coalesce(date, _createdAt) desc)[0...4] {
+const allGalleryQuery = `*[_type == "galleryAlbum"] | order(coalesce(date, _createdAt) desc) {
   _id,
   title,
   slug,
   category,
+  "description": coalesce(description, teaser, excerpt),
   "coverImage": coalesce(coverImage, images[0]),
   images
 }`;
 
-const latestEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(startDate, date, eventDate))] | order(coalesce(startDate, date, eventDate) asc) {
+const allEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(startDate, date, eventDate))] | order(coalesce(startDate, date, eventDate) asc) {
   _id,
   "title": coalesce(title, name),
   slug,
@@ -108,13 +109,17 @@ function isUpcomingHomeEvent(event: HomeEvent) {
 }
 
 export default async function StartseiteTest() {
-  const [latestPosts, latestAlbums, allEvents] = await Promise.all([
-    client.fetch<HomeJournalPost[]>(latestJournalQuery),
-    client.fetch<HomeGalleryAlbum[]>(latestGalleryQuery),
-    client.fetch<HomeEvent[]>(latestEventsQuery),
+  const [allPosts, allAlbums, fetchedEvents] = await Promise.all([
+    client.fetch<HomeJournalPost[]>(allJournalQuery),
+    client.fetch<HomeGalleryAlbum[]>(allGalleryQuery),
+    client.fetch<HomeEvent[]>(allEventsQuery),
   ]);
 
-  const latestEvents = allEvents.filter(isUpcomingHomeEvent).slice(0, 3);
+  const latestPosts = allPosts.slice(0, 3);
+  const latestAlbums = allAlbums.slice(0, 4);
+
+  const upcomingEvents = fetchedEvents.filter(isUpcomingHomeEvent);
+  const latestEvents = upcomingEvents.slice(0, 3);
 
   return (
     <main
@@ -220,8 +225,11 @@ export default async function StartseiteTest() {
 <div className="relative z-30 -mt-44 md:-mt-72 lg:-mt-[34rem] xl:-mt-[38rem]">
   <HomePortal
     latestPosts={latestPosts}
+    allPosts={allPosts}
     latestAlbums={latestAlbums}
+    allAlbums={allAlbums}
     latestEvents={latestEvents}
+    allEvents={upcomingEvents}
   />
 </div>
 
@@ -254,25 +262,25 @@ export default async function StartseiteTest() {
             </a>
 
             <div className="flex flex-wrap gap-5 font-bold">
-              <Link href="/journal" className="transition hover:text-orange-600">
-                Journal
-              </Link>
-              <Link href="/gallery" className="transition hover:text-orange-600">
-                Galerie
-              </Link>
-              <Link href="/events" className="transition hover:text-orange-600">
-                Events
-              </Link>
-              <Link href="/impressum" className="transition hover:text-orange-600">
-                Impressum
-              </Link>
-              <Link href="/datenschutz" className="transition hover:text-orange-600">
-                Datenschutz
-              </Link>
-              <Link href="/studio" className="transition hover:text-orange-600">
-                CMS Login
-              </Link>
-            </div>
+  <Link href="/#portal-journal" className="transition hover:text-orange-600">
+    Journal
+  </Link>
+  <Link href="/#portal-gallery" className="transition hover:text-orange-600">
+    Galerie
+  </Link>
+  <Link href="/#portal-events" className="transition hover:text-orange-600">
+    Events
+  </Link>
+  <Link href="/impressum" className="transition hover:text-orange-600">
+    Impressum
+  </Link>
+  <Link href="/datenschutz" className="transition hover:text-orange-600">
+    Datenschutz
+  </Link>
+  <Link href="/studio" className="transition hover:text-orange-600">
+    CMS Login
+  </Link>
+</div>
           </div>
 
           <div className="mt-8 border-t border-black/10 pt-6 text-xs text-black/50">
