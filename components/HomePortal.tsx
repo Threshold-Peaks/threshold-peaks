@@ -208,20 +208,43 @@ export default function HomePortal({
   const [activeTab, setActiveTab] = useState<PortalTab>("about");
 
   useEffect(() => {
-    function updateFromHash() {
-      const hash = window.location.hash.replace("#portal-", "");
-      const nextTab = tabs.find((tab) => tab.id === hash)?.id;
+  function getTabIdFromHash() {
+    const rawHash = window.location.hash.replace("#portal-", "");
 
-      if (nextTab) {
-        setActiveTab(nextTab);
-      }
+    const directMatch = tabs.find((tab) => tab.id === rawHash)?.id;
+
+    if (directMatch) {
+      return directMatch;
     }
 
-    updateFromHash();
-    window.addEventListener("hashchange", updateFromHash);
+    const aliases: Record<string, string[]> = {
+      galerie: ["galerie", "gallery"],
+      gallery: ["gallery", "galerie"],
+      kontakt: ["kontakt", "contact"],
+      contact: ["contact", "kontakt"],
+    };
 
-    return () => window.removeEventListener("hashchange", updateFromHash);
-  }, []);
+    const possibleIds = aliases[rawHash] ?? [];
+
+    return possibleIds.find((id) => tabs.some((tab) => tab.id === id));
+  }
+
+  function updateFromHash() {
+    const nextTab = getTabIdFromHash();
+
+    if (nextTab) {
+      setActiveTab(nextTab);
+    }
+  }
+
+  updateFromHash();
+
+  window.addEventListener("hashchange", updateFromHash);
+
+  return () => {
+    window.removeEventListener("hashchange", updateFromHash);
+  };
+}, []);
 
   const activeTabMeta = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
 
