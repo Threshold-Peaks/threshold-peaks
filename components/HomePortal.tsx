@@ -941,86 +941,183 @@ function GalleryAlbumPortalDetail({
   onBack: () => void;
 }) {
   const images = album.images || [];
+  const coverImage = album.coverImage || images[0];
 
   return (
-    <div>
+    <article className="text-neutral-950">
       <button
         type="button"
         onClick={onBack}
-        className="mb-8 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+        className="mb-10 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
       >
-        ← Zurück zur Galerie-Übersicht
+        ← Zurück zur Galerie
       </button>
 
-      <div className="mb-10 max-w-3xl">
-        <p className="mb-3 text-xs font-black uppercase tracking-[0.35em] text-black/45">
-          {formatGalleryCategory(album.category)}
-        </p>
+      <header className="max-w-4xl">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
+          <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-neutral-700">
+            {formatGalleryCategory(album.category)}
+          </span>
 
-        <h4 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
+          <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
+            {images.length === 1
+              ? "1 Bild"
+              : `${images.length} Bilder`}
+          </span>
+        </div>
+
+        <h1 className="text-5xl font-black leading-none tracking-tight md:text-7xl">
           {album.title}
-        </h4>
+        </h1>
 
         {album.description ? (
-          <p className="mt-5 text-base font-semibold leading-8 text-black/60">
+          <p className="mt-8 max-w-3xl text-xl leading-9 text-neutral-600">
             {album.description}
           </p>
         ) : null}
+      </header>
+
+      {coverImage ? (
+        <div className="mt-12 max-w-5xl">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="rounded-full bg-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white">
+              Galerie-Cover
+            </span>
+
+            <span className="text-xs font-black uppercase tracking-[0.25em] text-black/40">
+              Album
+            </span>
+          </div>
+
+          <div className="overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-black/10">
+            <div className="overflow-hidden rounded-[1.5rem] bg-[#ded9cf]">
+              <SanityImage
+                src={urlFor(coverImage).width(1400).height(900).fit("crop").url()}
+                alt={coverImage.alt || album.title}
+                width={1400}
+                height={900}
+                priority
+                className="aspect-[16/10] w-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-14 grid gap-8 lg:grid-cols-[minmax(240px,0.9fr)_minmax(0,3fr)] lg:items-start">
+        <aside className="space-y-5 lg:sticky lg:top-8">
+          <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
+              Album
+            </p>
+
+            <div className="space-y-4 text-sm font-bold text-black/65">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                  Kategorie
+                </p>
+                <p className="mt-1 text-black">
+                  {formatGalleryCategory(album.category)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                  Umfang
+                </p>
+                <p className="mt-1 text-black">
+                  {images.length === 1
+                    ? "1 Bild"
+                    : `${images.length} Bilder`}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onBack}
+            className="group block w-full rounded-[2rem] bg-[#d7d5ce] p-6 text-left text-black shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <p className="mb-2 text-xs font-black uppercase tracking-[0.32em] text-black/40">
+              Zurück
+            </p>
+
+            <div className="flex items-center justify-between gap-4 text-sm font-black">
+              <span>Zurück zur Galerie</span>
+              <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
+                →
+              </span>
+            </div>
+          </button>
+        </aside>
+
+        <div className="rounded-[2rem] bg-white p-4 shadow-sm ring-1 ring-black/10 md:p-6">
+          {images.length === 0 ? (
+            <div className="rounded-[1.5rem] bg-[#f5f3ee] p-7">
+              <p className="leading-8 text-black/65">
+                In diesem Album sind noch keine Bilder hinterlegt.
+              </p>
+            </div>
+          ) : (
+            <div className="columns-1 gap-5 space-y-5 sm:columns-2 lg:columns-3">
+              {images.map((image, index) => {
+                const isLarge = index % 5 === 0;
+                const isTall = index % 5 === 2;
+                const isWide = index % 5 === 4;
+
+                const imageRatioClass = isLarge
+                  ? "aspect-[4/5]"
+                  : isTall
+                    ? "aspect-[3/4]"
+                    : isWide
+                      ? "aspect-[5/4]"
+                      : "aspect-[4/3]";
+
+                return (
+                  <figure
+                    key={`${album._id}-${index}`}
+                    className="mb-5 break-inside-avoid overflow-hidden rounded-[1.5rem] bg-[#f5f3ee] shadow-sm ring-1 ring-black/10"
+                  >
+                    <div
+                      className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}
+                    >
+                      <SanityImage
+                        src={urlFor(image)
+                          .width(1200)
+                          .height(1600)
+                          .fit("crop")
+                          .url()}
+                        alt={image.alt || `${album.title} Bild ${index + 1}`}
+                        width={1200}
+                        height={1600}
+                        className="h-full w-full object-cover transition duration-500 hover:scale-[1.03]"
+                      />
+                    </div>
+
+                    {(image.caption || image.alt) ? (
+                      <figcaption className="px-5 py-4">
+                        {image.caption ? (
+                          <p className="text-sm font-semibold leading-6 text-black/65">
+                            {image.caption}
+                          </p>
+                        ) : null}
+
+                        {!image.caption && image.alt ? (
+                          <p className="text-sm font-semibold leading-6 text-black/55">
+                            {image.alt}
+                          </p>
+                        ) : null}
+                      </figcaption>
+                    ) : null}
+                  </figure>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
-
-      {images.length === 0 ? (
-        <div className="rounded-[1.5rem] border border-black/10 bg-[#f5f3ee] p-7">
-          <p className="leading-8 text-black/65">
-            In diesem Album sind noch keine Bilder hinterlegt.
-          </p>
-        </div>
-      ) : (
-        <div className="columns-1 gap-5 space-y-5 sm:columns-2 lg:columns-3">
-          {images.map((image, index) => {
-            const isLarge = index % 5 === 0;
-            const isTall = index % 5 === 2;
-            const isWide = index % 5 === 4;
-
-            const imageRatioClass = isLarge
-              ? "aspect-[4/5]"
-              : isTall
-                ? "aspect-[3/4]"
-                : isWide
-                  ? "aspect-[5/4]"
-                  : "aspect-[4/3]";
-
-            return (
-              <figure
-                key={`${album._id}-${index}`}
-                className="mb-5 break-inside-avoid overflow-hidden rounded-[1.5rem] border border-black/10 bg-white shadow-sm"
-              >
-                <div
-                  className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}
-                >
-                  <SanityImage
-                    src={urlFor(image)
-                      .width(1200)
-                      .height(1600)
-                      .fit("crop")
-                      .url()}
-                    alt={image.alt || `${album.title} Bild ${index + 1}`}
-                    width={1200}
-                    height={1600}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-
-                {image.caption ? (
-                  <figcaption className="px-5 py-4 text-sm leading-6 text-black/60">
-                    {image.caption}
-                  </figcaption>
-                ) : null}
-              </figure>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    </article>
   );
 }
 
