@@ -1,27 +1,23 @@
 import BackHeader from "@/components/BackHeader";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PortableText, type PortableTextComponents } from "@portabletext/react";
+import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 
 export const revalidate = 60;
 
-type GalleryItem = {
-  _id: string;
-  title?: string;
-  slug?: {
-    current?: string;
-  };
-  image?: SanityImageSource & {
-    alt?: string;
-  };
+type GalleryImage = SanityImageSource & {
+  alt?: string;
   caption?: string;
+};
+
+type GalleryAlbum = {
+  title: string;
   category?: string;
-  location?: string;
-  date?: string;
-  body?: any[];
+  description?: string;
+  images?: GalleryImage[];
 };
 
 type PageProps = {
@@ -30,63 +26,27 @@ type PageProps = {
   }>;
 };
 
-const galleryDetailQuery = `*[
-  _type in ["galleryItem", "galleryImage", "galleryPhoto", "galerieItem", "galerieBild", "photo"]
-  && slug.current == $slug
-][0] {
-  _id,
-  "title": coalesce(title, name, "Galerie"),
-  slug,
-  "image": coalesce(image, mainImage, photo),
-  "caption": coalesce(caption, description, excerpt),
-  "date": coalesce(date, publishedAt, takenAt),
+const albumQuery = `*[_type == "galleryAlbum" && slug.current == $slug][0] {
+  title,
   category,
-  location,
-  body
+  "description": coalesce(description, teaser, excerpt),
+  images[] {
+    ...,
+    alt,
+    caption
+  }
 }`;
 
-const portableTextComponents: PortableTextComponents = {
-  block: {
-    normal: ({ children }) => (
-      <p className="mb-5 leading-8 text-neutral-700">{children}</p>
-    ),
-    h2: ({ children }) => (
-      <h2 className="mb-4 mt-10 text-2xl font-semibold text-neutral-950">
-        {children}
-      </h2>
-    ),
-    h3: ({ children }) => (
-      <h3 className="mb-3 mt-8 text-xl font-semibold text-neutral-950">
-        {children}
-      </h3>
-    ),
-  },
-  marks: {
-    link: ({ children, value }) => {
-      const href = value?.href || "#";
+const slugsQuery = `*[_type == "galleryAlbum" && defined(slug.current)] {
+  "slug": slug.current
+}`;
 
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          className="font-medium underline decoration-neutral-400 underline-offset-4 hover:text-neutral-600"
-        >
-          {children}
-        </a>
-      );
-    },
-  },
-};
+export async function generateStaticParams() {
+  const slugs = await client.fetch<{ slug: string }[]>(slugsQuery);
 
-function formatDate(date?: string) {
-  if (!date) return null;
-
-  return new Intl.DateTimeFormat("de-DE", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(date));
+  return slugs.map((item) => ({
+    slug: item.slug,
+  }));
 }
 
 export async function generateMetadata({
@@ -94,85 +54,98 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
 
-  const item = await client.fetch<GalleryItem | null>(
-    galleryDetailQuery,
-    { slug },
-    { next: { revalidate: 60 } }
-  );
+  const album = await client.fetch<GalleryAlbum | null>(albumQuery, {
+    slug,
+  });
 
-  if (!item) {
+  if (!album) {
     return {
       title: "Galerie | Threshold Peaks",
     };
   }
 
   return {
-    title: `${item.title ?? "Galerie"} | Threshold Peaks`,
+    title: `${album.title} | Galerie | Threshold Peaks`,
     description:
-      item.caption ??
-      "Ein Moment aus der Galerie von Threshold Peaks.",
+      album.description ||
+      "Bilder und Momente aus der Threshold Peaks Galerie.",
   };
 }
 
-export default async function GalleryDetailPage({ params }: PageProps) {
+export default async function GalleryAlbumPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const item = await client.fetch<GalleryItem | null>(
-    galleryDetailQuery,
-    { slug },
-    { next: { revalidate: 60 } }
-  );
+  const album = await client.fetch<GalleryAlbum | null>(albumQuery, {
+    slug,
+  });
 
-  if (!item) {
+  if (!album) {
     notFound();
   }
 
-  const imageUrl = item.image ? urlFor(item.image).width(1600).url() : null;
-  const formattedDate = formatDate(item.date);
+  const images = album.images || [];
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee] text-neutral-950">
-      <BackHeader
-  href="/#portal-gallery"
-  backHref="/#portal-gallery"
-  label="Zurück zur Galerie"
-/>
+    <main className="min-h-screen bg-[#f5f3ee] text-black">
+      <BackHeader href="/#portal-gallery" label="Zurück zur Galerie" />
 
-      <article className="mx-auto w-full max-w-5xl px-6 pb-20 pt-10">
-        <header className="mb-8">
-          <div className="mb-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-neutral-500">
-            {item.category && <span>{item.category}</span>}
-            {item.location && <span>• {item.location}</span>}
-            {formattedDate && <span>• {formattedDate}</span>}
-          </div>
-
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 md:text-6xl">
-            {item.title}
-          </h1>
-
-          {item.caption && (
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-neutral-600">
-              {item.caption}
+      <article className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+        <header className="mb-12 max-w-3xl">
+          {album.category ? (
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-black/50">
+              {album.category}
+            </p>
+          ) : (
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-black/50">
+              Galerie
             </p>
           )}
+
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+            {album.title}
+          </h1>
+
+          {album.description ? (
+            <p className="mt-5 text-base leading-7 text-black/65 sm:text-lg">
+              {album.description}
+            </p>
+          ) : null}
         </header>
 
-        {imageUrl && (
-          <div className="overflow-hidden rounded-[2rem] bg-white shadow-sm">
-            <img
-              src={imageUrl}
-              alt={item.image?.alt ?? item.title ?? "Galerie Bild"}
-              className="h-auto w-full object-cover"
-            />
+        {images.length === 0 ? (
+          <div className="rounded-[2rem] border border-black/10 bg-white/70 p-8 shadow-sm">
+            <p className="text-sm text-black/60">
+              In diesem Album sind noch keine Bilder hinterlegt.
+            </p>
           </div>
-        )}
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2">
+            {images.map((image, index) => (
+              <figure
+                key={`${album.title}-${index}`}
+                className="overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden bg-black/5">
+                  <Image
+                    src={urlFor(image)
+                      .width(1400)
+                      .height(1050)
+                      .fit("crop")
+                      .url()}
+                    alt={image.alt || `${album.title} Bild ${index + 1}`}
+                    width={1400}
+                    height={1050}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
 
-        {item.body && item.body.length > 0 && (
-          <div className="prose prose-neutral mt-12 max-w-3xl">
-            <PortableText
-              value={item.body}
-              components={portableTextComponents}
-            />
+                {image.caption ? (
+                  <figcaption className="px-5 py-4 text-sm leading-6 text-black/60">
+                    {image.caption}
+                  </figcaption>
+                ) : null}
+              </figure>
+            ))}
           </div>
         )}
       </article>
