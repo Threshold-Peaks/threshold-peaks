@@ -144,7 +144,6 @@ export default async function EventDetailPage({ params }: PageProps) {
     <main className="min-h-screen bg-[#f5f3ee] text-neutral-950">
       <BackHeader
   href="/#portal-events"
-  backHref="/#portal-events"
   label="Zurück zu den Events"
 />
 
