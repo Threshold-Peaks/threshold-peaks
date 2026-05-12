@@ -118,103 +118,103 @@ export default async function StartseiteTest() {
 
   return (
     <main
-      id="top"
-      className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]"
-    >
-      {/* HERO */}
-      <section className="relative overflow-hidden pb-8 md:pb-10">
-        {/* HERO BACKGROUND */}
-        <div className="absolute inset-x-0 top-0 z-0 h-[620px] overflow-hidden md:h-[720px]">
-          <div className="absolute inset-0 h-full overflow-hidden md:left-auto md:right-0 md:w-[64vw] md:min-w-[780px]">
-            <Image
-              src="/images/runner-hero.webp"
-              alt="Runner im Stadion"
-              fill
-              loading="eager"
-              priority
-              sizes="(max-width: 768px) 100vw, 64vw"
-              className="object-cover object-[72%_top] opacity-35 contrast-105 saturate-105 brightness-105 md:object-[82%_top] md:opacity-100 md:contrast-110 md:saturate-110"
-            />
+  id="top"
+  className="min-h-screen overflow-x-hidden bg-[#f5f3ee] text-[#111217]"
+>
+  {/* HERO */}
+  <section className="relative overflow-hidden pb-8 md:pb-10">
+    {/* HERO BACKGROUND */}
+    <div className="absolute inset-x-0 top-0 z-0 h-[620px] overflow-hidden md:h-[720px]">
+      <div className="absolute inset-0 h-full overflow-hidden md:left-auto md:right-0 md:w-[64vw] md:min-w-[780px]">
+        <Image
+          src="/images/runner-hero.webp"
+          alt="Runner im Stadion"
+          fill
+          loading="eager"
+          priority
+          sizes="(max-width: 768px) 100vw, 64vw"
+          className="object-cover object-[72%_top] opacity-35 contrast-105 saturate-105 brightness-105 md:object-[82%_top] md:opacity-100 md:contrast-110 md:saturate-110"
+        />
 
-            <div className="pointer-events-none absolute inset-0 bg-[#f5f3ee]/55 md:hidden" />
+        <div className="pointer-events-none absolute inset-0 bg-[#f5f3ee]/55 md:hidden" />
 
-            <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-[520px] bg-gradient-to-r from-[#f5f3ee] via-[#f5f3ee]/55 to-transparent md:block" />
+        <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-[520px] bg-gradient-to-r from-[#f5f3ee] via-[#f5f3ee]/55 to-transparent md:block" />
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#f5f3ee] via-[#f5f3ee]/80 to-transparent md:h-56" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#f5f3ee] via-[#f5f3ee]/80 to-transparent md:h-56" />
+      </div>
+    </div>
+
+    {/* HEADER */}
+    <header className="relative z-50 flex h-20 items-center justify-between px-6 md:h-24 md:justify-start md:px-10 lg:px-20">
+      <a
+        href="#top"
+        className="flex items-center gap-3 transition hover:text-orange-600"
+        aria-label="Zur Startseite"
+      >
+        <ThresholdPeaksIcon />
+
+        <div className="leading-none">
+          <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
+            Threshold Peaks
+          </div>
+          <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
+            Beat the extra mile
           </div>
         </div>
+      </a>
 
-        {/* HEADER */}
-        <header className="relative z-50 flex h-20 items-center justify-between px-6 md:h-24 md:justify-start md:px-10 lg:px-20">
-          <a
-            href="#top"
-            className="flex items-center gap-3 transition hover:text-orange-600"
-            aria-label="Zur Startseite"
-          >
-            <ThresholdPeaksIcon />
+      <nav className="ml-10 hidden items-center gap-6 text-sm font-semibold md:flex">
+        <NavLink href="#top">Home</NavLink>
+        <NavLink href="#portal-about">About</NavLink>
+        <NavLink href="#portal-journal">Journal</NavLink>
+        <NavLink href="#portal-gallery">Galerie</NavLink>
+        <NavLink href="#portal-events">Events</NavLink>
+        <NavLink href="#portal-contact">Kontakt</NavLink>
+      </nav>
 
-            <div className="leading-none">
-              <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
-                Threshold Peaks
-              </div>
-              <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
-                Beat the extra mile
-              </div>
-            </div>
-          </a>
+      <details className="group relative md:hidden">
+        <summary className="list-none rounded-full border border-black/10 bg-white/70 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition hover:text-orange-600 active:scale-95 [&::-webkit-details-marker]:hidden">
+          Menü
+        </summary>
 
-          <nav className="ml-10 hidden items-center gap-6 text-sm font-semibold md:flex">
-  <NavLink href="#top">Home</NavLink>
-  <NavLink href="#portal-about">About</NavLink>
-  <NavLink href="#portal-journal">Journal</NavLink>
-  <NavLink href="#portal-gallery">Galerie</NavLink>
-  <NavLink href="#portal-events">Events</NavLink>
-  <NavLink href="#portal-contact">Kontakt</NavLink>
-</nav>
-
-          <details className="group relative md:hidden">
-            <summary className="list-none rounded-full border border-black/10 bg-white/70 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition hover:text-orange-600 active:scale-95 [&::-webkit-details-marker]:hidden">
-              Menü
-            </summary>
-
-            <div className="absolute right-0 top-14 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
-  <MobileNavLink href="#top">Home</MobileNavLink>
-  <MobileNavLink href="#portal-about">About</MobileNavLink>
-  <MobileNavLink href="#portal-journal">Journal</MobileNavLink>
-  <MobileNavLink href="#portal-galerie">Galerie</MobileNavLink>
-  <MobileNavLink href="#portal-events">Events</MobileNavLink>
-  <MobileNavLink href="#portal-kontakt">Kontakt</MobileNavLink>
-</div>
-          </details>
-        </header>
-
-        {/* HERO TEXT */}
-        <div className="relative z-10 px-6 pt-16 md:px-10 md:pt-20 lg:px-20 lg:pt-24">
-          <p className="mb-6 text-xs font-extrabold uppercase tracking-[0.42em] md:mb-7 md:text-sm md:tracking-[0.48em]">
-            Laufen • Radfahren • Musik
-          </p>
-
-          <h1 className="max-w-[590px] text-[54px] font-black leading-[0.92] tracking-[-0.06em] sm:text-[64px] md:text-[92px]">
-            Bewegung <br />
-            ist Freiheit.
-          </h1>
-
-          <div className="my-8 h-px w-12 bg-black/45 md:my-9" />
-
-          <p className="max-w-[440px] text-base leading-7 text-black/75 md:text-lg md:leading-8">
-            Threshold Peaks verbindet Ausdauer, elektronische Musik und aktiven
-            Lifestyle. Hier findest du Storys, Bilder, Events und kleine
-            Momente zwischen Training, Rhythmus und Alltag.
-          </p>
-
-          <a
-            href="#portal"
-            className={`${grayButtonClass} mt-8 min-w-[230px] md:mt-9`}
-          >
-            Portal öffnen <span>→</span>
-          </a>
+        <div className="absolute right-0 top-14 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
+          <MobileNavLink href="#top">Home</MobileNavLink>
+          <MobileNavLink href="#portal-about">About</MobileNavLink>
+          <MobileNavLink href="#portal-journal">Journal</MobileNavLink>
+          <MobileNavLink href="#portal-gallery">Galerie</MobileNavLink>
+          <MobileNavLink href="#portal-events">Events</MobileNavLink>
+          <MobileNavLink href="#portal-contact">Kontakt</MobileNavLink>
         </div>
-      </section>
+      </details>
+    </header>
+
+    {/* HERO TEXT */}
+    <div className="relative z-10 px-6 pt-16 md:px-10 md:pt-20 lg:px-20 lg:pt-24">
+      <p className="mb-6 text-xs font-extrabold uppercase tracking-[0.42em] md:mb-7 md:text-sm md:tracking-[0.48em]">
+        Laufen • Radfahren • Musik
+      </p>
+
+      <h1 className="max-w-[590px] text-[54px] font-black leading-[0.92] tracking-[-0.06em] sm:text-[64px] md:text-[92px]">
+        Bewegung <br />
+        ist Freiheit.
+      </h1>
+
+      <div className="my-8 h-px w-12 bg-black/45 md:my-9" />
+
+      <p className="max-w-[440px] text-base leading-7 text-black/75 md:text-lg md:leading-8">
+        Threshold Peaks verbindet Ausdauer, elektronische Musik und aktiven
+        Lifestyle. Hier findest du Storys, Bilder, Events und kleine Momente
+        zwischen Training, Rhythmus und Alltag.
+      </p>
+
+      <a
+        href="#portal"
+        className={`${grayButtonClass} mt-8 min-w-[230px] md:mt-9`}
+      >
+        Portal öffnen <span>→</span>
+      </a>
+    </div>
+  </section>
 
       {/* PORTAL */}
 <div className="relative z-30 -mt-44 md:-mt-72 lg:-mt-[34rem] xl:-mt-[38rem]">
