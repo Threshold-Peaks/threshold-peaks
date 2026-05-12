@@ -226,26 +226,11 @@ export default async function StartseiteTest() {
 </div>
 
       {/* STRAVA DEZENT */}
-      <section id="strava" className="px-6 pb-12 md:px-10 lg:px-20">
-        <div className="mx-auto max-w-[720px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/55 p-5 shadow-sm backdrop-blur-xl md:p-6">
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <div>
-              <p className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-black/40">
-                Strava
-              </p>
-              <h2 className="text-xl font-black tracking-[-0.04em] md:text-2xl">
-                Letzte Aktivität
-              </h2>
-            </div>
-
-            <span className="rounded-full border border-black/10 bg-[#d7d5ce] px-4 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/55">
-              Live
-            </span>
-          </div>
-
-          <StravaLatest />
-        </div>
-      </section>
+<section id="strava" className="px-6 pb-16 pt-16 md:px-10 md:pt-20 lg:px-20">
+  <div className="mx-auto max-w-[1280px]">
+    <StravaLatest />
+  </div>
+</section>
 
       {/* FOOTER */}
       <footer className="px-6 pb-10 pt-4 md:px-10 lg:px-20">

@@ -208,7 +208,7 @@ export default async function JournalPostPage({
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <BackHeader backHref="/journal" />
+      <BackHeader backHref="/#portal-journal" />
 
       <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
         <div className="mx-auto max-w-[1280px]">
@@ -333,7 +333,7 @@ export default async function JournalPostPage({
                 )}
 
                 <Link
-                  href="/journal"
+                  href="/#portal-journal"
                   className="group block rounded-[2rem] bg-[#d7d5ce] p-6 text-black shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <p className="mb-2 text-xs font-black uppercase tracking-[0.32em] text-black/40">
@@ -341,7 +341,7 @@ export default async function JournalPostPage({
                   </p>
 
                   <div className="flex items-center justify-between gap-4 text-sm font-black">
-                    <span>Alle Beiträge ansehen</span>
+                    <span>Zurück zum Journal</span>
                     <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
                       →
                     </span>
