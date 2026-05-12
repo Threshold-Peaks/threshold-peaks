@@ -228,14 +228,30 @@ export default function HomePortal({
     }
 
     function updateFromHash() {
-      const nextTab = getTabIdFromHash();
+  const nextTab = getTabIdFromHash();
 
-      if (nextTab) {
-        setActiveTab(nextTab);
+  if (nextTab) {
+    setActiveTab(nextTab);
 
-        
-      }
+    const portalElement = document.getElementById("portal");
+
+    if (!portalElement) return;
+
+    const portalRect = portalElement.getBoundingClientRect();
+
+    const isAlreadyInPortal =
+      portalRect.top < 140 && portalRect.bottom > window.innerHeight * 0.35;
+
+    if (!isAlreadyInPortal) {
+      window.setTimeout(() => {
+        portalElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 50);
     }
+  }
+}
 
     updateFromHash();
 
