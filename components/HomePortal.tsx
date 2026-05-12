@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { useEffect, useState } from "react";
 import { Image as SanityImage } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { urlFor } from "@/sanity/lib/image";
+
+type PortableTextBlock = any[];
+
+type HomeJournalImage = SanityImageSource & {
+  alt?: string;
+};
 
 type HomeJournalPost = {
   _id: string;
@@ -15,6 +22,10 @@ type HomeJournalPost = {
   publishedAt?: string;
   category?: string;
   excerpt?: string;
+  body?: PortableTextBlock;
+  stravaUrl?: string;
+  soundcloudUrl?: string;
+  mainImage?: HomeJournalImage;
 };
 
 type HomeGalleryImage = SanityImageSource & {
@@ -48,6 +59,8 @@ type HomeEvent = {
   teaser?: string;
   status?: string;
   externalUrl?: string;
+  image?: HomeGalleryImage;
+  body?: PortableTextBlock;
 };
 
 type PortalTab = "about" | "journal" | "gallery" | "events" | "contact";
@@ -100,6 +113,102 @@ const tabs: Array<{
   },
 ];
 
+const journalPortableTextComponents: PortableTextComponents = {
+  block: {
+    h2: ({ children }) => (
+      <h2 className="mt-12 text-3xl font-black leading-tight tracking-[-0.04em] text-black">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className="mt-10 text-2xl font-black leading-tight tracking-[-0.03em] text-black">
+        {children}
+      </h3>
+    ),
+    normal: ({ children }) => (
+      <p className="mt-6 text-base leading-8 text-neutral-700 md:text-lg md:leading-9">
+        {children}
+      </p>
+    ),
+    blockquote: ({ children }) => (
+      <blockquote className="mt-8 rounded-3xl border-l-4 border-orange-500 bg-[#f5f3ee] px-6 py-5 text-lg font-semibold leading-8 text-black/75">
+        {children}
+      </blockquote>
+    ),
+  },
+  list: {
+    bullet: ({ children }) => (
+      <ul className="mt-6 list-disc space-y-3 pl-6 text-base leading-8 text-neutral-700 md:text-lg">
+        {children}
+      </ul>
+    ),
+    number: ({ children }) => (
+      <ol className="mt-6 list-decimal space-y-3 pl-6 text-base leading-8 text-neutral-700 md:text-lg">
+        {children}
+      </ol>
+    ),
+  },
+  listItem: {
+    bullet: ({ children }) => <li>{children}</li>,
+    number: ({ children }) => <li>{children}</li>,
+  },
+  marks: {
+    strong: ({ children }) => (
+      <strong className="font-black text-black">{children}</strong>
+    ),
+    em: ({ children }) => <em className="text-black">{children}</em>,
+    link: ({ value, children }) => {
+      const href = typeof value?.href === "string" ? value.href : "#";
+      const isExternal = href.startsWith("http");
+
+      return (
+        <a
+          href={href}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noreferrer" : undefined}
+          className="font-black text-orange-600 underline decoration-orange-500/30 underline-offset-4 transition hover:text-orange-700"
+        >
+          {children}
+        </a>
+      );
+    },
+  },
+};
+
+const eventPortableTextComponents: PortableTextComponents = {
+  block: {
+    normal: ({ children }) => (
+      <p className="mb-5 leading-8 text-neutral-700">{children}</p>
+    ),
+    h2: ({ children }) => (
+      <h2 className="mb-4 mt-10 text-2xl font-semibold text-neutral-950">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }) => (
+      <h3 className="mb-3 mt-8 text-xl font-semibold text-neutral-950">
+        {children}
+      </h3>
+    ),
+  },
+  marks: {
+    link: ({ children, value }) => {
+      const href = value?.href || "#";
+
+      return (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium underline decoration-neutral-400 underline-offset-4 hover:text-neutral-600"
+        >
+          {children}
+        </a>
+      );
+    },
+  },
+};
+
 function formatHomeDate(date?: string) {
   if (!date) return "Journal";
 
@@ -133,6 +242,17 @@ function formatHomeEventDate(startDate?: string, endDate?: string) {
   return formatter.format(start);
 }
 
+function formatEventDetailDate(date?: string) {
+  if (!date) return null;
+
+  return new Intl.DateTimeFormat("de-DE", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
 function formatHomeEventTime(startDate?: string) {
   if (!startDate || !startDate.includes("T")) {
     return undefined;
@@ -146,14 +266,18 @@ function formatHomeEventTime(startDate?: string) {
 
 function formatJournalCategory(category?: string) {
   const categories: Record<string, string> = {
+    running: "Running",
+    cycling: "Cycling",
+    music: "Music",
+    lifestyle: "Lifestyle",
+    event: "Event",
+
     laufen: "Running",
     radfahren: "Cycling",
     musik: "Music",
-    lifestyle: "Story",
-    event: "Event",
   };
 
-  return category ? categories[category] ?? category : "Story";
+  return category ? categories[category] ?? category : "Journal";
 }
 
 function formatGalleryCategory(category?: string) {
@@ -584,37 +708,160 @@ function JournalPortalDetail({
       <button
         type="button"
         onClick={onBack}
-        className="mb-8 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+        className="mb-10 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
       >
         ← Zurück zum Journal
       </button>
 
-      <div className="max-w-3xl">
-        <p className="mb-4 text-xs font-black uppercase tracking-[0.35em] text-black/45">
-          {formatJournalCategory(post.category)}
-        </p>
+      <header className="max-w-4xl">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
+          <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-neutral-700">
+            {formatJournalCategory(post.category)}
+          </span>
 
-        <h4 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
+          <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
+            {formatHomeDate(post.publishedAt)}
+          </span>
+        </div>
+
+        <h1 className="text-5xl font-black leading-none tracking-tight md:text-7xl">
           {post.title}
-        </h4>
+        </h1>
 
-        <p className="mt-4 text-sm font-black uppercase tracking-[0.22em] text-black/40">
-          {formatHomeDate(post.publishedAt)}
-        </p>
-
-        <p className="mt-8 text-lg leading-9 text-black/70">
-          {post.excerpt ||
-            "Dieser Beitrag wird im Journal weiter ausgearbeitet. Hier erscheint später der vollständige Text aus dem CMS."}
-        </p>
-
-        {post.slug?.current ? (
-          <Link
-            href={`/journal/${post.slug.current}`}
-            className="mt-8 inline-flex items-center rounded-md border border-black/10 bg-[#111217] px-6 py-4 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:text-orange-400 hover:shadow-md"
-          >
-            Vollständige Seite öffnen <span className="ml-3">→</span>
-          </Link>
+        {post.excerpt ? (
+          <p className="mt-8 max-w-3xl text-xl leading-9 text-neutral-600">
+            {post.excerpt}
+          </p>
         ) : null}
+      </header>
+
+      {post.mainImage ? (
+        <div className="mt-12 max-w-4xl">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="rounded-full bg-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white">
+              Journal-Cover
+            </span>
+
+            <span className="text-xs font-black uppercase tracking-[0.25em] text-black/40">
+              Aufmacher
+            </span>
+          </div>
+
+          <div className="overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-black/10">
+            <div className="overflow-hidden rounded-[1.5rem] bg-[#ded9cf]">
+              <SanityImage
+                src={urlFor(post.mainImage).width(1000).height(625).url()}
+                alt={post.mainImage.alt || post.title}
+                width={1000}
+                height={625}
+                priority
+                className="aspect-[16/10] w-full object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-14 grid gap-8 lg:grid-cols-[minmax(240px,0.9fr)_minmax(0,3fr)] lg:items-start">
+        <aside className="space-y-5 lg:sticky lg:top-8">
+          <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
+            <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
+              Beitrag
+            </p>
+
+            <div className="space-y-4 text-sm font-bold text-black/65">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                  Kategorie
+                </p>
+                <p className="mt-1 text-black">
+                  {formatJournalCategory(post.category)}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                  Datum
+                </p>
+                <p className="mt-1 text-black">
+                  {formatHomeDate(post.publishedAt)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {(post.stravaUrl || post.soundcloudUrl) ? (
+            <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
+              <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
+                Links
+              </p>
+
+              <div className="grid gap-3">
+                {post.stravaUrl ? (
+                  <Link
+                    href={post.stravaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group rounded-2xl bg-[#f5f3ee] px-5 py-4 text-sm font-black text-black transition hover:-translate-y-0.5 hover:text-orange-600 hover:shadow-sm"
+                  >
+                    <span className="flex items-center justify-between gap-4">
+                      Strava öffnen
+                      <span className="transition group-hover:translate-x-1">
+                        →
+                      </span>
+                    </span>
+                  </Link>
+                ) : null}
+
+                {post.soundcloudUrl ? (
+                  <Link
+                    href={post.soundcloudUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group rounded-2xl bg-[#f5f3ee] px-5 py-4 text-sm font-black text-black transition hover:-translate-y-0.5 hover:text-orange-600 hover:shadow-sm"
+                  >
+                    <span className="flex items-center justify-between gap-4">
+                      SoundCloud öffnen
+                      <span className="transition group-hover:translate-x-1">
+                        →
+                      </span>
+                    </span>
+                  </Link>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={onBack}
+            className="group block w-full rounded-[2rem] bg-[#d7d5ce] p-6 text-left text-black shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <p className="mb-2 text-xs font-black uppercase tracking-[0.32em] text-black/40">
+              Zurück
+            </p>
+
+            <div className="flex items-center justify-between gap-4 text-sm font-black">
+              <span>Zurück zum Journal</span>
+              <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
+                →
+              </span>
+            </div>
+          </button>
+        </aside>
+
+        <div className="rounded-[2rem] bg-white p-7 shadow-sm ring-1 ring-black/10 md:p-10">
+          {post.body && post.body.length > 0 ? (
+            <PortableText
+              value={post.body}
+              components={journalPortableTextComponents}
+            />
+          ) : (
+            <p className="text-base leading-8 text-neutral-600">
+              Für diesen Beitrag wurde noch kein Text hinterlegt.
+            </p>
+          )}
+        </div>
       </div>
     </article>
   );
@@ -900,68 +1147,99 @@ function EventPortalDetail({
   event: HomeEvent;
   onBack: () => void;
 }) {
-  const date = formatHomeEventDate(event.startDate, event.endDate);
-  const time = event.time || formatHomeEventTime(event.startDate);
-  const type = formatEventType(event.eventType);
-  const status = formatEventStatus(event.status);
+  const formattedDate = formatEventDetailDate(event.startDate);
+  const image = event.image;
 
   return (
-    <article>
+    <article className="text-neutral-950">
       <button
         type="button"
         onClick={onBack}
-        className="mb-8 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+        className="mb-10 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
       >
         ← Zurück zu den Events
       </button>
 
-      <div className="max-w-3xl">
-        <div className="mb-5 flex flex-wrap items-center gap-3">
-          <span className="inline-flex rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-black/65">
-            {type}
-          </span>
+      <div className="mx-auto w-full max-w-5xl">
+        <header className="mb-8">
+          <div className="mb-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-neutral-500">
+            {event.eventType ? <span>{event.eventType}</span> : null}
+            {event.status ? <span>• {event.status}</span> : null}
+          </div>
 
-          <span className="rounded-full bg-[#111217] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white">
-            {status}
-          </span>
-        </div>
+          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 md:text-6xl">
+            {event.title}
+          </h1>
 
-        <h4 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-5xl">
-          {event.title}
-        </h4>
-
-        <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs font-black uppercase tracking-[0.2em] text-black/45">
-          <span>{date}</span>
-          {time ? <span>{time}</span> : null}
-          {event.location ? <span>{event.location}</span> : null}
-        </div>
-
-        <p className="mt-8 text-lg leading-9 text-black/70">
-          {event.teaser ||
-            "Dieser Termin wird im Kalender weiter ausgearbeitet."}
-        </p>
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          {event.slug?.current ? (
-            <Link
-              href={`/events/${event.slug.current}`}
-              className="inline-flex items-center rounded-md border border-black/10 bg-[#111217] px-6 py-4 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:text-orange-400 hover:shadow-md"
-            >
-              Vollständige Seite öffnen <span className="ml-3">→</span>
-            </Link>
+          {event.teaser ? (
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-neutral-600">
+              {event.teaser}
+            </p>
           ) : null}
+        </header>
 
-          {event.externalUrl ? (
+        {image ? (
+          <div className="mb-10 overflow-hidden rounded-[2rem] bg-white shadow-sm">
+            <SanityImage
+              src={urlFor(image).width(1600).url()}
+              alt={image.alt || event.title || "Event Bild"}
+              width={1600}
+              height={900}
+              className="h-auto w-full object-cover"
+            />
+          </div>
+        ) : null}
+
+        <section className="mb-12 grid gap-4 rounded-[2rem] bg-white p-6 shadow-sm md:grid-cols-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
+              Datum
+            </p>
+            <p className="mt-2 text-base font-medium text-neutral-900">
+              {formattedDate ?? "Noch offen"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
+              Zeit
+            </p>
+            <p className="mt-2 text-base font-medium text-neutral-900">
+              {event.time || formatHomeEventTime(event.startDate) || "Noch offen"}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
+              Ort
+            </p>
+            <p className="mt-2 text-base font-medium text-neutral-900">
+              {event.location ?? "Noch offen"}
+            </p>
+          </div>
+        </section>
+
+        {event.body && event.body.length > 0 ? (
+          <div className="prose prose-neutral max-w-3xl">
+            <PortableText
+              value={event.body}
+              components={eventPortableTextComponents}
+            />
+          </div>
+        ) : null}
+
+        {event.externalUrl ? (
+          <div className="mt-12">
             <Link
               href={event.externalUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-6 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+              className="inline-flex rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-neutral-700"
             >
-              Externe Seite öffnen <span className="ml-3">→</span>
+              Zur Veranstaltungsseite
             </Link>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </article>
   );
