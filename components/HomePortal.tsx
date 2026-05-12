@@ -208,88 +208,97 @@ export default function HomePortal({
   const [activeTab, setActiveTab] = useState<PortalTab>("about");
 
   useEffect(() => {
-  function getTabIdFromHash() {
-    const rawHash = window.location.hash.replace("#portal-", "");
+    function getTabIdFromHash(): PortalTab | undefined {
+      const rawHash = window.location.hash.replace("#portal-", "");
 
-    const directMatch = tabs.find((tab) => tab.id === rawHash)?.id;
+      const hashMap: Record<string, PortalTab> = {
+        about: "about",
+        journal: "journal",
 
-    if (directMatch) {
-      return directMatch;
+        galerie: "gallery",
+        gallery: "gallery",
+
+        events: "events",
+
+        kontakt: "contact",
+        contact: "contact",
+      };
+
+      return hashMap[rawHash];
     }
 
-    const aliases: Record<string, string[]> = {
-      galerie: ["galerie", "gallery"],
-      gallery: ["gallery", "galerie"],
-      kontakt: ["kontakt", "contact"],
-      contact: ["contact", "kontakt"],
+    function updateFromHash() {
+      const nextTab = getTabIdFromHash();
+
+      if (nextTab) {
+        setActiveTab(nextTab);
+
+        window.setTimeout(() => {
+          document.getElementById("portal")?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 50);
+      }
+    }
+
+    updateFromHash();
+
+    window.addEventListener("hashchange", updateFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", updateFromHash);
     };
-
-    const possibleIds = aliases[rawHash] ?? [];
-
-    return possibleIds.find((id) => tabs.some((tab) => tab.id === id));
-  }
-
-  function updateFromHash() {
-    const nextTab = getTabIdFromHash();
-
-    if (nextTab) {
-      setActiveTab(nextTab);
-    }
-  }
-
-  updateFromHash();
-
-  window.addEventListener("hashchange", updateFromHash);
-
-  return () => {
-    window.removeEventListener("hashchange", updateFromHash);
-  };
-}, []);
+  }, []);
 
   const activeTabMeta = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
 
   return (
-  <section id="portal" className="px-6 pb-16 md:px-10 lg:px-20">
-    <div className="mx-auto max-w-[1280px]">
-            <div
-        key={activeTab}
-        className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/65 shadow-sm backdrop-blur-xl"
-      >
-        <div className="min-h-[520px] p-7 md:p-10 lg:p-12">
-          <div className="mb-9 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/45">
-                {activeTabMeta.label}
-              </p>
+    <section id="portal" className="px-6 pb-16 md:px-10 lg:px-20">
+      <div className="mx-auto max-w-[1280px]">
+        <div
+          key={activeTab}
+          className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/65 shadow-sm backdrop-blur-xl"
+        >
+          <div className="min-h-[520px] p-7 md:p-10 lg:p-12">
+            <div className="mb-9 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/45">
+                  {activeTabMeta.label}
+                </p>
 
-              <h3 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-6xl">
-                {activeTabMeta.title}
-              </h3>
+                <h3 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-6xl">
+                  {activeTabMeta.title}
+                </h3>
 
-              <p className="mt-4 max-w-xl text-sm font-semibold leading-7 text-black/55">
-                {activeTabMeta.text}
-              </p>
+                <p className="mt-4 max-w-xl text-sm font-semibold leading-7 text-black/55">
+                  {activeTabMeta.text}
+                </p>
+              </div>
+
+              <PortalMainLink activeTab={activeTab} />
             </div>
 
-            <PortalMainLink activeTab={activeTab} />
-          </div>
+            {activeTab === "about" ? <AboutPanel /> : null}
 
-          {activeTab === "about" ? <AboutPanel /> : null}
-          {activeTab === "journal" ? (
-            <JournalPanel posts={latestPosts} />
-          ) : null}
-          {activeTab === "gallery" ? (
-            <GalleryPanel albums={latestAlbums} />
-          ) : null}
-          {activeTab === "events" ? (
-            <EventsPanel events={latestEvents} />
-          ) : null}
-          {activeTab === "contact" ? <ContactPanel /> : null}
+            {activeTab === "journal" ? (
+              <JournalPanel posts={latestPosts} />
+            ) : null}
+
+            {activeTab === "gallery" ? (
+              <GalleryPanel albums={latestAlbums} />
+            ) : null}
+
+            {activeTab === "events" ? (
+              <EventsPanel events={latestEvents} />
+            ) : null}
+
+            {activeTab === "contact" ? <ContactPanel /> : null}
+          </div>
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
 }
 
 function PortalMainLink({ activeTab }: { activeTab: PortalTab }) {
