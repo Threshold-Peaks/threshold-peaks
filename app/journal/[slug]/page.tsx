@@ -210,7 +210,6 @@ export default async function JournalPostPage({
     <main className="min-h-screen bg-[#f5f3ee] text-black">
       <BackHeader
   href="/#portal-journal"
-  backHref="/#portal-journal"
   label="Zurück zum Journal"
 />
 
