@@ -44,7 +44,7 @@ export default async function GalleryPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <BackHeader href="/#portal-gallery" label="Zurück zur Startseite" />
+      <BackHeader href="/#portal-gallery" label="Zurück zur Galerie" />
 
       <section className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <div className="mb-12 max-w-3xl">

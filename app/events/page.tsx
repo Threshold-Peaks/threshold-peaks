@@ -137,7 +137,7 @@ export default async function EventsPage() {
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-[#111217]">
-      <BackHeader />
+      <BackHeader href="/#portal-events" label="Zurück zu den Events" />
 
       <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
         <div className="mx-auto max-w-[1280px]">

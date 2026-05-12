@@ -87,19 +87,13 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <BackHeader href="/#portal-gallery" label="Zurück zur Galerie" />
+      <BackHeader href="/gallery" label="Zurück zur Galerie-Übersicht" />
 
       <article className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <header className="mb-12 max-w-3xl">
-          {album.category ? (
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-black/50">
-              {album.category}
-            </p>
-          ) : (
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-black/50">
-              Galerie
-            </p>
-          )}
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-black/50">
+            {album.category || "Galerie"}
+          </p>
 
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
             {album.title}
@@ -119,33 +113,47 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
             </p>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {images.map((image, index) => (
-              <figure
-                key={`${album.title}-${index}`}
-                className="overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden bg-black/5">
-                  <Image
-                    src={urlFor(image)
-                      .width(1400)
-                      .height(1050)
-                      .fit("crop")
-                      .url()}
-                    alt={image.alt || `${album.title} Bild ${index + 1}`}
-                    width={1400}
-                    height={1050}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
+          <div className="columns-1 gap-6 space-y-6 sm:columns-2 lg:columns-3">
+            {images.map((image, index) => {
+              const isLarge = index % 5 === 0;
+              const isTall = index % 5 === 2;
+              const isWide = index % 5 === 4;
 
-                {image.caption ? (
-                  <figcaption className="px-5 py-4 text-sm leading-6 text-black/60">
-                    {image.caption}
-                  </figcaption>
-                ) : null}
-              </figure>
-            ))}
+              const imageRatioClass = isLarge
+                ? "aspect-[4/5]"
+                : isTall
+                  ? "aspect-[3/4]"
+                  : isWide
+                    ? "aspect-[5/4]"
+                    : "aspect-[4/3]";
+
+              return (
+                <figure
+                  key={`${album.title}-${index}`}
+                  className="mb-6 break-inside-avoid overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm"
+                >
+                  <div className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}>
+                    <Image
+                      src={urlFor(image)
+                        .width(1200)
+                        .height(1600)
+                        .fit("crop")
+                        .url()}
+                      alt={image.alt || `${album.title} Bild ${index + 1}`}
+                      width={1200}
+                      height={1600}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+
+                  {image.caption ? (
+                    <figcaption className="px-5 py-4 text-sm leading-6 text-black/60">
+                      {image.caption}
+                    </figcaption>
+                  ) : null}
+                </figure>
+              );
+            })}
           </div>
         )}
       </article>

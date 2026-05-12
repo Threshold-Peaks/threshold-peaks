@@ -195,9 +195,11 @@ function formatEventStatus(status?: string) {
 }
 
 function getHomeEventHref(event: HomeEvent) {
-  return event.slug?.current
-    ? `/events/${event.slug.current}`
-    : event.externalUrl;
+  if (event.slug?.current) {
+    return `/events/${event.slug.current}`;
+  }
+
+  return event.externalUrl;
 }
 
 export default function HomePortal({
@@ -214,12 +216,9 @@ export default function HomePortal({
       const hashMap: Record<string, PortalTab> = {
         about: "about",
         journal: "journal",
-
         galerie: "gallery",
         gallery: "gallery",
-
         events: "events",
-
         kontakt: "contact",
         contact: "contact",
       };
@@ -228,30 +227,30 @@ export default function HomePortal({
     }
 
     function updateFromHash() {
-  const nextTab = getTabIdFromHash();
+      const nextTab = getTabIdFromHash();
 
-  if (nextTab) {
-    setActiveTab(nextTab);
+      if (!nextTab) return;
 
-    const portalElement = document.getElementById("portal");
+      setActiveTab(nextTab);
 
-    if (!portalElement) return;
+      const portalElement = document.getElementById("portal");
 
-    const portalRect = portalElement.getBoundingClientRect();
+      if (!portalElement) return;
 
-    const isAlreadyInPortal =
-      portalRect.top < 140 && portalRect.bottom > window.innerHeight * 0.35;
+      const portalRect = portalElement.getBoundingClientRect();
 
-    if (!isAlreadyInPortal) {
-      window.setTimeout(() => {
-        portalElement.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 50);
+      const isAlreadyInPortal =
+        portalRect.top < 140 && portalRect.bottom > window.innerHeight * 0.35;
+
+      if (!isAlreadyInPortal) {
+        window.setTimeout(() => {
+          portalElement.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 50);
+      }
     }
-  }
-}
 
     updateFromHash();
 
@@ -403,7 +402,7 @@ function AboutPanel() {
 }
 
 function JournalPanel({ posts }: { posts: HomeJournalPost[] }) {
-  const fallbackPosts = [
+  const fallbackPosts: HomeJournalPost[] = [
     {
       _id: "fallback-journal-1",
       title: "Warum Threshold Peaks?",
@@ -432,10 +431,9 @@ function JournalPanel({ posts }: { posts: HomeJournalPost[] }) {
   return (
     <div className="grid gap-5 md:grid-cols-3">
       {items.map((post) => {
-        const href =
-          "slug" in post && post.slug?.current
-            ? `/journal/${post.slug.current}`
-            : "/journal";
+        const href = post.slug?.current
+          ? `/journal/${post.slug.current}`
+          : "/journal";
 
         return (
           <Link
@@ -444,9 +442,7 @@ function JournalPanel({ posts }: { posts: HomeJournalPost[] }) {
             className="group flex min-h-[300px] flex-col rounded-[1.5rem] border border-black/10 bg-[#111217] p-6 text-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
           >
             <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-white/40">
-              {"publishedAt" in post
-                ? formatHomeDate(post.publishedAt)
-                : "Journal"}
+              {formatHomeDate(post.publishedAt)}
             </p>
 
             <h4 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-400">
@@ -462,6 +458,7 @@ function JournalPanel({ posts }: { posts: HomeJournalPost[] }) {
               <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/60">
                 {formatJournalCategory(post.category)}
               </span>
+
               <span className="transition group-hover:translate-x-1 group-hover:text-orange-400">
                 →
               </span>
@@ -480,6 +477,7 @@ function GalleryPanel({ albums }: { albums: HomeGalleryAlbum[] }) {
         <h4 className="text-2xl font-black tracking-[-0.04em]">
           Noch keine Alben vorhanden.
         </h4>
+
         <p className="mt-4 leading-8 text-black/65">
           Sobald du im Sanity Studio Alben veröffentlichst, erscheinen sie hier.
         </p>
@@ -661,6 +659,7 @@ function EventCardContent({
         <span className="inline-flex rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-black/65">
           {type}
         </span>
+
         <span className="rounded-full bg-[#111217] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white">
           {status}
         </span>
@@ -680,6 +679,7 @@ function EventCardContent({
 
       <div className="mt-6 flex items-center justify-between border-t border-black/10 pt-5 text-sm font-black">
         <span>{linked ? "Details ansehen" : "Termin"}</span>
+
         {linked ? (
           <span className="transition group-hover:translate-x-1">→</span>
         ) : null}
@@ -714,26 +714,31 @@ function ContactPanel() {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {links.map((item) => (
-        <Link
-          key={item.title}
-          href={item.href}
-          target={item.href.startsWith("http") ? "_blank" : undefined}
-          rel={item.href.startsWith("http") ? "noreferrer" : undefined}
-          className="group rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl"
-        >
-          <div className="mb-5 flex items-center justify-between">
-            <h4 className="text-lg font-black transition group-hover:text-orange-600">
-              {item.title}
-            </h4>
-            <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
-              →
-            </span>
-          </div>
+      {links.map((item) => {
+        const isExternal = item.href.startsWith("http");
 
-          <p className="leading-7 text-black/65">{item.text}</p>
-        </Link>
-      ))}
+        return (
+          <Link
+            key={item.title}
+            href={item.href}
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noreferrer" : undefined}
+            className="group rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <h4 className="text-lg font-black transition group-hover:text-orange-600">
+                {item.title}
+              </h4>
+
+              <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
+                →
+              </span>
+            </div>
+
+            <p className="leading-7 text-black/65">{item.text}</p>
+          </Link>
+        );
+      })}
     </div>
   );
 }
