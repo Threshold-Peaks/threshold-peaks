@@ -5,8 +5,8 @@ type BackHeaderProps = {
   label?: string;
 
   /**
-   * Sicherheits-Alias für ältere Aufrufe.
-   * href hat Vorrang.
+   * Fallback für ältere Aufrufe.
+   * Dadurch funktionieren auch noch alte Stellen mit backHref/backLabel.
    */
   backHref?: string;
   backLabel?: string;
@@ -36,7 +36,7 @@ export default function BackHeader({
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
         <Link
           href="/"
-          className="group flex items-center gap-3"
+          className="group flex items-center gap-3 transition hover:text-orange-600"
           aria-label="Zur Startseite von Threshold Peaks"
         >
           <ThresholdPeaksIcon />
@@ -53,7 +53,7 @@ export default function BackHeader({
 
         <Link
           href={targetHref}
-          className="rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-black shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600"
+          className="rounded-full border border-black/10 bg-[#d7d5ce] px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-black shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600"
         >
           {buttonLabel}
         </Link>
