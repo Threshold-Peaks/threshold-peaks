@@ -208,7 +208,10 @@ export default async function JournalPostPage({
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <BackHeader backHref="/#portal-journal" />
+      <BackHeader
+  href="/#portal-journal"
+  label="Zurück zum Journal"
+/>
 
       <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
         <div className="mx-auto max-w-[1280px]">

@@ -164,13 +164,13 @@ export default async function StartseiteTest() {
           </a>
 
           <nav className="ml-10 hidden items-center gap-6 text-sm font-semibold md:flex">
-            <NavLink href="#top">Home</NavLink>
-            <NavLink href="#portal-about">About</NavLink>
-            <NavLink href="#portal-journal">Journal</NavLink>
-            <NavLink href="#portal-gallery">Galerie</NavLink>
-            <NavLink href="#portal-events">Events</NavLink>
-            <NavLink href="#portal-contact">Kontakt</NavLink>
-          </nav>
+  <NavLink href="#top">Home</NavLink>
+  <NavLink href="#portal-about">About</NavLink>
+  <NavLink href="#portal-journal">Journal</NavLink>
+  <NavLink href="#portal-galerie">Galerie</NavLink>
+  <NavLink href="#portal-events">Events</NavLink>
+  <NavLink href="#portal-kontakt">Kontakt</NavLink>
+</nav>
 
           <details className="group relative md:hidden">
             <summary className="list-none rounded-full border border-black/10 bg-white/70 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition hover:text-orange-600 active:scale-95 [&::-webkit-details-marker]:hidden">
@@ -178,13 +178,13 @@ export default async function StartseiteTest() {
             </summary>
 
             <div className="absolute right-0 top-14 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
-              <MobileNavLink href="#top">Home</MobileNavLink>
-              <MobileNavLink href="#portal-about">About</MobileNavLink>
-              <MobileNavLink href="#portal-journal">Journal</MobileNavLink>
-              <MobileNavLink href="#portal-gallery">Galerie</MobileNavLink>
-              <MobileNavLink href="#portal-events">Events</MobileNavLink>
-              <MobileNavLink href="#portal-contact">Kontakt</MobileNavLink>
-            </div>
+  <MobileNavLink href="#top">Home</MobileNavLink>
+  <MobileNavLink href="#portal-about">About</MobileNavLink>
+  <MobileNavLink href="#portal-journal">Journal</MobileNavLink>
+  <MobileNavLink href="#portal-galerie">Galerie</MobileNavLink>
+  <MobileNavLink href="#portal-events">Events</MobileNavLink>
+  <MobileNavLink href="#portal-kontakt">Kontakt</MobileNavLink>
+</div>
           </details>
         </header>
 
