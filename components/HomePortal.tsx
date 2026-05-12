@@ -230,7 +230,7 @@ export default function HomePortal({
     <div className="mx-auto max-w-[1280px]">
             <div
         key={activeTab}
-        className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/75 shadow-sm backdrop-blur-xl"
+        className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/65 shadow-sm backdrop-blur-xl"
       >
         <div className="min-h-[520px] p-7 md:p-10 lg:p-12">
           <div className="mb-9 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
