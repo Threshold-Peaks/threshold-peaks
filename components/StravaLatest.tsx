@@ -17,6 +17,9 @@ type StravaLatestProps = {
   variant?: "default" | "footer";
 };
 
+const subtleLinkClass =
+  "group inline-flex w-fit items-center gap-2 text-[10px] font-black uppercase tracking-[0.26em] text-black/45 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600";
+
 export default function StravaLatest({ variant = "default" }: StravaLatestProps) {
   const [activities, setActivities] = useState<StravaActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,12 +52,15 @@ export default function StravaLatest({ variant = "default" }: StravaLatestProps)
       className={
         isFooter
           ? ""
-          : "rounded-[2rem] border border-black/10 bg-white/70 p-5 shadow-sm backdrop-blur-xl md:p-6"
+          : "rounded-[2rem] border border-black/10 bg-white/75 p-5 shadow-sm ring-1 ring-white/60 backdrop-blur-xl md:p-6"
       }
     >
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-black/40">
+      <div className="mb-6 flex flex-col gap-4 border-b border-black/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="relative pl-6">
+          <span className="absolute left-0 top-1 h-full w-px bg-black/15" />
+          <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee]" />
+
+          <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-black/35">
             Strava
           </p>
 
@@ -73,37 +79,33 @@ export default function StravaLatest({ variant = "default" }: StravaLatestProps)
           href="https://www.strava.com/athletes/47713057"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex w-fit items-center rounded-full bg-[#d7d5ce] px-4 py-2 text-xs font-black text-black transition hover:bg-[#c9c6bd] hover:text-orange-600"
+          className={subtleLinkClass}
         >
+          <span className="h-px w-6 bg-black/20 transition group-hover:bg-orange-600" />
           Strava öffnen
+          <span className="text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600">
+            →
+          </span>
         </a>
       </div>
 
       {loading ? (
-        <div className="rounded-[1.25rem] bg-[#f5f3ee] p-4">
-          <p className="text-sm font-semibold text-black/60">
-            Lade Aktivitäten...
-          </p>
-        </div>
+        <StravaNotice text="Lade Aktivitäten..." />
       ) : visibleActivities.length === 0 ? (
-        <div className="rounded-[1.25rem] bg-[#f5f3ee] p-4">
-          <p className="text-sm font-semibold leading-7 text-black/60">
-            Aktuell konnten keine Strava-Aktivitäten geladen werden.
-          </p>
-        </div>
+        <StravaNotice text="Aktuell konnten keine Strava-Aktivitäten geladen werden." />
       ) : (
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3">
           {visibleActivities.map((activity) => (
             <a
               key={activity.id}
               href={activity.url}
               target="_blank"
               rel="noreferrer"
-              className="group rounded-[1.25rem] border border-black/10 bg-[#f5f3ee] p-4 transition hover:-translate-y-1 hover:shadow-md"
+              className="group rounded-[1.5rem] border border-black/10 bg-white/70 p-5 shadow-sm transition hover:-translate-y-1 hover:bg-[#f5f3ee] hover:shadow-md"
             >
-              <div className="mb-4 flex items-start justify-between gap-4">
+              <div className="mb-5 flex items-start justify-between gap-4">
                 <div>
-                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.28em] text-black/40">
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
                     {translateType(activity.type)}
                   </p>
 
@@ -112,13 +114,16 @@ export default function StravaLatest({ variant = "default" }: StravaLatestProps)
                   </h3>
                 </div>
 
-                <span className="text-sm font-black text-black transition group-hover:translate-x-1 group-hover:text-orange-600">
+                <span className="text-sm font-black text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600">
                   →
                 </span>
               </div>
 
-              <div className="space-y-2 border-t border-black/10 pt-3">
-                <ActivityStat label="Distanz" value={`${activity.distanceKm} km`} />
+              <div className="space-y-2.5 border-t border-black/10 pt-4">
+                <ActivityStat
+                  label="Distanz"
+                  value={`${activity.distanceKm} km`}
+                />
                 <ActivityStat label="Zeit" value={activity.movingTime} />
                 <ActivityStat
                   label="Höhenm."
@@ -130,6 +135,14 @@ export default function StravaLatest({ variant = "default" }: StravaLatestProps)
         </div>
       )}
     </section>
+  );
+}
+
+function StravaNotice({ text }: { text: string }) {
+  return (
+    <div className="rounded-[1.5rem] border border-black/10 bg-white/70 p-5 shadow-sm">
+      <p className="text-sm font-semibold leading-7 text-black/60">{text}</p>
+    </div>
   );
 }
 
