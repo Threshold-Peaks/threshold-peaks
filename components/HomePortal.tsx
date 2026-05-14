@@ -999,48 +999,98 @@ function PortalTagFilter({
   onToggleTag: (tag: string) => void;
   onResetTags: () => void;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   if (tags.length === 0) return null;
 
   const hasActiveTags = selectedTags.length > 0;
+  const activeTags = tags.filter((tag) => isTagSelected(selectedTags, tag));
 
   return (
-    <section className="mb-7 rounded-[1.5rem] border border-black/10 bg-white/40 p-5 shadow-sm backdrop-blur">
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-          {hasActiveTags ? `Aktive ${label}-Hashtags` : `Nach ${label}-Hashtags filtern`}
-        </p>
+    <section className="mb-7 rounded-[1.35rem] border border-black/10 bg-white/35 px-4 py-3 shadow-sm backdrop-blur">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="button"
+          onClick={() => setIsOpen((current) => !current)}
+          className="group flex items-center gap-3 text-left"
+          aria-expanded={isOpen}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-black/20 transition group-hover:bg-orange-500" />
 
-        {hasActiveTags ? (
+          <span>
+            <span className="block text-[10px] font-black uppercase tracking-[0.28em] text-black/35 transition group-hover:text-orange-600">
+              {label}-Hashtags
+            </span>
+            <span className="mt-1 block text-xs font-bold text-black/45">
+              {hasActiveTags
+                ? `${selectedTags.length} aktiv · ${isOpen ? "Auswahl ausblenden" : "Auswahl anzeigen"}`
+                : isOpen
+                  ? "Auswahl ausblenden"
+                  : "Auswahl anzeigen"}
+            </span>
+          </span>
+        </button>
+
+        <div className="flex items-center gap-4">
+          {hasActiveTags ? (
+            <button
+              type="button"
+              onClick={onResetTags}
+              className="text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:text-orange-600"
+            >
+              Filter zurücksetzen
+            </button>
+          ) : null}
+
           <button
             type="button"
-            onClick={onResetTags}
-            className="text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:text-orange-600"
+            onClick={() => setIsOpen((current) => !current)}
+            className="border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/45 transition hover:border-orange-500 hover:text-orange-600"
+            aria-expanded={isOpen}
           >
-            Filter zurücksetzen
+            {isOpen ? "Schließen" : "Öffnen"}
           </button>
-        ) : null}
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-x-3 gap-y-2">
-        {tags.map((tag) => {
-          const active = isTagSelected(selectedTags, tag);
-
-          return (
+      {hasActiveTags && !isOpen ? (
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5 border-t border-black/5 pt-3">
+          {activeTags.map((tag) => (
             <button
               key={tag}
               type="button"
               onClick={() => onToggleTag(tag)}
-              className={
-                active
-                  ? "rounded-full border border-orange-500 bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-sm shadow-orange-500/20 transition hover:border-orange-600 hover:bg-orange-600"
-                  : "rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-black text-black/50 transition hover:border-orange-500/40 hover:text-orange-600"
-              }
+              className="px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600 transition hover:text-orange-700"
+              title="Tag entfernen"
             >
               #{tag}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : null}
+
+      {isOpen ? (
+        <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 border-t border-black/5 pt-4">
+          {tags.map((tag) => {
+            const active = isTagSelected(selectedTags, tag);
+
+            return (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => onToggleTag(tag)}
+                className={
+                  active
+                    ? "rounded-full border border-orange-500 bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-sm shadow-orange-500/20 transition hover:border-orange-600 hover:bg-orange-600"
+                    : "rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-black text-black/50 transition hover:border-orange-500/40 hover:text-orange-600"
+                }
+              >
+                #{tag}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </section>
   );
 }
