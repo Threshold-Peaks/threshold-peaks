@@ -1360,24 +1360,32 @@ function ContactPanel() {
     label: string;
   }> = [
     {
-      title: "Instagram",
-      kicker: "Momente",
-      text: "Training, Ausdauer, Alltag und kleine Eindrücke unterwegs.",
+      title: "Feedback",
+      kicker: "Anregungen",
+      text: "Anregungen zur Seite, Ideen oder Hinweise.",
+      href: "mailto:info@threshold-peaks.de?subject=Feedback%20zu%20Threshold%20Peaks",
+      label: "Nachricht schreiben",
+    },
+    {
+      title: "Events",
+      kicker: "Tipps",
+      text: "Läufe, Rides oder Veranstaltungen, die gut zu Threshold Peaks passen.",
+      href: "mailto:info@threshold-peaks.de?subject=Event-Tipp%20f%C3%BCr%20Threshold%20Peaks",
+      label: "Event-Tipp senden",
+    },
+    {
+      title: "Music",
+      kicker: "Sound",
+      text: "Tracks, Sets oder Sound-Ideen für Bewegung und Training.",
+      href: "mailto:info@threshold-peaks.de?subject=Musik-Idee%20f%C3%BCr%20Threshold%20Peaks",
+      label: "Musik-Idee senden",
+    },
+    {
+      title: "Social",
+      kicker: "Austausch",
+      text: "Austausch über Strava, Instagram oder SoundCloud.",
       href: "https://www.instagram.com/threshold.peaks/",
       label: "Instagram öffnen",
-    },
-    {
-      title: "Strava",
-      kicker: "Aktivitäten",
-      text: "Läufe, Rides und sportliche Aktivitäten im Überblick.",
-      href: "https://www.strava.com/athletes/47713057",
-      label: "Strava öffnen",
-    },
-    {
-      title: "SoundCloud",
-      kicker: "Musik",
-      text: "DJ-Sets und elektronische Sounds folgen demnächst.",
-      label: "Folgt bald",
     },
   ];
 
@@ -1385,24 +1393,24 @@ function ContactPanel() {
     <div className="grid gap-8 lg:grid-cols-[0.95fr_1.25fr] lg:items-start">
       <div className="border-l border-black/15 pl-6 text-[#111217]">
         <p className="mb-5 text-xs font-black uppercase tracking-[0.35em] text-black/40">
-          Direktkontakt
+          Kontakt
         </p>
 
         <h4 className="max-w-xl text-3xl font-black leading-tight tracking-[-0.04em] md:text-4xl">
-          Schreib mir, wenn du Fragen, Ideen oder Feedback hast.
+          Du hast Feedback, einen Event-Tipp oder eine Idee für Musik und
+          Training?
         </h4>
 
         <p className="mt-5 max-w-xl leading-8 text-black/65">
-          Ob Training, Events, Website, Musik oder einfach ein kurzer Austausch:
-          Threshold Peaks lebt von Bewegung, Klang und guten Gedanken
-          dazwischen.
+          Threshold Peaks lebt von Bewegung, Klang und Momenten draußen. Wenn du
+          etwas teilen möchtest, schreib mir gerne.
         </p>
 
         <a
           href="mailto:info@threshold-peaks.de"
           className={`${lineButtonWideClass} mt-8 w-full sm:w-auto sm:min-w-[260px]`}
         >
-          info@threshold-peaks.de
+          Nachricht schreiben
           <span>→</span>
         </a>
       </div>
@@ -1434,21 +1442,10 @@ function ContactPanel() {
               </div>
 
               <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
-                {item.href ? "→" : "•"}
+                →
               </span>
             </>
           );
-
-          if (!item.href) {
-            return (
-              <div
-                key={item.title}
-                className="group flex flex-col gap-4 py-5 md:flex-row md:items-center md:px-3"
-              >
-                {content}
-              </div>
-            );
-          }
 
           return (
             <a
