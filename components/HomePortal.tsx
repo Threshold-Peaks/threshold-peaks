@@ -98,7 +98,7 @@ type HomePortalProps = {
 };
 
 const lineButtonClass =
-  "inline-flex items-center gap-2 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
+  "inline-flex items-center gap-2 whitespace-nowrap border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
 
 const lineButtonWideClass =
   "inline-flex min-w-[220px] items-center justify-between gap-4 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
@@ -1267,21 +1267,27 @@ function JournalPortalDetail({
 
   return (
     <article className="text-neutral-950">
-      <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <button type="button" onClick={onBack} className={lineButtonClass}>
-          ← Zurück zum Journal
+      <div className="mb-10 flex flex-row items-center justify-between gap-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className={`${lineButtonClass} text-xs sm:text-sm`}
+        >
+          <span className="sm:hidden">← Journal</span>
+          <span className="hidden sm:inline">← Zurück zum Journal</span>
         </button>
 
         {hasExternalLinks ? (
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+          <div className="flex flex-row items-center justify-end gap-4">
             {post.stravaUrl ? (
               <Link
                 href={post.stravaUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={lineButtonClass}
+                className={`${lineButtonClass} text-xs sm:text-sm`}
               >
-                Strava öffnen
+                <span className="sm:hidden">Strava</span>
+                <span className="hidden sm:inline">Strava öffnen</span>
                 <span>→</span>
               </Link>
             ) : null}
@@ -1291,9 +1297,10 @@ function JournalPortalDetail({
                 href={post.soundcloudUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={lineButtonClass}
+                className={`${lineButtonClass} text-xs sm:text-sm`}
               >
-                SoundCloud öffnen
+                <span className="sm:hidden">Sound</span>
+                <span className="hidden sm:inline">SoundCloud öffnen</span>
                 <span>→</span>
               </Link>
             ) : null}
