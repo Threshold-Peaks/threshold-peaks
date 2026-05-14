@@ -64,7 +64,7 @@ function getOgImage(post: JournalPost) {
     return `${baseUrl}/opengraph-image`;
   }
 
-  return urlFor(post.mainImage).width(1200).height(630).fit("crop").url();
+  return urlFor(post.mainImage).width(1200).fit("max").url();
 }
 
 export async function generateMetadata({
@@ -122,7 +122,6 @@ export async function generateMetadata({
         {
           url: image,
           width: 1200,
-          height: 630,
           alt: post.mainImage?.alt || post.title,
         },
       ],
@@ -289,25 +288,21 @@ export default async function JournalPostPage({
 
             {post.mainImage && (
               <div className="mt-12 max-w-4xl">
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="rounded-full bg-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white">
-                    Journal-Cover
-                  </span>
-
-                  <span className="text-xs font-black uppercase tracking-[0.25em] text-black/40">
-                    Aufmacher
-                  </span>
+                <div className="mb-4 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                  <span>Journal-Cover</span>
+                  <span className="h-px w-8 bg-black/10" />
+                  <span>Aufmacher</span>
                 </div>
 
-                <div className="overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-black/10">
-                  <div className="overflow-hidden rounded-[1.5rem] bg-[#ded9cf]">
+                <div className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-white/35 p-2">
+                  <div className="overflow-hidden rounded-[1.25rem] bg-[#ded9cf]">
                     <Image
-                      src={urlFor(post.mainImage).width(1000).height(625).url()}
+                      src={urlFor(post.mainImage).width(1200).fit("max").url()}
                       alt={post.mainImage.alt || post.title}
-                      width={1000}
-                      height={625}
+                      width={1200}
+                      height={800}
                       priority
-                      className="aspect-[16/10] w-full object-cover"
+                      className="h-auto w-full object-contain"
                     />
                   </div>
                 </div>
@@ -315,53 +310,49 @@ export default async function JournalPostPage({
             )}
 
             <div className="mt-14 grid gap-8 lg:grid-cols-[minmax(240px,0.9fr)_minmax(0,3fr)] lg:items-start">
-              <aside className="space-y-5 lg:sticky lg:top-8">
-                <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
-                  <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
+              <aside className="space-y-4 lg:sticky lg:top-8">
+                <div className="rounded-[1.75rem] border border-black/10 bg-white/30 p-5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/30">
                     Beitrag
                   </p>
 
-                  <div className="space-y-4 text-sm font-bold text-black/65">
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                  <div className="mt-4 divide-y divide-black/10 text-xs font-bold text-black/60">
+                    <div className="flex items-baseline justify-between gap-4 py-3 first:pt-0">
+                      <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/30">
                         Kategorie
-                      </p>
-                      <p className="mt-1 text-black">
+                      </span>
+                      <span className="text-right text-black/65">
                         {formatCategory(post.category)}
-                      </p>
+                      </span>
                     </div>
 
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                    <div className="flex items-baseline justify-between gap-4 py-3 last:pb-0">
+                      <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/30">
                         Datum
-                      </p>
-                      <p className="mt-1 text-black">
+                      </span>
+                      <span className="text-right text-black/65">
                         {formatDate(post.publishedAt)}
-                      </p>
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 {(post.stravaUrl || post.soundcloudUrl) && (
-                  <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
-                    <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
+                  <div className="rounded-[1.75rem] border border-black/10 bg-white/20 p-5">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/30">
                       Links
                     </p>
 
-                    <div className="grid gap-3">
+                    <div className="mt-4 divide-y divide-black/10">
                       {post.stravaUrl && (
                         <Link
                           href={post.stravaUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="group rounded-2xl bg-[#f5f3ee] px-5 py-4 text-sm font-black text-black transition hover:-translate-y-0.5 hover:text-orange-600 hover:shadow-sm"
+                          className="group flex items-center justify-between gap-4 py-3 text-xs font-black text-black/55 transition hover:text-orange-600"
                         >
-                          <span className="flex items-center justify-between gap-4">
-                            Strava öffnen
-                            <span className="transition group-hover:translate-x-1">
-                              →
-                            </span>
-                          </span>
+                          <span>Strava öffnen</span>
+                          <span className="transition group-hover:translate-x-1">→</span>
                         </Link>
                       )}
 
@@ -370,14 +361,10 @@ export default async function JournalPostPage({
                           href={post.soundcloudUrl}
                           target="_blank"
                           rel="noreferrer"
-                          className="group rounded-2xl bg-[#f5f3ee] px-5 py-4 text-sm font-black text-black transition hover:-translate-y-0.5 hover:text-orange-600 hover:shadow-sm"
+                          className="group flex items-center justify-between gap-4 py-3 text-xs font-black text-black/55 transition hover:text-orange-600"
                         >
-                          <span className="flex items-center justify-between gap-4">
-                            SoundCloud öffnen
-                            <span className="transition group-hover:translate-x-1">
-                              →
-                            </span>
-                          </span>
+                          <span>SoundCloud öffnen</span>
+                          <span className="transition group-hover:translate-x-1">→</span>
                         </Link>
                       )}
                     </div>
@@ -386,18 +373,10 @@ export default async function JournalPostPage({
 
                 <Link
                   href="/#portal-journal"
-                  className="group block rounded-[2rem] bg-[#d7d5ce] p-6 text-black shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="group flex items-center justify-between gap-4 rounded-[1.75rem] border border-black/10 bg-transparent px-5 py-4 text-xs font-black text-black/55 transition hover:border-orange-500/30 hover:text-orange-600"
                 >
-                  <p className="mb-2 text-xs font-black uppercase tracking-[0.32em] text-black/40">
-                    Zurück
-                  </p>
-
-                  <div className="flex items-center justify-between gap-4 text-sm font-black">
-                    <span>Zurück zum Journal</span>
-                    <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
-                      →
-                    </span>
-                  </div>
+                  <span>Zurück zum Journal</span>
+                  <span className="transition group-hover:translate-x-1">→</span>
                 </Link>
               </aside>
 
