@@ -9,6 +9,9 @@ import { urlFor } from "@/sanity/lib/image";
 
 export const revalidate = 60;
 
+const baseUrl = "https://www.threshold-peaks.de";
+const galleryOgVersion = "gallery-square-card-v1";
+
 type GalleryTag =
   | string
   | {
@@ -82,11 +85,49 @@ export async function generateMetadata({
     };
   }
 
+  const title = `${album.title} | Galerie | Threshold Peaks`;
+  const description =
+    album.description || "Bilder und Momente aus der Threshold Peaks Galerie.";
+  const canonicalUrl = `${baseUrl}/gallery/${encodeURIComponent(slug)}`;
+  const ogImageUrl = `${baseUrl}/api/og/gallery/${encodeURIComponent(
+    slug,
+  )}?ogv=${galleryOgVersion}`;
+  const tags = getGalleryTags(album.tags);
+
   return {
-    title: `${album.title} | Galerie | Threshold Peaks`,
-    description:
-      album.description ||
-      "Bilder und Momente aus der Threshold Peaks Galerie.",
+    title,
+    description,
+    keywords: [
+      "Threshold Peaks",
+      "Galerie",
+      formatCategory(album.category),
+      ...tags,
+    ],
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: "Threshold Peaks",
+      locale: "de_DE",
+      type: "article",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 1200,
+          alt: album.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
   };
 }
 

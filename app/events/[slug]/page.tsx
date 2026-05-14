@@ -9,6 +9,9 @@ import { urlFor } from "@/sanity/lib/image";
 
 export const revalidate = 60;
 
+const baseUrl = "https://www.threshold-peaks.de";
+const eventOgVersion = "event-square-card-v1";
+
 type EventTag =
   | string
   | {
@@ -159,7 +162,7 @@ export async function generateMetadata({
   const event = await client.fetch<EventItem | null>(
     eventDetailQuery,
     { slug },
-    { next: { revalidate: 60 } }
+    { next: { revalidate: 60 } },
   );
 
   if (!event) {
@@ -168,11 +171,50 @@ export async function generateMetadata({
     };
   }
 
+  const title = `${event.title ?? "Event"} | Events | Threshold Peaks`;
+  const description =
+    event.teaser ?? "Ein Event aus dem Threshold Peaks Kalender.";
+  const canonicalUrl = `${baseUrl}/events/${encodeURIComponent(slug)}`;
+  const ogImageUrl = `${baseUrl}/api/og/events/${encodeURIComponent(
+    slug,
+  )}?ogv=${eventOgVersion}`;
+  const tags = getEventTags(event.tags);
+
   return {
-    title: `${event.title ?? "Event"} | Threshold Peaks`,
-    description:
-      event.teaser ??
-      "Ein Event aus dem Threshold Peaks Kalender.",
+    title,
+    description,
+    keywords: [
+      "Threshold Peaks",
+      "Events",
+      event.eventType ?? "Event",
+      event.location ?? "",
+      ...tags,
+    ].filter(Boolean),
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: "Threshold Peaks",
+      locale: "de_DE",
+      type: "article",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 1200,
+          alt: event.title ?? "Threshold Peaks Event",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImageUrl],
+    },
   };
 }
 
