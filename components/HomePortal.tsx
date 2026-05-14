@@ -100,6 +100,8 @@ type HomePortalProps = {
 const lineButtonClass =
   "inline-flex items-center gap-2 whitespace-nowrap border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
 
+const detailActionButtonClass = `${lineButtonClass} text-xs sm:text-sm`;
+
 const lineButtonWideClass =
   "inline-flex min-w-[220px] items-center justify-between gap-4 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
 
@@ -1271,7 +1273,7 @@ function JournalPortalDetail({
         <button
           type="button"
           onClick={onBack}
-          className={`${lineButtonClass} text-xs sm:text-sm`}
+          className={detailActionButtonClass}
         >
           <span className="sm:hidden">← Journal</span>
           <span className="hidden sm:inline">← Zurück zum Journal</span>
@@ -1284,7 +1286,7 @@ function JournalPortalDetail({
                 href={post.stravaUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={`${lineButtonClass} text-xs sm:text-sm`}
+                className={detailActionButtonClass}
               >
                 <span className="sm:hidden">Strava</span>
                 <span className="hidden sm:inline">Strava öffnen</span>
@@ -1297,7 +1299,7 @@ function JournalPortalDetail({
                 href={post.soundcloudUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={`${lineButtonClass} text-xs sm:text-sm`}
+                className={detailActionButtonClass}
               >
                 <span className="sm:hidden">Sound</span>
                 <span className="hidden sm:inline">SoundCloud öffnen</span>
@@ -1593,7 +1595,7 @@ function GalleryAlbumPortalDetail({
       <button
         type="button"
         onClick={onBack}
-        className={`${lineButtonClass} mb-10`}
+        className={`${detailActionButtonClass} mb-10`}
       >
         ← Zurück zur Galerie
       </button>
@@ -1741,7 +1743,7 @@ function GalleryAlbumPortalDetail({
       <button
         type="button"
         onClick={onBack}
-        className={`${lineButtonClass} mt-8`}
+        className={`${detailActionButtonClass} mt-8`}
       >
         ← Zurück zur Galerie
       </button>
@@ -1957,7 +1959,7 @@ function EventPortalDetail({
         <button
           type="button"
           onClick={onBack}
-          className={`${lineButtonClass} text-xs sm:text-sm`}
+          className={detailActionButtonClass}
         >
           ← Zurück zu den Events
         </button>
@@ -1967,7 +1969,7 @@ function EventPortalDetail({
             href={event.externalUrl}
             target="_blank"
             rel="noreferrer"
-            className={`${lineButtonClass} text-right text-xs sm:text-sm`}
+            className={`${detailActionButtonClass} text-right`}
           >
             Zur Veranstaltungsseite
             <span>→</span>
