@@ -604,19 +604,19 @@ function PortalMainLink({
 function AboutPanel() {
   const items = [
     {
-      label: "Running",
-      title: "Bahn, Straße, Fokus",
-      text: "Laufen ist für mich mehr als Training. Es ist der Moment, in dem der Kopf frei wird und aus Bewegung Fokus entsteht.",
+      label: "Endurance",
+      title: "Ausdauer im Fokus",
+      text: "Laufen, Radfahren, Training und Wettkämpfe.",
     },
     {
-      label: "Cycling",
-      title: "Ausgleich auf zwei Rädern",
-      text: "Rennrad und Gravelbike bringen Abwechslung, neue Wege und den perfekten Ausgleich zum Lauftraining.",
+      label: "Sound",
+      title: "Beats und Energie",
+      text: "Elektronische Musik, Sets, Tracks und Energie.",
     },
     {
-      label: "Music",
-      title: "Beats, die bewegen",
-      text: "Elektronische Musik, DJ-Sets und Rhythmus geben vielen Momenten ihre Energie.",
+      label: "Lifestyle",
+      title: "Draußen unterwegs",
+      text: "Draußen sein, den Alltag bewegen und neue Orte entdecken.",
     },
   ];
 
@@ -629,14 +629,20 @@ function AboutPanel() {
 
         <div className="max-w-xl space-y-6 text-base leading-8 text-black/65 md:text-lg md:leading-9">
           <p>
-            Ich bin Matthias, in Stuttgart geboren und seit vielen Jahren in
-            Verl zuhause. Bewegung, Ausdauer und Musik begleiten mich schon
-            lange und sind ein fester Teil meines Lebens.
+            Threshold Peaks verbindet Ausdauer, elektronische Musik und einen
+            aktiven Lifestyle.
           </p>
 
           <p>
-            Threshold Peaks verbindet Laufen, Radfahren, elektronische Musik und
-            aktiven Lifestyle zu einem persönlichen Projekt.
+            Hier geht es um Läufe, Rides, Wettkämpfe, Musik, Trainingstage,
+            Momente draußen und alles, was zwischen Puls, Bass, Alltag und frei
+            bewegten Gedanken passiert.
+          </p>
+
+          <p>
+            Es muss nicht alles perfekt sein. Es geht um echte Momente, gute
+            Bewegung, Musik im Kopf und das Gefühl, noch ein bisschen
+            weiterzukommen.
           </p>
         </div>
       </div>
