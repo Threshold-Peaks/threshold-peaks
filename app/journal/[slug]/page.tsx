@@ -60,7 +60,7 @@ function getMetaDescription(post: JournalPost) {
 }
 
 function getJournalOgImageUrl(slug: string) {
-  return `${baseUrl}/journal/${slug}/opengraph-image?ogv=journal-square-card-v1`;
+  return `${baseUrl}/api/og/journal/${slug}?ogv=journal-square-card-v10`;
 }
 
 export async function generateMetadata({
