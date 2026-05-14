@@ -1961,7 +1961,8 @@ function EventPortalDetail({
           onClick={onBack}
           className={detailActionButtonClass}
         >
-          ← Zurück zu den Events
+          <span className="sm:hidden">← Events</span>
+          <span className="hidden sm:inline">← Zurück zu den Events</span>
         </button>
 
         {event.externalUrl ? (
@@ -1971,7 +1972,8 @@ function EventPortalDetail({
             rel="noreferrer"
             className={`${detailActionButtonClass} text-right`}
           >
-            Zur Veranstaltungsseite
+            <span className="sm:hidden">Veranstaltungsseite</span>
+            <span className="hidden sm:inline">Zur Veranstaltungsseite</span>
             <span>→</span>
           </Link>
         ) : null}
