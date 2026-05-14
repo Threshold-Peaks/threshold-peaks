@@ -12,6 +12,16 @@ export const revalidate = 60;
 
 const baseUrl = "https://www.threshold-peaks.de";
 
+type JournalTag =
+  | string
+  | {
+      title?: string;
+      name?: string;
+      label?: string;
+      value?: string;
+      current?: string;
+    };
+
 type JournalPost = {
   title: string;
   publishedAt?: string;
@@ -20,6 +30,7 @@ type JournalPost = {
   body?: any[];
   stravaUrl?: string;
   soundcloudUrl?: string;
+  tags?: JournalTag[];
   mainImage?: SanityImageSource & {
     alt?: string;
   };
@@ -33,6 +44,7 @@ const query = `*[_type == "journalPost" && slug.current == $slug][0]{
   body,
   stravaUrl,
   soundcloudUrl,
+  tags,
   mainImage
 }`;
 
@@ -132,6 +144,23 @@ function formatCategory(category?: string) {
   return category ? categories[category] ?? category : "Journal";
 }
 
+function getTagLabel(tag: JournalTag) {
+  if (typeof tag === "string") {
+    return tag.replace(/^#/, "").trim();
+  }
+
+  return (
+    tag.title ||
+    tag.name ||
+    tag.label ||
+    tag.value ||
+    tag.current ||
+    ""
+  )
+    .replace(/^#/, "")
+    .trim();
+}
+
 const portableTextComponents: PortableTextComponents = {
   block: {
     h2: ({ children }) => (
@@ -206,12 +235,13 @@ export default async function JournalPostPage({
     notFound();
   }
 
+  const tags = post.tags
+    ?.map((tag) => getTagLabel(tag))
+    .filter(Boolean);
+
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <BackHeader
-  href="/#portal-journal"
-  label="Zurück zum Journal"
-/>
+      <BackHeader href="/#portal-journal" label="Zurück zum Journal" />
 
       <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
         <div className="mx-auto max-w-[1280px]">
@@ -363,6 +393,25 @@ export default async function JournalPostPage({
                     Für diesen Beitrag wurde noch kein Text hinterlegt.
                   </p>
                 )}
+
+                {tags && tags.length > 0 ? (
+                  <section className="mt-12 border-t border-black/10 pt-7">
+                    <p className="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                      Hashtags
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full border border-black/10 bg-[#f5f3ee] px-4 py-2 text-xs font-black text-black/55 transition hover:border-orange-500/40 hover:text-orange-600"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
               </div>
             </div>
           </article>

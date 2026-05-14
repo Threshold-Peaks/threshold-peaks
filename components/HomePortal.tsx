@@ -14,6 +14,17 @@ type HomeJournalImage = SanityImageSource & {
   caption?: string;
 };
 
+type HomeJournalTag =
+  | string
+  | {
+      title?: string;
+      name?: string;
+      label?: string;
+      value?: string;
+      current?: string;
+      slug?: { current?: string };
+    };
+
 type HomeJournalPost = {
   _id: string;
   title: string;
@@ -27,7 +38,7 @@ type HomeJournalPost = {
   stravaUrl?: string;
   soundcloudUrl?: string;
   location?: string;
-  tags?: string[];
+  tags?: string | HomeJournalTag[];
   mainImage?: HomeJournalImage;
 };
 
@@ -283,6 +294,40 @@ function formatJournalCategory(category?: string) {
   };
 
   return category ? (categories[category] ?? category) : "Journal";
+}
+
+function getJournalTagLabel(tag: HomeJournalTag) {
+  const raw =
+    typeof tag === "string"
+      ? tag
+      : tag.title ||
+        tag.name ||
+        tag.label ||
+        tag.value ||
+        tag.current ||
+        tag.slug?.current ||
+        "";
+
+  return raw.replace(/^#/, "").trim();
+}
+
+function getJournalTags(tags?: string | HomeJournalTag[]) {
+  if (!tags) return [];
+
+  if (typeof tags === "string") {
+    return Array.from(
+      new Set(
+        tags
+          .split(/[\s,]+/)
+          .map((tag) => tag.replace(/^#/, "").trim())
+          .filter(Boolean),
+      ),
+    );
+  }
+
+  return Array.from(
+    new Set(tags.map((tag) => getJournalTagLabel(tag)).filter(Boolean)),
+  );
 }
 
 function formatGalleryCategory(category?: string) {
@@ -787,7 +832,7 @@ function JournalPortalDetail({
     [post.stravaUrl ? "Strava" : null, post.soundcloudUrl ? "SoundCloud" : null]
       .filter(Boolean)
       .join(" / ") || "Keine externen Links";
-  const tags = post.tags?.filter(Boolean) ?? [];
+  const tags = getJournalTags(post.tags);
   const journalFacts = [
     {
       label: "Kategorie",
@@ -904,24 +949,6 @@ function JournalPortalDetail({
             ))}
           </div>
 
-          {tags.length > 0 ? (
-            <div className="border-t border-black/10 py-5 md:px-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
-                Tags
-              </p>
-
-              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="border-b border-black/15 pb-1 text-xs font-black uppercase tracking-[0.2em] text-black/45"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <div className="max-w-3xl">
@@ -935,6 +962,25 @@ function JournalPortalDetail({
               Für diesen Beitrag wurde noch kein Text hinterlegt.
             </p>
           )}
+
+          {tags.length > 0 ? (
+            <section className="mt-12 border-t border-black/10 pt-6">
+              <p className="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                Hashtags
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border border-black/10 bg-white/45 px-4 py-2 text-xs font-black text-black/55 backdrop-blur transition hover:border-orange-500/40 hover:text-orange-600"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
       </div>
     </article>

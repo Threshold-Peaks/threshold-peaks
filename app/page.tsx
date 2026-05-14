@@ -16,6 +16,17 @@ type HomeJournalImage = SanityImageSource & {
   caption?: string;
 };
 
+type HomeJournalTag =
+  | string
+  | {
+      title?: string;
+      name?: string;
+      label?: string;
+      value?: string;
+      current?: string;
+      slug?: { current?: string };
+    };
+
 type HomeJournalPost = {
   _id: string;
   title: string;
@@ -29,7 +40,7 @@ type HomeJournalPost = {
   stravaUrl?: string;
   soundcloudUrl?: string;
   location?: string;
-  tags?: string[];
+  tags?: string | HomeJournalTag[];
   mainImage?: HomeJournalImage;
 };
 
@@ -79,7 +90,7 @@ const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
   stravaUrl,
   soundcloudUrl,
   location,
-  tags,
+  "tags": coalesce(tags, tag, hashtags, hashtag, keywords, ""),
   mainImage
 }`;
 
