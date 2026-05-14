@@ -13,6 +13,7 @@ type PortableTextBlock = any[];
 
 type HomeJournalImage = SanityImageSource & {
   alt?: string;
+  caption?: string;
 };
 
 type HomeJournalPost = {
@@ -27,6 +28,8 @@ type HomeJournalPost = {
   body?: PortableTextBlock;
   stravaUrl?: string;
   soundcloudUrl?: string;
+  location?: string;
+  tags?: string[];
   mainImage?: HomeJournalImage;
 };
 
@@ -75,6 +78,8 @@ const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
   body,
   stravaUrl,
   soundcloudUrl,
+  location,
+  tags,
   mainImage
 }`;
 
@@ -188,7 +193,19 @@ export default async function Home() {
 
       <HeroTopNav />
 
-      <MobileHorizontalNav />
+      <details className="group relative mt-5 inline-block md:hidden">
+        <summary className="list-none rounded-full border border-black/10 bg-white/75 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition hover:text-orange-600 active:scale-95 [&::-webkit-details-marker]:hidden">
+          Menü
+        </summary>
+
+        <div className="absolute left-0 top-14 z-50 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
+          <MobileNavLink href="#about">About</MobileNavLink>
+<MobileNavLink href="#journal">Journal</MobileNavLink>
+<MobileNavLink href="#gallery">Galerie</MobileNavLink>
+<MobileNavLink href="#events">Events</MobileNavLink>
+<MobileNavLink href="#contact">Kontakt</MobileNavLink>
+        </div>
+      </details>
     </div>
 
     {/* RIGHT: PORTAL + STRAVA */}
@@ -212,14 +229,27 @@ export default async function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="px-6 pb-10 pt-2 md:px-10 lg:px-20">
-        <div className="mx-auto max-w-[1280px] border-t border-black/10 py-7 text-sm text-black/55">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <p className="font-semibold tracking-wide">
-              © 2026 Threshold Peaks. Beat the extra mile.
-            </p>
+      <footer className="px-6 pb-10 pt-4 md:px-10 lg:px-20">
+        <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/60 p-7 text-sm text-black/65 shadow-sm backdrop-blur-xl md:p-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <a
+              href="#top"
+              className="inline-flex items-center gap-3 text-black transition hover:text-orange-600"
+              aria-label="Zurück nach oben"
+            >
+              <ThresholdPeaksIcon />
 
-            <div className="flex flex-wrap gap-x-5 gap-y-2 font-bold">
+              <div className="leading-none">
+                <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
+                  Threshold Peaks
+                </div>
+                <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
+                  Beat the extra mile
+                </div>
+              </div>
+            </a>
+
+            <div className="flex flex-wrap gap-5 font-bold">
               <Link
                 href="/impressum"
                 className="transition hover:text-orange-600"
@@ -238,6 +268,10 @@ export default async function Home() {
                 CMS Login
               </Link>
             </div>
+          </div>
+
+          <div className="mt-8 border-t border-black/10 pt-6 text-xs text-black/50">
+            © 2026 Threshold Peaks. Alle Rechte vorbehalten.
           </div>
         </div>
       </footer>
@@ -330,32 +364,19 @@ function HeroTopNavLink({
   );
 }
 
-function MobileHorizontalNav() {
-  const navItems = [
-    { href: "#top", label: "Home" },
-    { href: "#portal-about", label: "About" },
-    { href: "#portal-journal", label: "Journal" },
-    { href: "#portal-gallery", label: "Galerie" },
-    { href: "#portal-events", label: "Events" },
-    { href: "#portal-contact", label: "Kontakt" },
-  ];
-
+function MobileNavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
   return (
-    <nav aria-label="Mobile Navigation" className="relative z-[80] mt-6 md:hidden">
-      <div className="border-y border-black/10 py-3">
-        <div className="grid grid-cols-3 gap-y-2 text-center">
-          {navItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="group flex items-center justify-center gap-1.5 px-1.5 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 active:text-orange-700"
-            >
-              <span className="h-1 w-1 rounded-full bg-black/25 transition group-hover:bg-orange-600 group-focus-visible:bg-orange-600" />
-              <span>{item.label}</span>
-            </a>
-          ))}
-        </div>
-      </div>
-    </nav>
+    <Link
+      href={href}
+      className="block rounded-2xl px-4 py-2.5 text-sm font-bold text-black transition hover:bg-black/5 hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
+    >
+      {children}
+    </Link>
   );
 }

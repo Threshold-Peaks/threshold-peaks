@@ -11,6 +11,7 @@ type PortableTextBlock = any[];
 
 type HomeJournalImage = SanityImageSource & {
   alt?: string;
+  caption?: string;
 };
 
 type HomeJournalPost = {
@@ -25,6 +26,8 @@ type HomeJournalPost = {
   body?: PortableTextBlock;
   stravaUrl?: string;
   soundcloudUrl?: string;
+  location?: string;
+  tags?: string[];
   mainImage?: HomeJournalImage;
 };
 
@@ -270,8 +273,10 @@ function formatJournalCategory(category?: string) {
     running: "Running",
     cycling: "Cycling",
     music: "Music",
+    story: "Story",
     lifestyle: "Lifestyle",
-    event: "Event",
+    gear: "Gear",
+    event: "Event Recap",
     laufen: "Running",
     radfahren: "Cycling",
     musik: "Music",
@@ -782,6 +787,29 @@ function JournalPortalDetail({
     [post.stravaUrl ? "Strava" : null, post.soundcloudUrl ? "SoundCloud" : null]
       .filter(Boolean)
       .join(" / ") || "Keine externen Links";
+  const tags = post.tags?.filter(Boolean) ?? [];
+  const journalFacts = [
+    {
+      label: "Kategorie",
+      value: formatJournalCategory(post.category),
+    },
+    {
+      label: "Datum",
+      value: formatHomeDate(post.publishedAt),
+    },
+    ...(post.location
+      ? [
+          {
+            label: "Ort / Strecke",
+            value: post.location,
+          },
+        ]
+      : []),
+    {
+      label: "Links",
+      value: externalLinkLabel,
+    },
+  ];
 
   return (
     <article className="text-neutral-950">
@@ -822,52 +850,78 @@ function JournalPortalDetail({
       <div className="mx-auto w-full max-w-5xl">
         <header className="mb-10 grid gap-8 border-b border-black/10 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-end">
           <div>
-            <div className="mb-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-neutral-500">
+            <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-black uppercase tracking-[0.25em] text-black/40">
               <span>{formatJournalCategory(post.category)}</span>
-              <span>• {formatHomeDate(post.publishedAt)}</span>
+              <span className="h-1 w-1 rounded-full bg-black/25" />
+              <span>{formatHomeDate(post.publishedAt)}</span>
             </div>
 
-            <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-neutral-950 md:text-6xl">
+            <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-[-0.045em] text-neutral-950 md:text-6xl">
               {post.title}
             </h1>
 
             {post.excerpt ? (
-              <p className="mt-5 max-w-3xl text-lg leading-8 text-neutral-600">
+              <p className="mt-5 max-w-3xl text-lg font-semibold leading-8 text-neutral-600">
                 {post.excerpt}
               </p>
             ) : null}
           </div>
 
           {post.mainImage ? (
-            <figure className="w-full overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1 lg:justify-self-end">
-              <SanityImage
-                src={urlFor(post.mainImage)
-                  .width(900)
-                  .height(900)
-                  .fit("crop")
-                  .url()}
-                alt={post.mainImage.alt || post.title || "Journal Bild"}
-                width={900}
-                height={900}
-                priority
-                className="aspect-[4/3] w-full rounded-[1.2rem] object-cover lg:aspect-[5/4]"
-              />
+            <figure className="w-full lg:justify-self-end">
+              <div className="overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1">
+                <SanityImage
+                  src={urlFor(post.mainImage)
+                    .width(900)
+                    .height(900)
+                    .fit("crop")
+                    .url()}
+                  alt={post.mainImage.alt || post.title || "Journal Bild"}
+                  width={900}
+                  height={900}
+                  priority
+                  className="aspect-[4/3] w-full rounded-[1.2rem] object-cover object-top lg:aspect-[5/4]"
+                />
+              </div>
+
+              {post.mainImage.caption ? (
+                <figcaption className="mt-3 border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50">
+                  {post.mainImage.caption}
+                </figcaption>
+              ) : null}
             </figure>
           ) : null}
         </header>
 
         <section className="mb-12 border-b border-black/10">
-          <div className="divide-y divide-black/10 md:grid md:grid-cols-3 md:divide-x md:divide-y-0">
-            <EventDetailFact
-              label="Kategorie"
-              value={formatJournalCategory(post.category)}
-            />
-            <EventDetailFact
-              label="Datum"
-              value={formatHomeDate(post.publishedAt)}
-            />
-            <EventDetailFact label="Links" value={externalLinkLabel} />
+          <div className="divide-y divide-black/10 md:grid md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] md:divide-x md:divide-y-0">
+            {journalFacts.map((fact) => (
+              <EventDetailFact
+                key={fact.label}
+                label={fact.label}
+                value={fact.value}
+              />
+            ))}
           </div>
+
+          {tags.length > 0 ? (
+            <div className="border-t border-black/10 py-5 md:px-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+                Tags
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-2">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="border-b border-black/15 pb-1 text-xs font-black uppercase tracking-[0.2em] text-black/45"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
 
         <div className="max-w-3xl">
