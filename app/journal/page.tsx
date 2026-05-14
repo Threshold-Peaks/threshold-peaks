@@ -38,6 +38,7 @@ type JournalPageProps = {
   searchParams?: Promise<{
     category?: string;
     tag?: string;
+    tags?: string;
   }>;
 };
 
@@ -131,16 +132,54 @@ function normalizeFilterValue(value?: string) {
     .toLowerCase();
 }
 
-function getFilterHref(category: string) {
-  if (category === "all") {
-    return "/journal";
-  }
+function getSelectedTags(tag?: string, tags?: string) {
+  const rawTags = tags || tag || "";
 
-  return `/journal?category=${encodeURIComponent(category)}`;
+  return Array.from(
+    new Set(
+      rawTags
+        .split(",")
+        .map((item) => decodeURIComponent(item).replace(/^#/, "").trim())
+        .filter(Boolean),
+    ),
+  );
 }
 
-function getTagHref(tag: string) {
-  return `/journal?tag=${encodeURIComponent(tag)}`;
+function isSameTag(left: string, right: string) {
+  return normalizeFilterValue(left) === normalizeFilterValue(right);
+}
+
+function buildJournalHref(category: string, selectedTags: string[]) {
+  const params = new URLSearchParams();
+
+  if (category !== "all") {
+    params.set("category", category);
+  }
+
+  if (selectedTags.length > 0) {
+    params.set("tags", selectedTags.join(","));
+  }
+
+  const queryString = params.toString();
+
+  return queryString ? `/journal?${queryString}` : "/journal";
+}
+
+function getCategoryHref(category: string, selectedTags: string[]) {
+  return buildJournalHref(category, selectedTags);
+}
+
+function getTagHref(
+  tag: string,
+  selectedCategory: string,
+  selectedTags: string[],
+) {
+  const isActive = selectedTags.some((selectedTag) => isSameTag(selectedTag, tag));
+  const nextTags = isActive
+    ? selectedTags.filter((selectedTag) => !isSameTag(selectedTag, tag))
+    : [...selectedTags, tag];
+
+  return buildJournalHref(selectedCategory, nextTags);
 }
 
 function getAllTags(posts: SanityJournalPost[]) {
@@ -154,7 +193,10 @@ function getAllTags(posts: SanityJournalPost[]) {
 export default async function JournalPage({ searchParams }: JournalPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const selectedCategory = resolvedSearchParams.category || "all";
-  const selectedTag = normalizeFilterValue(resolvedSearchParams.tag);
+  const selectedTags = getSelectedTags(
+    resolvedSearchParams.tag,
+    resolvedSearchParams.tags,
+  );
 
   const posts = await client.fetch<SanityJournalPost[]>(query);
   const allTags = getAllTags(posts);
@@ -162,16 +204,18 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
   const filteredPosts = posts.filter((post) => {
     const categoryMatches =
       selectedCategory === "all" || post.category === selectedCategory;
+    const postTags = getJournalTags(post.tags);
     const tagMatches =
-      !selectedTag ||
-      getJournalTags(post.tags).some(
-        (tag) => normalizeFilterValue(tag) === selectedTag,
+      selectedTags.length === 0 ||
+      selectedTags.some((selectedTag) =>
+        postTags.some((postTag) => isSameTag(postTag, selectedTag)),
       );
 
     return categoryMatches && tagMatches;
   });
 
-  const hasActiveFilter = selectedCategory !== "all" || Boolean(selectedTag);
+  const hasActiveFilter =
+    selectedCategory !== "all" || selectedTags.length > 0;
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
@@ -202,17 +246,16 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
 
             <div className="flex flex-wrap gap-3">
               {categoryFilters.map((filter) => {
-                const isActive =
-                  !selectedTag && selectedCategory === filter.value;
+                const isActive = selectedCategory === filter.value;
 
                 return (
                   <Link
                     key={filter.value}
-                    href={getFilterHref(filter.value)}
-                    className={`rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:text-orange-600 ${
+                    href={getCategoryHref(filter.value, selectedTags)}
+                    className={`rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] shadow-sm ring-1 transition hover:-translate-y-0.5 hover:text-orange-600 ${
                       isActive
-                        ? "bg-orange-500 text-white shadow-orange-500/20 hover:bg-orange-600 hover:text-white"
-                        : "bg-[#ded9cf] text-black/65"
+                        ? "bg-orange-500 text-white shadow-orange-500/20 ring-orange-500/20 hover:bg-orange-600 hover:text-white"
+                        : "bg-[#ded9cf] text-black/65 ring-black/10"
                     }`}
                   >
                     {filter.label}
@@ -223,10 +266,12 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
           </div>
 
           {allTags.length > 0 ? (
-            <div className="mb-10">
+            <div className="mb-10 rounded-[2rem] border border-black/5 bg-white/35 p-5 shadow-sm backdrop-blur">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.32em] text-black/35">
-                  Tags
+                  {selectedTags.length > 0
+                    ? "Aktive Hashtag-Filter"
+                    : "Nach Hashtags filtern"}
                 </p>
 
                 {hasActiveFilter ? (
@@ -241,12 +286,14 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
 
               <div className="flex flex-wrap gap-2">
                 {allTags.map((tag) => {
-                  const isActive = normalizeFilterValue(tag) === selectedTag;
+                  const isActive = selectedTags.some((selectedTag) =>
+                    isSameTag(selectedTag, tag),
+                  );
 
                   return (
                     <Link
                       key={tag}
-                      href={getTagHref(tag)}
+                      href={getTagHref(tag, selectedCategory, selectedTags)}
                       className={`rounded-full border px-4 py-2 text-xs font-black transition hover:-translate-y-0.5 hover:border-orange-500/50 hover:text-orange-600 ${
                         isActive
                           ? "border-orange-500 bg-orange-500 text-white shadow-sm shadow-orange-500/20 hover:border-orange-600 hover:bg-orange-600 hover:text-white"
@@ -346,15 +393,25 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
                         </p>
 
                         {tags.length > 0 ? (
-                          <div className="mt-6 flex flex-wrap gap-2">
-                            {tags.map((tag) => (
-                              <span
-                                key={tag}
-                                className="rounded-full border border-black/10 bg-[#f5f3ee] px-3 py-1.5 text-[11px] font-black text-black/45"
-                              >
-                                #{tag}
-                              </span>
-                            ))}
+                          <div className="mt-6 flex flex-wrap gap-x-3 gap-y-2">
+                            {tags.map((tag) => {
+                              const isActive = selectedTags.some(
+                                (selectedTag) => isSameTag(selectedTag, tag),
+                              );
+
+                              return (
+                                <span
+                                  key={tag}
+                                  className={
+                                    isActive
+                                      ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+                                      : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition group-hover:text-orange-600/80"
+                                  }
+                                >
+                                  #{tag}
+                                </span>
+                              );
+                            })}
                           </div>
                         ) : null}
 
