@@ -1692,6 +1692,8 @@ function GalleryAlbumPortalDetail({
             {galleryImages.map((image, index) => {
               const imageDimensions = getSanityImageDimensions(image);
               const imageRatioClass = ratioClasses[index % ratioClasses.length];
+              const imagePositionClass =
+                index === 1 ? "object-[center_70%]" : "object-top";
 
               return (
                 <figure
@@ -1706,7 +1708,7 @@ function GalleryAlbumPortalDetail({
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
                       width={imageDimensions.width}
                       height={imageDimensions.height}
-                      className="h-full w-full object-cover object-top transition duration-700 hover:scale-[1.025]"
+                      className={`h-full w-full object-cover ${imagePositionClass} transition duration-700 hover:scale-[1.025]`}
                     />
                   </div>
 
