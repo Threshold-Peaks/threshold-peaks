@@ -186,8 +186,48 @@ function DetailFact({ label, value }: { label: string; value: string }) {
   );
 }
 
-const detailActionLinkClass =
-  "inline-flex items-center justify-between gap-4 border-b border-black/10 pb-3 text-xs font-black text-black/55 transition hover:border-orange-500/40 hover:text-orange-600 sm:text-sm";
+function DetailLinks({
+  stravaUrl,
+  soundcloudUrl,
+}: {
+  stravaUrl?: string;
+  soundcloudUrl?: string;
+}) {
+  if (!stravaUrl && !soundcloudUrl) return null;
+
+  return (
+    <div className="py-4 md:px-5 md:first:pl-0">
+      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/30">
+        Links
+      </p>
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+        {stravaUrl ? (
+          <Link
+            href={stravaUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-bold leading-6 text-black/65 transition hover:text-orange-600"
+          >
+            <span>Strava</span>
+            <span>→</span>
+          </Link>
+        ) : null}
+
+        {soundcloudUrl ? (
+          <Link
+            href={soundcloudUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-bold leading-6 text-black/65 transition hover:text-orange-600"
+          >
+            <span>SoundCloud</span>
+            <span>→</span>
+          </Link>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 const portableTextComponents: PortableTextComponents = {
   block: {
@@ -299,15 +339,18 @@ export default async function JournalPostPage({
 
               {post.mainImage ? (
                 <figure className="w-full lg:justify-self-end">
-                  <div className="overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1">
-                    <Image
-                      src={urlFor(post.mainImage).width(900).fit("max").url()}
-                      alt={post.mainImage.alt || post.title || "Journal Bild"}
-                      width={900}
-                      height={900}
-                      priority
-                      className="max-h-[360px] w-full rounded-[1.2rem] object-contain"
-                    />
+                  <div className="overflow-hidden rounded-[1.6rem] bg-gradient-to-br from-white/55 via-white/25 to-transparent p-2 shadow-[inset_0_0_35px_rgba(17,18,23,0.045)]">
+                    <div className="relative overflow-hidden rounded-[1.15rem] bg-[#f5f3ee]/70">
+                      <Image
+                        src={urlFor(post.mainImage).width(900).fit("max").url()}
+                        alt={post.mainImage.alt || post.title || "Journal Bild"}
+                        width={900}
+                        height={900}
+                        priority
+                        className="max-h-[340px] w-full object-contain"
+                      />
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_58%,rgba(245,243,238,0.72)_100%)]" />
+                    </div>
                   </div>
 
                   {post.mainImage.alt ? (
@@ -320,7 +363,7 @@ export default async function JournalPostPage({
             </header>
 
             <section className="mb-12 border-b border-black/10">
-              <div className="divide-y divide-black/10 md:grid md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] md:divide-x md:divide-y-0">
+              <div className="divide-y divide-black/10 md:grid md:grid-cols-[repeat(auto-fit,minmax(150px,1fr))] md:divide-x md:divide-y-0">
                 <DetailFact
                   label="Kategorie"
                   value={formatCategory(post.category)}
@@ -330,36 +373,12 @@ export default async function JournalPostPage({
                   value={formatDate(post.publishedAt)}
                 />
                 <DetailFact label="Bereich" value="Journal" />
+                <DetailLinks
+                  stravaUrl={post.stravaUrl}
+                  soundcloudUrl={post.soundcloudUrl}
+                />
               </div>
             </section>
-
-            {(post.stravaUrl || post.soundcloudUrl) && (
-              <section className="mb-12 flex flex-wrap gap-5 border-b border-black/10 pb-8">
-                {post.stravaUrl ? (
-                  <Link
-                    href={post.stravaUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={detailActionLinkClass}
-                  >
-                    <span>Strava öffnen</span>
-                    <span>→</span>
-                  </Link>
-                ) : null}
-
-                {post.soundcloudUrl ? (
-                  <Link
-                    href={post.soundcloudUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={detailActionLinkClass}
-                  >
-                    <span>SoundCloud öffnen</span>
-                    <span>→</span>
-                  </Link>
-                ) : null}
-              </section>
-            )}
 
             <div className="max-w-3xl">
               {post.body && post.body.length > 0 ? (
