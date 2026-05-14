@@ -339,18 +339,20 @@ export default async function JournalPostPage({
 
               {post.mainImage ? (
                 <figure className="w-full lg:justify-self-end">
-                  <div className="overflow-hidden rounded-[1.6rem] bg-gradient-to-br from-white/55 via-white/25 to-transparent p-2 shadow-[inset_0_0_35px_rgba(17,18,23,0.045)]">
-                    <div className="relative overflow-hidden rounded-[1.15rem] bg-[#f5f3ee]/70">
-                      <Image
-                        src={urlFor(post.mainImage).width(900).fit("max").url()}
-                        alt={post.mainImage.alt || post.title || "Journal Bild"}
-                        width={900}
-                        height={900}
-                        priority
-                        className="max-h-[340px] w-full object-contain"
-                      />
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_58%,rgba(245,243,238,0.72)_100%)]" />
-                    </div>
+                  <div className="relative overflow-hidden rounded-[1.6rem]">
+                    <Image
+                      src={urlFor(post.mainImage).width(900).fit("max").url()}
+                      alt={post.mainImage.alt || post.title || "Journal Bild"}
+                      width={900}
+                      height={900}
+                      priority
+                      className="max-h-[340px] w-full object-contain [mask-image:radial-gradient(ellipse_at_center,black_58%,transparent_100%)]"
+                    />
+
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#f5f3ee] to-transparent" />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#f5f3ee] to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#f5f3ee] to-transparent" />
+                    <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#f5f3ee] to-transparent" />
                   </div>
 
                   {post.mainImage.alt ? (
