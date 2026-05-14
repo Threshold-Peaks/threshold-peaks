@@ -27,6 +27,8 @@ type GalleryImage = SanityImageSource & {
 
 type GalleryAlbum = {
   title: string;
+  date?: string;
+  location?: string;
   category?: string;
   description?: string;
   tags?: string | GalleryTag[];
@@ -41,6 +43,8 @@ type PageProps = {
 
 const albumQuery = `*[_type == "galleryAlbum" && slug.current == $slug][0] {
   title,
+  date,
+  location,
   category,
   tags,
   "description": coalesce(description, teaser, excerpt),
@@ -101,6 +105,16 @@ function formatCategory(category?: string) {
   return category ? (categories[category] ?? category) : "Galerie";
 }
 
+function formatDate(date?: string) {
+  if (!date) return null;
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
 function getTagLabel(tag: GalleryTag) {
   const raw =
     typeof tag === "string"
@@ -155,6 +169,8 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
 
   const images = album.images || [];
   const tags = getGalleryTags(album.tags);
+  const formattedDate = formatDate(album.date);
+  const categoryLabel = formatCategory(album.category);
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
@@ -163,7 +179,7 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
       <article className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <header className="mb-12 max-w-3xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-black/50">
-            {formatCategory(album.category)}
+            {categoryLabel}
           </p>
 
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
@@ -175,6 +191,35 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
               {album.description}
             </p>
           ) : null}
+
+          <section className="mt-8 grid gap-3 rounded-[1.75rem] border border-black/10 bg-white/55 p-5 shadow-sm sm:grid-cols-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                Kategorie
+              </p>
+              <p className="mt-2 text-sm font-semibold text-black/70">
+                {categoryLabel}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                Datum
+              </p>
+              <p className="mt-2 text-sm font-semibold text-black/70">
+                {formattedDate ?? "Nicht hinterlegt"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                Ort
+              </p>
+              <p className="mt-2 text-sm font-semibold text-black/70">
+                {album.location ?? "Nicht hinterlegt"}
+              </p>
+            </div>
+          </section>
 
           {tags.length > 0 ? (
             <div className="mt-7 border-t border-black/10 pt-5">
