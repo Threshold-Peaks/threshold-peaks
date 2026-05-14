@@ -76,6 +76,12 @@ type HomePortalProps = {
   embedded?: boolean;
 };
 
+const lineButtonClass =
+  "inline-flex items-center gap-2 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
+
+const lineButtonWideClass =
+  "inline-flex min-w-[220px] items-center justify-between gap-4 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
+
 const tabs: Array<{
   id: PortalTab;
   title: string;
@@ -271,7 +277,7 @@ function formatJournalCategory(category?: string) {
     musik: "Music",
   };
 
-  return category ? categories[category] ?? category : "Journal";
+  return category ? (categories[category] ?? category) : "Journal";
 }
 
 function formatGalleryCategory(category?: string) {
@@ -286,7 +292,7 @@ function formatGalleryCategory(category?: string) {
     musik: "Music",
   };
 
-  return category ? categories[category] ?? category : "Galerie";
+  return category ? (categories[category] ?? category) : "Galerie";
 }
 
 function formatEventType(type?: string) {
@@ -303,7 +309,7 @@ function formatEventType(type?: string) {
     ride: "Cycling",
   };
 
-  return type ? types[type] ?? type : "Event";
+  return type ? (types[type] ?? type) : "Event";
 }
 
 function formatEventStatus(status?: string) {
@@ -317,7 +323,7 @@ function formatEventStatus(status?: string) {
     open: "Offen",
   };
 
-  return status ? statuses[status] ?? status : "Geplant";
+  return status ? (statuses[status] ?? status) : "Geplant";
 }
 
 export default function HomePortal({
@@ -331,10 +337,10 @@ export default function HomePortal({
 }: HomePortalProps) {
   const [activeTab, setActiveTab] = useState<PortalTab>("about");
   const [selectedPost, setSelectedPost] = useState<HomeJournalPost | null>(
-    null
+    null,
   );
   const [selectedAlbum, setSelectedAlbum] = useState<HomeGalleryAlbum | null>(
-    null
+    null,
   );
   const [selectedEvent, setSelectedEvent] = useState<HomeEvent | null>(null);
   const [showAllContent, setShowAllContent] = useState<
@@ -461,21 +467,28 @@ export default function HomePortal({
       />
 
       <div className={embedded ? "w-full" : "mx-auto max-w-[1280px]"}>
-        <div className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/60 shadow-sm backdrop-blur-xl">
+        <div className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/55 shadow-[0_1px_2px_rgba(17,18,23,0.06)] ring-1 ring-white/70 backdrop-blur-2xl">
           <div
             className={
               embedded
-                ? "flex min-h-[460px] flex-col p-6 md:p-8 lg:min-h-[500px] lg:p-10"
-                : "flex min-h-[720px] flex-col p-7 md:min-h-[760px] md:p-10 lg:min-h-[780px] lg:p-12"
+                ? "flex min-h-[460px] flex-col p-5 md:p-7 lg:min-h-[500px] lg:p-8"
+                : "flex min-h-[720px] flex-col p-6 md:min-h-[760px] md:p-8 lg:min-h-[780px] lg:p-10"
             }
           >
-            <div className="mb-9 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <h3 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-6xl">
+            <div className="mb-8 flex flex-col gap-5 border-b border-black/10 pb-7 md:flex-row md:items-end md:justify-between">
+              <div className="relative pl-6">
+                <span className="absolute left-0 top-1 h-full w-px bg-black/15" />
+                <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee]" />
+
+                <p className="mb-3 text-[10px] font-black uppercase tracking-[0.34em] text-black/35">
+                  Threshold Peaks Portal
+                </p>
+
+                <h3 className="text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
                   {activeTabMeta.title}
                 </h3>
 
-                <p className="mt-4 max-w-xl text-sm font-semibold leading-7 text-black/55">
+                <p className="mt-3 max-w-xl text-sm font-semibold leading-7 text-black/55">
                   {activeTabMeta.text}
                 </p>
               </div>
@@ -489,52 +502,56 @@ export default function HomePortal({
               ) : null}
             </div>
 
-            <div className="flex-1">
-              {activeTab === "about" ? <AboutPanel /> : null}
+            <div className="relative flex-1">
+              <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-black/10 lg:block" />
 
-              {activeTab === "journal" ? (
-                selectedPost ? (
-                  <JournalPortalDetail
-                    post={selectedPost}
-                    onBack={() => setSelectedPost(null)}
-                  />
-                ) : (
-                  <JournalPanel
-                    posts={visiblePosts}
-                    onOpenPost={setSelectedPost}
-                  />
-                )
-              ) : null}
+              <div className="lg:pl-8">
+                {activeTab === "about" ? <AboutPanel /> : null}
 
-              {activeTab === "gallery" ? (
-                selectedAlbum ? (
-                  <GalleryAlbumPortalDetail
-                    album={selectedAlbum}
-                    onBack={() => setSelectedAlbum(null)}
-                  />
-                ) : (
-                  <GalleryPanel
-                    albums={visibleAlbums}
-                    onOpenAlbum={setSelectedAlbum}
-                  />
-                )
-              ) : null}
+                {activeTab === "journal" ? (
+                  selectedPost ? (
+                    <JournalPortalDetail
+                      post={selectedPost}
+                      onBack={() => setSelectedPost(null)}
+                    />
+                  ) : (
+                    <JournalPanel
+                      posts={visiblePosts}
+                      onOpenPost={setSelectedPost}
+                    />
+                  )
+                ) : null}
 
-              {activeTab === "events" ? (
-                selectedEvent ? (
-                  <EventPortalDetail
-                    event={selectedEvent}
-                    onBack={() => setSelectedEvent(null)}
-                  />
-                ) : (
-                  <EventsPanel
-                    events={visibleEvents}
-                    onOpenEvent={setSelectedEvent}
-                  />
-                )
-              ) : null}
+                {activeTab === "gallery" ? (
+                  selectedAlbum ? (
+                    <GalleryAlbumPortalDetail
+                      album={selectedAlbum}
+                      onBack={() => setSelectedAlbum(null)}
+                    />
+                  ) : (
+                    <GalleryPanel
+                      albums={visibleAlbums}
+                      onOpenAlbum={setSelectedAlbum}
+                    />
+                  )
+                ) : null}
 
-              {activeTab === "contact" ? <ContactPanel /> : null}
+                {activeTab === "events" ? (
+                  selectedEvent ? (
+                    <EventPortalDetail
+                      event={selectedEvent}
+                      onBack={() => setSelectedEvent(null)}
+                    />
+                  ) : (
+                    <EventsPanel
+                      events={visibleEvents}
+                      onOpenEvent={setSelectedEvent}
+                    />
+                  )
+                ) : null}
+
+                {activeTab === "contact" ? <ContactPanel /> : null}
+              </div>
             </div>
           </div>
         </div>
@@ -552,9 +569,6 @@ function PortalMainLink({
   showAllContent: Record<PortalContentTab, boolean>;
   onToggleShowAll: (tab: PortalContentTab) => void;
 }) {
-  const buttonClass =
-    "inline-flex min-w-[220px] items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-6 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md";
-
   if (activeTab === "about" || activeTab === "contact") {
     return null;
   }
@@ -579,7 +593,7 @@ function PortalMainLink({
     <button
       type="button"
       onClick={() => onToggleShowAll(key)}
-      className={buttonClass}
+      className={lineButtonWideClass}
     >
       {isShowingAll ? showLessLabels[key] : showAllLabels[key]}
       <span>{isShowingAll ? "↑" : "→"}</span>
@@ -607,37 +621,49 @@ function AboutPanel() {
   ];
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-      <div>
-        <p className="max-w-xl text-base leading-8 text-black/70 md:text-lg md:leading-9">
-          Ich bin Matthias, in Stuttgart geboren und seit vielen Jahren in Verl
-          zuhause. Bewegung, Ausdauer und Musik begleiten mich schon lange und
-          sind ein fester Teil meines Lebens.
+    <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+      <div className="border-l border-black/15 pl-6">
+        <p className="mb-4 text-[10px] font-black uppercase tracking-[0.34em] text-black/35">
+          About
         </p>
 
-        <p className="mt-6 max-w-xl text-base leading-8 text-black/70 md:text-lg md:leading-9">
-          Threshold Peaks verbindet Laufen, Radfahren, elektronische Musik und
-          aktiven Lifestyle zu einem persönlichen Projekt.
-        </p>
+        <div className="max-w-xl space-y-6 text-base leading-8 text-black/65 md:text-lg md:leading-9">
+          <p>
+            Ich bin Matthias, in Stuttgart geboren und seit vielen Jahren in
+            Verl zuhause. Bewegung, Ausdauer und Musik begleiten mich schon
+            lange und sind ein fester Teil meines Lebens.
+          </p>
+
+          <p>
+            Threshold Peaks verbindet Laufen, Radfahren, elektronische Musik und
+            aktiven Lifestyle zu einem persönlichen Projekt.
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="divide-y divide-black/10 border-y border-black/10">
         {items.map((item) => (
           <article
             key={item.label}
-            className="rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 shadow-sm"
+            className="group grid gap-4 py-5 md:grid-cols-[150px_minmax(0,1fr)] md:items-start"
           >
-            <p className="mb-3 text-xs font-black uppercase tracking-[0.28em] text-black/40">
-              {item.label}
-            </p>
+            <div className="flex items-center gap-3">
+              <span className="h-2 w-2 rounded-full bg-black/20 transition group-hover:bg-orange-500" />
 
-            <h4 className="mb-4 text-xl font-black leading-tight tracking-[-0.03em]">
-              {item.title}
-            </h4>
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/40">
+                {item.label}
+              </p>
+            </div>
 
-            <p className="text-sm font-semibold leading-7 text-black/65">
-              {item.text}
-            </p>
+            <div>
+              <h4 className="text-xl font-black leading-tight tracking-[-0.035em] transition group-hover:text-orange-600">
+                {item.title}
+              </h4>
+
+              <p className="mt-2 text-sm font-semibold leading-7 text-black/55">
+                {item.text}
+              </p>
+            </div>
           </article>
         ))}
       </div>
@@ -679,36 +705,38 @@ function JournalPanel({
   const items = posts.length > 0 ? posts : fallbackPosts;
 
   return (
-    <div className="grid gap-5 md:grid-cols-3">
+    <div className="divide-y divide-black/10 border-y border-black/10">
       {items.map((post) => (
         <button
           key={post._id}
           type="button"
           onClick={() => onOpenPost(post)}
-          className="group flex min-h-[300px] flex-col rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 text-left text-[#111217] shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl"
+          className="group grid w-full gap-4 py-5 text-left text-[#111217] transition hover:bg-white/50 md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center md:px-3"
         >
-          <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-black/40">
-            {formatHomeDate(post.publishedAt)}
-          </p>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+              {formatHomeDate(post.publishedAt)}
+            </p>
 
-          <h4 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
-            {post.title}
-          </h4>
-
-          <p className="leading-7 text-black/65">
-            {post.excerpt ||
-              "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
-          </p>
-
-          <div className="mt-auto flex items-center justify-between border-t border-black/10 pt-5">
-            <span className="rounded-full bg-white/60 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-black/55">
+            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/40">
               {formatJournalCategory(post.category)}
-            </span>
-
-            <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
-  →
-</span>
+            </p>
           </div>
+
+          <div>
+            <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+              {post.title}
+            </h4>
+
+            <p className="mt-2 max-w-3xl leading-7 text-black/55">
+              {post.excerpt ||
+                "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
+            </p>
+          </div>
+
+          <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
+            →
+          </span>
         </button>
       ))}
     </div>
@@ -722,154 +750,100 @@ function JournalPortalDetail({
   post: HomeJournalPost;
   onBack: () => void;
 }) {
+  const hasExternalLinks = Boolean(post.stravaUrl || post.soundcloudUrl);
+  const externalLinkLabel =
+    [post.stravaUrl ? "Strava" : null, post.soundcloudUrl ? "SoundCloud" : null]
+      .filter(Boolean)
+      .join(" / ") || "Keine externen Links";
+
   return (
-    <article>
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-10 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
-      >
-        ← Zurück zum Journal
-      </button>
+    <article className="text-neutral-950">
+      <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <button type="button" onClick={onBack} className={lineButtonClass}>
+          ← Zurück zum Journal
+        </button>
 
-      <header className="max-w-4xl">
-        <div className="mb-8 flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-neutral-700">
-            {formatJournalCategory(post.category)}
-          </span>
+        {hasExternalLinks ? (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+            {post.stravaUrl ? (
+              <Link
+                href={post.stravaUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={lineButtonClass}
+              >
+                Strava öffnen
+                <span>→</span>
+              </Link>
+            ) : null}
 
-          <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
-            {formatHomeDate(post.publishedAt)}
-          </span>
-        </div>
-
-        <h1 className="text-5xl font-black leading-none tracking-tight md:text-7xl">
-          {post.title}
-        </h1>
-
-        {post.excerpt ? (
-          <p className="mt-8 max-w-3xl text-xl leading-9 text-neutral-600">
-            {post.excerpt}
-          </p>
+            {post.soundcloudUrl ? (
+              <Link
+                href={post.soundcloudUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={lineButtonClass}
+              >
+                SoundCloud öffnen
+                <span>→</span>
+              </Link>
+            ) : null}
+          </div>
         ) : null}
-      </header>
+      </div>
 
-      {post.mainImage ? (
-        <div className="mt-12 max-w-4xl">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="rounded-full bg-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white">
-              Journal-Cover
-            </span>
-
-            <span className="text-xs font-black uppercase tracking-[0.25em] text-black/40">
-              Aufmacher
-            </span>
-          </div>
-
-          <div className="overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-black/10">
-            <div className="overflow-hidden rounded-[1.5rem] bg-[#ded9cf]">
-              <SanityImage
-                src={urlFor(post.mainImage).width(1000).height(625).url()}
-                alt={post.mainImage.alt || post.title}
-                width={1000}
-                height={625}
-                priority
-                className="aspect-[16/10] w-full object-cover"
-              />
+      <div className="mx-auto w-full max-w-5xl">
+        <header className="mb-10 grid gap-8 border-b border-black/10 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-end">
+          <div>
+            <div className="mb-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-neutral-500">
+              <span>{formatJournalCategory(post.category)}</span>
+              <span>• {formatHomeDate(post.publishedAt)}</span>
             </div>
-          </div>
-        </div>
-      ) : null}
 
-      <div className="mt-14 grid gap-8 lg:grid-cols-[minmax(240px,0.9fr)_minmax(0,3fr)] lg:items-start">
-        <aside className="space-y-5 lg:sticky lg:top-8">
-          <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
-            <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
-              Beitrag
-            </p>
+            <h1 className="max-w-4xl text-4xl font-semibold tracking-tight text-neutral-950 md:text-6xl">
+              {post.title}
+            </h1>
 
-            <div className="space-y-4 text-sm font-bold text-black/65">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
-                  Kategorie
-                </p>
-                <p className="mt-1 text-black">
-                  {formatJournalCategory(post.category)}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
-                  Datum
-                </p>
-                <p className="mt-1 text-black">
-                  {formatHomeDate(post.publishedAt)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {(post.stravaUrl || post.soundcloudUrl) ? (
-            <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
-              <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
-                Links
+            {post.excerpt ? (
+              <p className="mt-5 max-w-3xl text-lg leading-8 text-neutral-600">
+                {post.excerpt}
               </p>
+            ) : null}
+          </div>
 
-              <div className="grid gap-3">
-                {post.stravaUrl ? (
-                  <Link
-                    href={post.stravaUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group rounded-2xl bg-[#f5f3ee] px-5 py-4 text-sm font-black text-black transition hover:-translate-y-0.5 hover:text-orange-600 hover:shadow-sm"
-                  >
-                    <span className="flex items-center justify-between gap-4">
-                      Strava öffnen
-                      <span className="transition group-hover:translate-x-1">
-                        →
-                      </span>
-                    </span>
-                  </Link>
-                ) : null}
-
-                {post.soundcloudUrl ? (
-                  <Link
-                    href={post.soundcloudUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group rounded-2xl bg-[#f5f3ee] px-5 py-4 text-sm font-black text-black transition hover:-translate-y-0.5 hover:text-orange-600 hover:shadow-sm"
-                  >
-                    <span className="flex items-center justify-between gap-4">
-                      SoundCloud öffnen
-                      <span className="transition group-hover:translate-x-1">
-                        →
-                      </span>
-                    </span>
-                  </Link>
-                ) : null}
-              </div>
-            </div>
+          {post.mainImage ? (
+            <figure className="w-full overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1 lg:justify-self-end">
+              <SanityImage
+                src={urlFor(post.mainImage)
+                  .width(900)
+                  .height(900)
+                  .fit("crop")
+                  .url()}
+                alt={post.mainImage.alt || post.title || "Journal Bild"}
+                width={900}
+                height={900}
+                priority
+                className="aspect-[4/3] w-full rounded-[1.2rem] object-cover lg:aspect-[5/4]"
+              />
+            </figure>
           ) : null}
+        </header>
 
-          <button
-            type="button"
-            onClick={onBack}
-            className="group block w-full rounded-[2rem] bg-[#d7d5ce] p-6 text-left text-black shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <p className="mb-2 text-xs font-black uppercase tracking-[0.32em] text-black/40">
-              Zurück
-            </p>
+        <section className="mb-12 border-b border-black/10">
+          <div className="divide-y divide-black/10 md:grid md:grid-cols-3 md:divide-x md:divide-y-0">
+            <EventDetailFact
+              label="Kategorie"
+              value={formatJournalCategory(post.category)}
+            />
+            <EventDetailFact
+              label="Datum"
+              value={formatHomeDate(post.publishedAt)}
+            />
+            <EventDetailFact label="Links" value={externalLinkLabel} />
+          </div>
+        </section>
 
-            <div className="flex items-center justify-between gap-4 text-sm font-black">
-              <span>Zurück zum Journal</span>
-              <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
-                →
-              </span>
-            </div>
-          </button>
-        </aside>
-
-        <div className="rounded-[2rem] bg-white p-7 shadow-sm ring-1 ring-black/10 md:p-10">
+        <div className="max-w-3xl">
           {post.body && post.body.length > 0 ? (
             <PortableText
               value={post.body}
@@ -895,12 +869,12 @@ function GalleryPanel({
 }) {
   if (albums.length === 0) {
     return (
-      <div className="rounded-[1.5rem] border border-black/10 bg-[#f5f3ee] p-7">
+      <div className="border-y border-black/10 py-7">
         <h4 className="text-2xl font-black tracking-[-0.04em]">
           Noch keine Alben vorhanden.
         </h4>
 
-        <p className="mt-4 leading-8 text-black/65">
+        <p className="mt-4 max-w-xl leading-8 text-black/65">
           Sobald du im Sanity Studio Alben veröffentlichst, erscheinen sie hier.
         </p>
       </div>
@@ -916,7 +890,7 @@ function GalleryPanel({
   ];
 
   return (
-    <div className="columns-1 gap-5 space-y-5 sm:columns-2 lg:columns-4">
+    <div className="columns-1 gap-6 space-y-7 sm:columns-2 lg:columns-4">
       {albums.map((album, index) => {
         const image = album.coverImage || album.images?.[0];
         const imageCount = album.images?.length ?? 0;
@@ -927,10 +901,10 @@ function GalleryPanel({
             key={album._id}
             type="button"
             onClick={() => onOpenAlbum(album)}
-            className="group mb-5 block w-full break-inside-avoid overflow-hidden rounded-[1.75rem] border border-black/10 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+            className="group mb-7 block w-full break-inside-avoid text-left outline-none"
           >
             <div
-              className={`relative overflow-hidden bg-[#d7d5ce] ${imageRatioClass}`}
+              className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioClass}`}
             >
               {image ? (
                 <SanityImage
@@ -939,46 +913,46 @@ function GalleryPanel({
                   width={900}
                   height={1200}
                   priority={index === 0}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                 />
               ) : (
-                <div className="flex h-full min-h-[320px] items-center justify-center p-6 text-center text-sm font-black uppercase tracking-[0.28em] text-black/45">
+                <div className="flex h-full min-h-[320px] items-center justify-center p-6 text-center text-[10px] font-black uppercase tracking-[0.28em] text-black/45">
                   Kein Bild hinterlegt
                 </div>
               )}
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-
-              <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-                <span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-black shadow-sm backdrop-blur-md">
-                  {formatGalleryCategory(album.category)}
-                </span>
-
-                {imageCount > 0 ? (
-                  <span className="rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-white shadow-sm backdrop-blur-md">
-                    {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-400">
-                  {album.title}
-                </h4>
-
-                {album.description ? (
-                  <p className="mt-3 line-clamp-2 text-sm font-semibold leading-6 text-white/75">
-                    {album.description}
-                  </p>
-                ) : null}
-              </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-black/10 bg-[#f5f3ee] px-5 py-4 text-sm font-black text-black">
-              <span>Album öffnen</span>
-              <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
-                →
-              </span>
+            <div className="mt-3 border-b border-black/10 pb-4">
+              <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+                <span>{formatGalleryCategory(album.category)}</span>
+
+                {imageCount > 0 ? (
+                  <>
+                    <span className="h-1 w-1 rounded-full bg-black/25" />
+                    <span>
+                      {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
+                    </span>
+                  </>
+                ) : null}
+              </div>
+
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h4 className="text-xl font-black leading-tight tracking-[-0.04em] text-black transition group-hover:text-orange-600">
+                    {album.title}
+                  </h4>
+
+                  {album.description ? (
+                    <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-black/55">
+                      {album.description}
+                    </p>
+                  ) : null}
+                </div>
+
+                <span className="mt-1 text-lg leading-none text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600">
+                  →
+                </span>
+              </div>
             </div>
           </button>
         );
@@ -996,7 +970,8 @@ function GalleryAlbumPortalDetail({
 }) {
   const images = album.images || [];
   const coverImage = album.coverImage || images[0];
-  const galleryImages = images.length > 0 ? images : coverImage ? [coverImage] : [];
+  const galleryImages =
+    images.length > 0 ? images : coverImage ? [coverImage] : [];
 
   const ratioClasses = [
     "aspect-[4/5]",
@@ -1011,123 +986,81 @@ function GalleryAlbumPortalDetail({
       <button
         type="button"
         onClick={onBack}
-        className="mb-10 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+        className={`${lineButtonClass} mb-10`}
       >
         ← Zurück zur Galerie
       </button>
 
-      <header className="grid gap-8 lg:grid-cols-[1fr_0.38fr] lg:items-end">
-        <div>
-          <div className="mb-8 flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-neutral-700">
-              {formatGalleryCategory(album.category)}
-            </span>
+      <header className="grid grid-cols-[minmax(0,1fr)_128px] items-start gap-x-4 gap-y-6 border-b border-black/10 pb-8 sm:grid-cols-[minmax(0,1fr)_160px] sm:gap-x-6 sm:gap-y-7 sm:pb-10 md:grid-cols-[minmax(0,1fr)_210px] lg:grid-cols-[minmax(0,1fr)_minmax(260px,380px)] lg:items-end lg:gap-8">
+        <div className="min-w-0">
+          <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[8px] font-black uppercase tracking-[0.22em] text-black/35 sm:mb-4 sm:text-[10px] sm:tracking-[0.28em]">
+            <span>{formatGalleryCategory(album.category)}</span>
 
-            <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
+            <span className="h-1 w-1 rounded-full bg-black/25" />
+
+            <span>
               {galleryImages.length === 1
                 ? "1 Bild"
                 : `${galleryImages.length} Bilder`}
             </span>
           </div>
 
-          <h1 className="max-w-4xl text-5xl font-black leading-none tracking-tight md:text-7xl">
+          <h1 className="max-w-4xl text-[2rem] font-black leading-[0.96] tracking-tight sm:text-4xl md:text-5xl lg:text-7xl">
             {album.title}
           </h1>
 
           {album.description ? (
-            <p className="mt-8 max-w-3xl text-xl leading-9 text-neutral-600">
+            <p className="mt-4 max-w-3xl text-sm font-semibold leading-6 text-neutral-600 sm:mt-5 sm:text-base sm:leading-7 md:text-lg md:leading-8 lg:mt-7 lg:text-xl lg:leading-9">
               {album.description}
             </p>
           ) : null}
         </div>
 
-        <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
-          <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
-            Album
-          </p>
-
-          <div className="space-y-4 text-sm font-bold text-black/65">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
-                Kategorie
-              </p>
-              <p className="mt-1 text-black">
-                {formatGalleryCategory(album.category)}
-              </p>
+        {coverImage ? (
+          <figure className="w-full justify-self-end lg:mx-0 lg:max-w-none lg:justify-self-end">
+            <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
+              <SanityImage
+                src={urlFor(coverImage)
+                  .width(900)
+                  .height(900)
+                  .fit("crop")
+                  .url()}
+                alt={coverImage.alt || album.title}
+                width={900}
+                height={900}
+                priority
+                className="aspect-square w-full object-cover sm:aspect-[4/3] lg:aspect-[5/4]"
+              />
             </div>
 
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
-                Umfang
-              </p>
-              <p className="mt-1 text-black">
-                {galleryImages.length === 1
-                  ? "1 Bild"
-                  : `${galleryImages.length} Bilder`}
-              </p>
-            </div>
-          </div>
-        </div>
+            {coverImage.caption ? (
+              <figcaption className="mt-2 border-b border-black/10 pb-2 text-[10px] font-semibold leading-4 text-black/50 sm:mt-3 sm:pb-3 sm:text-xs sm:leading-5 lg:text-sm lg:leading-6">
+                {coverImage.caption}
+              </figcaption>
+            ) : null}
+          </figure>
+        ) : null}
       </header>
 
-      {coverImage ? (
-        <div className="mt-12 overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-black/10">
-          <div className="relative overflow-hidden rounded-[1.5rem] bg-[#ded9cf]">
-            <SanityImage
-              src={urlFor(coverImage)
-                .width(1600)
-                .height(1000)
-                .fit("crop")
-                .url()}
-              alt={coverImage.alt || album.title}
-              width={1600}
-              height={1000}
-              priority
-              className="aspect-[16/10] w-full object-cover"
-            />
-
-            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
-
-            <div className="absolute bottom-5 left-5 right-5 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <span className="inline-flex rounded-full bg-black/70 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white backdrop-blur-md">
-                  Galerie-Cover
-                </span>
-
-                {coverImage.caption ? (
-                  <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-white">
-                    {coverImage.caption}
-                  </p>
-                ) : null}
-              </div>
-
-              <span className="rounded-full bg-white/85 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-black backdrop-blur-md">
-                Threshold Peaks
-              </span>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="mt-10 rounded-[2rem] bg-white p-4 shadow-sm ring-1 ring-black/10 md:p-6">
+      <div className="mt-10">
         {galleryImages.length === 0 ? (
-          <div className="rounded-[1.5rem] bg-[#f5f3ee] p-7">
+          <div className="border-y border-black/10 py-7">
             <p className="leading-8 text-black/65">
               In diesem Album sind noch keine Bilder hinterlegt.
             </p>
           </div>
         ) : (
-          <div className="columns-1 gap-5 space-y-5 sm:columns-2 lg:columns-3">
+          <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
             {galleryImages.map((image, index) => {
               const imageRatioClass = ratioClasses[index % ratioClasses.length];
 
               return (
                 <figure
                   key={`${album._id}-${index}`}
-                  className="mb-5 break-inside-avoid overflow-hidden rounded-[1.5rem] bg-[#f5f3ee] shadow-sm ring-1 ring-black/10 transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+                  className="mb-6 break-inside-avoid"
                 >
                   <div
-                    className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}
+                    className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioClass}`}
                   >
                     <SanityImage
                       src={urlFor(image)
@@ -1138,13 +1071,13 @@ function GalleryAlbumPortalDetail({
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
                       width={1200}
                       height={1600}
-                      className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]"
+                      className="h-full w-full object-cover transition duration-700 hover:scale-[1.025]"
                     />
                   </div>
 
-                  {(image.caption || image.alt) ? (
-                    <figcaption className="border-t border-black/10 bg-white px-5 py-4">
-                      <p className="text-sm font-semibold leading-6 text-black/70">
+                  {image.caption || image.alt ? (
+                    <figcaption className="mt-3 border-b border-black/10 pb-4">
+                      <p className="text-sm font-semibold leading-6 text-black/60">
                         {image.caption || image.alt}
                       </p>
                     </figcaption>
@@ -1159,7 +1092,7 @@ function GalleryAlbumPortalDetail({
       <button
         type="button"
         onClick={onBack}
-        className="mt-8 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+        className={`${lineButtonClass} mt-8`}
       >
         ← Zurück zur Galerie
       </button>
@@ -1195,7 +1128,7 @@ function EventsPanel({
   const items = events.length > 0 ? events : fallbackEvents;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
+    <div className="divide-y divide-black/10 border-y border-black/10">
       {items.map((event) => {
         const date = formatHomeEventDate(event.startDate, event.endDate);
         const time = event.time || formatHomeEventTime(event.startDate);
@@ -1207,7 +1140,7 @@ function EventsPanel({
             key={event._id}
             type="button"
             onClick={() => onOpenEvent(event)}
-            className="group rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 text-left shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl"
+            className="group w-full py-5 text-left transition hover:bg-white/50 md:px-3"
           >
             <EventCardContent
               date={date}
@@ -1249,37 +1182,52 @@ function EventCardContent({
   linked?: boolean;
 }) {
   return (
-    <>
-      <div className="mb-5 flex flex-wrap items-center gap-3">
-        <span className="inline-flex rounded-full border border-black/10 bg-white/60 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-black/65">
-          {type}
+    <div className="grid gap-4 md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center">
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2 md:block md:space-y-2">
+          <span className="inline-flex text-[10px] font-black uppercase tracking-[0.24em] text-black/40">
+            {type}
+          </span>
+
+          <span className="inline-flex text-[10px] font-black uppercase tracking-[0.24em] text-black/40 md:block">
+            {status}
+          </span>
+        </div>
+      </div>
+
+      <div>
+        <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+          {title}
+        </h4>
+
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[10px] font-black uppercase tracking-[0.2em] text-black/40">
+          <span>{date}</span>
+          {time ? <span>{time}</span> : null}
+          {location ? <span>{location}</span> : null}
+        </div>
+
+        <p className="mt-3 max-w-3xl leading-7 text-black/60">{text}</p>
+      </div>
+
+      {linked ? (
+        <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
+          →
         </span>
+      ) : null}
+    </div>
+  );
+}
 
-        <span className="rounded-full bg-[#111217] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white">
-          {status}
-        </span>
-      </div>
-
-      <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
-        {title}
-      </h4>
-
-      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs font-black uppercase tracking-[0.2em] text-black/45">
-        <span>{date}</span>
-        {time ? <span>{time}</span> : null}
-        {location ? <span>{location}</span> : null}
-      </div>
-
-      <p className="mt-4 leading-7 text-black/65">{text}</p>
-
-      <div className="mt-6 flex items-center justify-between border-t border-black/10 pt-5 text-sm font-black">
-        <span>{linked ? "Details ansehen" : "Termin"}</span>
-
-        {linked ? (
-          <span className="transition group-hover:translate-x-1">→</span>
-        ) : null}
-      </div>
-    </>
+function EventDetailFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="py-5 md:px-6">
+      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-black leading-6 text-black/75 md:text-base">
+        {value}
+      </p>
+    </div>
   );
 }
 
@@ -1295,70 +1243,82 @@ function EventPortalDetail({
 
   return (
     <article className="text-neutral-950">
-      <button
-        type="button"
-        onClick={onBack}
-        className="mb-10 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
-      >
-        ← Zurück zu den Events
-      </button>
+      <div className="mb-10 flex items-center justify-between gap-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className={`${lineButtonClass} text-xs sm:text-sm`}
+        >
+          ← Zurück zu den Events
+        </button>
+
+        {event.externalUrl ? (
+          <Link
+            href={event.externalUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={`${lineButtonClass} text-right text-xs sm:text-sm`}
+          >
+            Zur Veranstaltungsseite
+            <span>→</span>
+          </Link>
+        ) : null}
+      </div>
 
       <div className="mx-auto w-full max-w-5xl">
-        <header className="mb-8">
-          <div className="mb-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-neutral-500">
-            {event.eventType ? <span>{event.eventType}</span> : null}
-            {event.status ? <span>• {event.status}</span> : null}
+        <header className="mb-10 grid gap-8 border-b border-black/10 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-end">
+          <div>
+            <div className="mb-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-neutral-500">
+              {event.eventType ? <span>{event.eventType}</span> : null}
+              {event.status ? <span>• {event.status}</span> : null}
+            </div>
+
+            <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 md:text-6xl">
+              {event.title}
+            </h1>
+
+            {event.teaser ? (
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-neutral-600">
+                {event.teaser}
+              </p>
+            ) : null}
           </div>
 
-          <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 md:text-6xl">
-            {event.title}
-          </h1>
-
-          {event.teaser ? (
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-neutral-600">
-              {event.teaser}
-            </p>
+          {image ? (
+            <figure className="w-full overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1 lg:justify-self-end">
+              <SanityImage
+                src={urlFor(image)
+                  .width(900)
+                  .height(900)
+                  .fit("crop")
+                  .url()}
+                alt={image.alt || event.title || "Event Bild"}
+                width={900}
+                height={900}
+                className="aspect-[4/3] w-full rounded-[1.2rem] object-cover lg:aspect-[5/4]"
+              />
+            </figure>
           ) : null}
         </header>
 
-        {image ? (
-          <div className="mb-10 overflow-hidden rounded-[2rem] bg-white shadow-sm">
-            <SanityImage
-              src={urlFor(image).width(1600).url()}
-              alt={image.alt || event.title || "Event Bild"}
-              width={1600}
-              height={900}
-              className="h-auto w-full object-cover"
+        <section className="mb-12 border-b border-black/10">
+          <div className="divide-y divide-black/10 md:grid md:grid-cols-3 md:divide-x md:divide-y-0">
+            <EventDetailFact
+              label="Datum"
+              value={formattedDate ?? "Noch offen"}
             />
-          </div>
-        ) : null}
-
-        <section className="mb-12 grid gap-4 rounded-[2rem] bg-white p-6 shadow-sm md:grid-cols-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
-              Datum
-            </p>
-            <p className="mt-2 text-base font-medium text-neutral-900">
-              {formattedDate ?? "Noch offen"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
-              Zeit
-            </p>
-            <p className="mt-2 text-base font-medium text-neutral-900">
-              {event.time || formatHomeEventTime(event.startDate) || "Noch offen"}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
-              Ort
-            </p>
-            <p className="mt-2 text-base font-medium text-neutral-900">
-              {event.location ?? "Noch offen"}
-            </p>
+            <EventDetailFact
+              label="Zeit"
+              value={
+                event.time ||
+                formatHomeEventTime(event.startDate) ||
+                "Noch offen"
+              }
+            />
+            <EventDetailFact
+              label="Ort"
+              value={event.location ?? "Noch offen"}
+            />
           </div>
         </section>
 
@@ -1368,19 +1328,6 @@ function EventPortalDetail({
               value={event.body}
               components={eventPortableTextComponents}
             />
-          </div>
-        ) : null}
-
-        {event.externalUrl ? (
-          <div className="mt-12">
-            <Link
-              href={event.externalUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex rounded-full bg-neutral-950 px-6 py-3 text-sm font-medium text-white transition hover:bg-neutral-700"
-            >
-              Zur Veranstaltungsseite
-            </Link>
           </div>
         ) : null}
       </div>
@@ -1418,12 +1365,9 @@ function ContactPanel() {
     },
   ];
 
-  const cardClass =
-    "group rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-5 shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl";
-
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.1fr_1.4fr]">
-      <div className="rounded-[2rem] border border-black/10 bg-white p-7 text-[#111217] shadow-sm md:p-8">
+    <div className="grid gap-8 lg:grid-cols-[0.95fr_1.25fr] lg:items-start">
+      <div className="border-l border-black/15 pl-6 text-[#111217]">
         <p className="mb-5 text-xs font-black uppercase tracking-[0.35em] text-black/40">
           Direktkontakt
         </p>
@@ -1434,62 +1378,58 @@ function ContactPanel() {
 
         <p className="mt-5 max-w-xl leading-8 text-black/65">
           Ob Training, Events, Website, Musik oder einfach ein kurzer Austausch:
-          Threshold Peaks lebt von Bewegung, Klang und guten Gedanken dazwischen.
+          Threshold Peaks lebt von Bewegung, Klang und guten Gedanken
+          dazwischen.
         </p>
 
         <a
           href="mailto:info@threshold-peaks.de"
-          className="mt-8 inline-flex w-full items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-6 py-4 text-sm font-black text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md sm:w-auto sm:min-w-[260px]"
+          className={`${lineButtonWideClass} mt-8 w-full sm:w-auto sm:min-w-[260px]`}
         >
           info@threshold-peaks.de
           <span>→</span>
         </a>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+      <div className="divide-y divide-black/10 border-y border-black/10">
         {links.map((item) => {
           const isExternal = item.href?.startsWith("http");
 
-          const cardContent = (
+          const content = (
             <>
-              <div className="mb-4 flex items-start justify-between gap-4">
-                <div>
-                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-black/40">
-                    {item.kicker}
-                  </p>
-
-                  <h4 className="text-xl font-black leading-tight tracking-[-0.03em] transition group-hover:text-orange-600">
-                    {item.title}
-                  </h4>
-                </div>
-
-                <span className="rounded-full bg-white/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-black/50 transition group-hover:text-orange-600">
-                  {item.href ? "↗" : "bald"}
-                </span>
+              <div className="md:w-[150px]">
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/40">
+                  {item.kicker}
+                </p>
               </div>
 
-              <p className="text-sm font-semibold leading-7 text-black/65">
-                {item.text}
-              </p>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xl font-black leading-tight tracking-[-0.03em] transition group-hover:text-orange-600">
+                  {item.title}
+                </h4>
 
-              <div className="mt-5 flex items-center justify-between border-t border-black/10 pt-4 text-sm font-black text-black">
-                <span>{item.label}</span>
+                <p className="mt-2 text-sm font-semibold leading-7 text-black/60">
+                  {item.text}
+                </p>
 
-                {item.href ? (
-                  <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
-                    →
-                  </span>
-                ) : (
-                  <span className="text-black/35">•</span>
-                )}
+                <p className="mt-3 text-xs font-black uppercase tracking-[0.22em] text-black/40 transition group-hover:text-orange-600">
+                  {item.label}
+                </p>
               </div>
+
+              <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
+                {item.href ? "→" : "•"}
+              </span>
             </>
           );
 
           if (!item.href) {
             return (
-              <div key={item.title} className={`${cardClass} cursor-default`}>
-                {cardContent}
+              <div
+                key={item.title}
+                className="group flex flex-col gap-4 py-5 md:flex-row md:items-center md:px-3"
+              >
+                {content}
               </div>
             );
           }
@@ -1500,9 +1440,9 @@ function ContactPanel() {
               href={item.href}
               target={isExternal ? "_blank" : undefined}
               rel={isExternal ? "noreferrer" : undefined}
-              className={cardClass}
+              className="group flex flex-col gap-4 py-5 transition hover:bg-white/50 md:flex-row md:items-center md:px-3"
             >
-              {cardContent}
+              {content}
             </a>
           );
         })}

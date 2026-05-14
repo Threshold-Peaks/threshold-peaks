@@ -2,60 +2,36 @@ import Link from "next/link";
 
 type BackHeaderProps = {
   href?: string;
-  label?: string;
-
-  /**
-   * Fallback für ältere Aufrufe.
-   * Dadurch funktionieren auch noch alte Stellen mit backHref/backLabel.
-   */
   backHref?: string;
-  backLabel?: string;
+  label?: string;
+  className?: string;
 };
 
-function ThresholdPeaksIcon() {
-  return (
-    <span className="relative flex h-11 w-11 items-center justify-center rounded-full border border-black/10 bg-[#f5f3ee] shadow-sm">
-      <span className="absolute h-6 w-6 rounded-full border-2 border-orange-500" />
-      <span className="absolute h-3 w-3 rounded-full bg-black" />
-      <span className="absolute bottom-2 right-2 h-2 w-2 rounded-full bg-orange-500" />
-    </span>
-  );
-}
+const lineButtonClass =
+  "inline-flex items-center gap-2 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600 focus:outline-none focus-visible:border-orange-500 focus-visible:text-orange-600";
 
 export default function BackHeader({
   href,
-  label,
   backHref,
-  backLabel,
+  label = "Zurück zur Startseite",
+  className = "",
 }: BackHeaderProps) {
   const targetHref = href ?? backHref ?? "/";
-  const buttonLabel = label ?? backLabel ?? "Zurück";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-black/10 bg-[#f5f3ee]/90 px-5 py-4 backdrop-blur-xl md:px-8">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-        <Link
-          href="/"
-          className="group flex items-center gap-3 transition hover:text-orange-600"
-          aria-label="Zur Startseite von Threshold Peaks"
-        >
-          <ThresholdPeaksIcon />
-
-          <div className="leading-none">
-            <p className="text-sm font-black uppercase tracking-[0.22em] text-black">
-              Threshold Peaks
-            </p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.2em] text-black/45">
-              Beat the extra mile
-            </p>
-          </div>
+    <header className={`px-6 pt-6 md:px-10 md:pt-8 lg:px-20 ${className}`}>
+      <div className="mx-auto flex max-w-[1280px] items-center justify-between border-b border-black/10 pb-5">
+        <Link href={targetHref} className={lineButtonClass}>
+          <span aria-hidden="true">←</span>
+          <span>{label}</span>
         </Link>
 
         <Link
-          href={targetHref}
-          className="rounded-full border border-black/10 bg-[#d7d5ce] px-5 py-3 text-xs font-black uppercase tracking-[0.18em] text-black shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600"
+          href="/"
+          aria-label="Zur Startseite von Threshold Peaks"
+          className="hidden border-b border-transparent pb-2 text-[10px] font-black uppercase tracking-[0.3em] text-black/35 transition hover:border-orange-500 hover:text-orange-600 focus:outline-none focus-visible:border-orange-500 focus-visible:text-orange-600 sm:inline-flex"
         >
-          {buttonLabel}
+          Threshold Peaks
         </Link>
       </div>
     </header>
