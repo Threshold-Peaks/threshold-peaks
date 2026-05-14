@@ -71,7 +71,8 @@ function getSquareOgImage(post: JournalPost) {
   const imageUrl = urlFor(post.mainImage)
     .width(1200)
     .height(1200)
-    .fit("fill")
+    .fit("crop")
+    .focalPoint(0.5, 0.22)
     .format("jpg")
     .quality(85)
     .url();
