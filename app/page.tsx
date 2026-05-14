@@ -342,20 +342,18 @@ function MobileHorizontalNav() {
 
   return (
     <nav aria-label="Mobile Navigation" className="relative z-[80] mt-6 md:hidden">
-      <div className="border-y border-black/10 py-2">
-        <div className="-mx-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex w-max min-w-full items-center px-1">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className="group flex shrink-0 items-center gap-2 border-r border-black/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-black/55 transition last:border-r-0 hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 active:text-orange-700"
-              >
-                <span className="h-1 w-1 rounded-full bg-black/25 transition group-hover:bg-orange-600 group-focus-visible:bg-orange-600" />
-                <span>{item.label}</span>
-              </a>
-            ))}
-          </div>
+      <div className="border-y border-black/10 py-3">
+        <div className="grid grid-cols-3 gap-y-2 text-center">
+          {navItems.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="group flex items-center justify-center gap-1.5 px-1.5 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 active:text-orange-700"
+            >
+              <span className="h-1 w-1 rounded-full bg-black/25 transition group-hover:bg-orange-600 group-focus-visible:bg-orange-600" />
+              <span>{item.label}</span>
+            </a>
+          ))}
         </div>
       </div>
     </nav>
