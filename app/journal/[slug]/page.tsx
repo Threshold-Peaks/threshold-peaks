@@ -161,6 +161,10 @@ function getTagLabel(tag: JournalTag) {
     .trim();
 }
 
+function getPortalTagHref(tag: string) {
+  return `/?tags=${encodeURIComponent(tag)}#portal-journal`;
+}
+
 const portableTextComponents: PortableTextComponents = {
   block: {
     h2: ({ children }) => (
@@ -235,9 +239,13 @@ export default async function JournalPostPage({
     notFound();
   }
 
-  const tags = post.tags
-    ?.map((tag) => getTagLabel(tag))
-    .filter(Boolean);
+  const tags = Array.from(
+    new Set(
+      (post.tags ?? [])
+        .map((tag) => getTagLabel(tag))
+        .filter((tag): tag is string => Boolean(tag))
+    )
+  );
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
@@ -400,14 +408,15 @@ export default async function JournalPostPage({
                       Hashtags
                     </p>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-x-3 gap-y-2">
                       {tags.map((tag) => (
-                        <span
+                        <Link
                           key={tag}
-                          className="rounded-full border border-black/10 bg-[#f5f3ee] px-4 py-2 text-xs font-black text-black/55 transition hover:border-orange-500/40 hover:text-orange-600"
+                          href={getPortalTagHref(tag)}
+                          className="px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
                         >
                           #{tag}
-                        </span>
+                        </Link>
                       ))}
                     </div>
                   </section>
