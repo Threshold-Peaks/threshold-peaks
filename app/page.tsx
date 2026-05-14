@@ -209,20 +209,6 @@ export default async function Home() {
       </a>
 
       <HeroTopNav />
-
-      <details className="group relative mt-5 inline-block md:hidden">
-        <summary className="list-none rounded-full border border-black/10 bg-white/75 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition hover:text-orange-600 active:scale-95 [&::-webkit-details-marker]:hidden">
-          Menü
-        </summary>
-
-        <div className="absolute left-0 top-14 z-50 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
-          <MobileNavLink href="#about">About</MobileNavLink>
-<MobileNavLink href="#journal">Journal</MobileNavLink>
-<MobileNavLink href="#gallery">Galerie</MobileNavLink>
-<MobileNavLink href="#events">Events</MobileNavLink>
-<MobileNavLink href="#contact">Kontakt</MobileNavLink>
-        </div>
-      </details>
     </div>
 
     {/* RIGHT: PORTAL + STRAVA */}
@@ -335,17 +321,14 @@ function HeroTopNav() {
   ];
 
   return (
-    <nav
-      aria-label="Hauptnavigation"
-      className="mt-8 hidden md:block"
-    >
-      <div className="mb-5">
-        <div className="text-[10px] font-black uppercase tracking-[0.34em] text-black/35">
+    <nav aria-label="Hauptnavigation" className="relative z-50 mt-6 md:mt-8">
+      <div className="mb-3 md:mb-5">
+        <div className="text-[9px] font-black uppercase tracking-[0.32em] text-black/35 md:text-[10px] md:tracking-[0.34em]">
           Navigation
         </div>
       </div>
 
-      <div className="relative space-y-1 border-l border-black/15 pl-5">
+      <div className="flex max-w-[340px] flex-wrap gap-2 md:block md:max-w-none md:space-y-1 md:border-l md:border-black/15 md:pl-5">
         {navItems.map((item) => (
           <HeroTopNavLink key={item.href} href={item.href}>
             {item.label}
@@ -366,34 +349,17 @@ function HeroTopNavLink({
   return (
     <a
       href={href}
-      className="group relative flex items-center justify-between py-2.5 text-sm font-black text-black/55 transition hover:text-orange-600"
+      className="group relative inline-flex items-center rounded-full border border-black/10 bg-white/55 px-3 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-black/55 shadow-sm backdrop-blur-md transition hover:border-orange-500/40 hover:bg-white/75 hover:text-orange-600 focus:outline-none focus-visible:border-orange-500 focus-visible:text-orange-600 md:flex md:justify-between md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-2.5 md:text-sm md:normal-case md:tracking-normal md:shadow-none md:backdrop-blur-0"
     >
-      <span className="absolute -left-[25px] h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee] transition group-hover:border-orange-600 group-hover:bg-orange-600" />
+      <span className="hidden md:absolute md:-left-[25px] md:block md:h-2.5 md:w-2.5 md:rounded-full md:border md:border-black/20 md:bg-[#f5f3ee] md:transition md:group-hover:border-orange-600 md:group-hover:bg-orange-600" />
 
-      <span className="transition group-hover:translate-x-1">
+      <span className="transition md:group-hover:translate-x-1">
         {children}
       </span>
 
-      <span className="text-xs text-black/25 opacity-0 transition group-hover:translate-x-1 group-hover:text-orange-600 group-hover:opacity-100">
+      <span className="hidden text-xs text-black/25 opacity-0 transition group-hover:translate-x-1 group-hover:text-orange-600 group-hover:opacity-100 md:block">
         →
       </span>
     </a>
-  );
-}
-
-function MobileNavLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="block rounded-2xl px-4 py-2.5 text-sm font-bold text-black transition hover:bg-black/5 hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
-    >
-      {children}
-    </Link>
   );
 }
