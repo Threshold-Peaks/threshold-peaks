@@ -76,6 +76,7 @@ type HomeEvent = {
   teaser?: string;
   status?: string;
   externalUrl?: string;
+  tags?: string[];
   image?: HomeGalleryImage;
   body?: PortableTextBlock;
 };
@@ -118,6 +119,7 @@ const allEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(start
   "teaser": coalesce(teaser, excerpt, description, shortDescription),
   "status": coalesce(status, registrationStatus),
   externalUrl,
+  tags,
   "image": coalesce(image, mainImage, coverImage),
   body
 }`;

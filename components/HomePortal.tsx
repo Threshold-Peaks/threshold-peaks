@@ -26,6 +26,7 @@ type HomeJournalTag =
     };
 
 type HomeGalleryTag = HomeJournalTag;
+type HomeEventTag = HomeJournalTag;
 
 type HomeJournalPost = {
   _id: string;
@@ -78,6 +79,7 @@ type HomeEvent = {
   teaser?: string;
   status?: string;
   externalUrl?: string;
+  tags?: string | HomeEventTag[];
   image?: HomeGalleryImage;
   body?: PortableTextBlock;
 };
@@ -339,6 +341,10 @@ function getGalleryTags(tags?: string | HomeGalleryTag[]) {
   return getJournalTags(tags);
 }
 
+function getEventTags(tags?: string | HomeEventTag[]) {
+  return getJournalTags(tags);
+}
+
 function getTagsFromSearchParam(value?: string | null) {
   if (!value) return [];
 
@@ -389,6 +395,12 @@ function getAllJournalTags(posts: HomeJournalPost[]) {
 function getAllGalleryTags(albums: HomeGalleryAlbum[]) {
   return Array.from(
     new Set(albums.flatMap((album) => getGalleryTags(album.tags))),
+  ).sort((firstTag, secondTag) => firstTag.localeCompare(secondTag, "de"));
+}
+
+function getAllEventTags(events: HomeEvent[]) {
+  return Array.from(
+    new Set(events.flatMap((event) => getEventTags(event.tags))),
   ).sort((firstTag, secondTag) => firstTag.localeCompare(secondTag, "de"));
 }
 
@@ -478,6 +490,7 @@ export default function HomePortal({
   const [selectedEvent, setSelectedEvent] = useState<HomeEvent | null>(null);
   const [selectedJournalTags, setSelectedJournalTags] = useState<string[]>([]);
   const [selectedGalleryTags, setSelectedGalleryTags] = useState<string[]>([]);
+  const [selectedEventTags, setSelectedEventTags] = useState<string[]>([]);
   const [showAllContent, setShowAllContent] = useState<
     Record<PortalContentTab, boolean>
   >({
@@ -509,12 +522,17 @@ export default function HomePortal({
     }));
   }
 
-  function syncPortalTagsToUrl(tab: "journal" | "gallery", tags: string[]) {
+  function syncPortalTagsToUrl(
+    tab: "journal" | "gallery" | "events",
+    tags: string[],
+  ) {
     if (typeof window === "undefined") return;
 
     const params = new URLSearchParams(window.location.search);
-    const tagKey = tab === "gallery" ? "galleryTags" : "tags";
-    const legacyTagKey = tab === "gallery" ? "galleryTag" : "tag";
+    const tagKey =
+      tab === "gallery" ? "galleryTags" : tab === "events" ? "eventTags" : "tags";
+    const legacyTagKey =
+      tab === "gallery" ? "galleryTag" : tab === "events" ? "eventTag" : "tag";
     const nextTags = createTagsParam(tags);
 
     params.delete(legacyTagKey);
@@ -538,11 +556,9 @@ export default function HomePortal({
     setActiveTab("journal");
     setShowAllContent((current) => ({ ...current, journal: true }));
 
-    setSelectedJournalTags((currentTags) => {
-      const nextTags = toggleTagValue(currentTags, tag);
-      syncPortalTagsToUrl("journal", nextTags);
-      return nextTags;
-    });
+    const nextTags = toggleTagValue(selectedJournalTags, tag);
+    setSelectedJournalTags(nextTags);
+    syncPortalTagsToUrl("journal", nextTags);
   }
 
   function resetJournalTagFilter() {
@@ -555,16 +571,29 @@ export default function HomePortal({
     setActiveTab("gallery");
     setShowAllContent((current) => ({ ...current, gallery: true }));
 
-    setSelectedGalleryTags((currentTags) => {
-      const nextTags = toggleTagValue(currentTags, tag);
-      syncPortalTagsToUrl("gallery", nextTags);
-      return nextTags;
-    });
+    const nextTags = toggleTagValue(selectedGalleryTags, tag);
+    setSelectedGalleryTags(nextTags);
+    syncPortalTagsToUrl("gallery", nextTags);
   }
 
   function resetGalleryTagFilter() {
     setSelectedGalleryTags([]);
     syncPortalTagsToUrl("gallery", []);
+  }
+
+  function toggleEventTagFilter(tag: string) {
+    clearPortalDetails();
+    setActiveTab("events");
+    setShowAllContent((current) => ({ ...current, events: true }));
+
+    const nextTags = toggleTagValue(selectedEventTags, tag);
+    setSelectedEventTags(nextTags);
+    syncPortalTagsToUrl("events", nextTags);
+  }
+
+  function resetEventTagFilter() {
+    setSelectedEventTags([]);
+    syncPortalTagsToUrl("events", []);
   }
 
   useEffect(() => {
@@ -611,6 +640,14 @@ export default function HomePortal({
         );
       }
 
+      if (nextTab === "events") {
+        setSelectedEventTags(
+          getTagsFromSearchParam(
+            params.get("eventTags") || params.get("eventTag"),
+          ),
+        );
+      }
+
       const topElement = document.getElementById("top");
 
       if (!topElement) return;
@@ -636,9 +673,11 @@ export default function HomePortal({
 
   const journalTagSource = allPosts.length > 0 ? allPosts : latestPosts;
   const galleryTagSource = allAlbums.length > 0 ? allAlbums : latestAlbums;
+  const eventTagSource = allEvents.length > 0 ? allEvents : latestEvents;
 
   const allJournalTags = getAllJournalTags(journalTagSource);
   const allGalleryTags = getAllGalleryTags(galleryTagSource);
+  const allEventTags = getAllEventTags(eventTagSource);
 
   const visiblePostSource =
     selectedJournalTags.length > 0 || showAllContent.journal
@@ -664,8 +703,17 @@ export default function HomePortal({
         )
       : visibleAlbumSource;
 
+  const visibleEventSource =
+    selectedEventTags.length > 0 || showAllContent.events
+      ? eventTagSource
+      : latestEvents;
+
   const visibleEvents =
-    showAllContent.events && allEvents.length > 0 ? allEvents : latestEvents;
+    selectedEventTags.length > 0
+      ? visibleEventSource.filter((event) =>
+          hasAnySelectedTag(getEventTags(event.tags), selectedEventTags),
+        )
+      : visibleEventSource;
 
   return (
     <section
@@ -785,11 +833,17 @@ export default function HomePortal({
                   selectedEvent ? (
                     <EventPortalDetail
                       event={selectedEvent}
+                      selectedTags={selectedEventTags}
+                      onToggleTag={toggleEventTagFilter}
                       onBack={() => setSelectedEvent(null)}
                     />
                   ) : (
                     <EventsPanel
                       events={visibleEvents}
+                      allTags={allEventTags}
+                      selectedTags={selectedEventTags}
+                      onToggleTag={toggleEventTagFilter}
+                      onResetTags={resetEventTagFilter}
                       onOpenEvent={setSelectedEvent}
                     />
                   )
@@ -1601,9 +1655,17 @@ function GalleryAlbumPortalDetail({
 
 function EventsPanel({
   events,
+  allTags,
+  selectedTags,
+  onToggleTag,
+  onResetTags,
   onOpenEvent,
 }: {
   events: HomeEvent[];
+  allTags: string[];
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
+  onResetTags: () => void;
   onOpenEvent: (event: HomeEvent) => void;
 }) {
   const fallbackEvents: HomeEvent[] = [
@@ -1624,39 +1686,87 @@ function EventsPanel({
     },
   ];
 
-  const items = events.length > 0 ? events : fallbackEvents;
+  const items =
+    events.length > 0 ? events : selectedTags.length > 0 ? [] : fallbackEvents;
 
   return (
-    <div className="divide-y divide-black/10 border-y border-black/10">
-      {items.map((event) => {
-        const date = formatHomeEventDate(event.startDate, event.endDate);
-        const time = event.time || formatHomeEventTime(event.startDate);
-        const type = formatEventType(event.eventType);
-        const status = formatEventStatus(event.status);
+    <div>
+      <PortalTagFilter
+        label="Event"
+        tags={allTags}
+        selectedTags={selectedTags}
+        onToggleTag={onToggleTag}
+        onResetTags={onResetTags}
+      />
 
-        return (
-          <button
-            key={event._id}
-            type="button"
-            onClick={() => onOpenEvent(event)}
-            className="group w-full py-5 text-left transition hover:bg-white/50 md:px-3"
-          >
-            <EventCardContent
-              date={date}
-              time={time}
-              title={event.title}
-              type={type}
-              status={status}
-              text={
-                event.teaser ||
-                "Ein kommender Termin im Threshold Peaks Kalender."
-              }
-              location={event.location}
-              linked
-            />
-          </button>
-        );
-      })}
+      {items.length === 0 ? (
+        <div className="border-y border-black/10 py-7">
+          <h4 className="text-2xl font-black tracking-[-0.04em]">
+            Keine Events zu dieser Auswahl.
+          </h4>
+
+          <p className="mt-4 max-w-xl leading-8 text-black/65">
+            Der Event-Filter ist gerade etwas zu eng geschnürt. Setz ihn zurück
+            oder wähle einen anderen Hashtag.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-black/10 border-y border-black/10">
+          {items.map((event) => {
+            const date = formatHomeEventDate(event.startDate, event.endDate);
+            const time = event.time || formatHomeEventTime(event.startDate);
+            const type = formatEventType(event.eventType);
+            const status = formatEventStatus(event.status);
+            const tags = getEventTags(event.tags);
+
+            return (
+              <article
+                key={event._id}
+                className="group py-5 text-left transition hover:bg-white/50 md:px-3"
+              >
+                <button
+                  type="button"
+                  onClick={() => onOpenEvent(event)}
+                  className="w-full text-left"
+                >
+                  <EventCardContent
+                    date={date}
+                    time={time}
+                    title={event.title}
+                    type={type}
+                    status={status}
+                    text={
+                      event.teaser ||
+                      "Ein kommender Termin im Threshold Peaks Kalender."
+                    }
+                    location={event.location}
+                    linked
+                  />
+                </button>
+
+                {tags.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 md:ml-[170px]">
+                    {tags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => onToggleTag(tag)}
+                        className={
+                          isTagSelected(selectedTags, tag)
+                            ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+                            : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                        }
+                      >
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1732,13 +1842,18 @@ function EventDetailFact({ label, value }: { label: string; value: string }) {
 
 function EventPortalDetail({
   event,
+  selectedTags,
+  onToggleTag,
   onBack,
 }: {
   event: HomeEvent;
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
   onBack: () => void;
 }) {
   const formattedDate = formatEventDetailDate(event.startDate);
   const image = event.image;
+  const tags = getEventTags(event.tags);
 
   return (
     <article className="text-neutral-950">
@@ -1816,6 +1931,34 @@ function EventPortalDetail({
             />
           </div>
         </section>
+
+        {tags.length > 0 ? (
+          <section className="mb-12 border-b border-black/10 pb-6">
+            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+              Hashtags
+            </p>
+
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
+              {tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => {
+                    onToggleTag(tag);
+                    onBack();
+                  }}
+                  className={
+                    isTagSelected(selectedTags, tag)
+                      ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+                      : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                  }
+                >
+                  #{tag}
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {event.body && event.body.length > 0 ? (
           <div className="prose prose-neutral max-w-3xl">

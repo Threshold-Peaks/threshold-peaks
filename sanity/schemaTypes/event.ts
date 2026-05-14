@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
 
 export const event = defineType({
   name: 'event',
@@ -59,6 +59,17 @@ export const event = defineType({
       },
       initialValue: 'running',
       validation: (Rule) => Rule.required(),
+    }),
+
+    defineField({
+      name: 'tags',
+      title: 'Hashtags',
+      type: 'array',
+      of: [defineArrayMember({type: 'string'})],
+      options: {
+        layout: 'tags',
+      },
+      description: 'Hashtags ohne # eingeben und mit Enter bestätigen, zum Beispiel Race, Running oder ThresholdPeaks.',
     }),
 
     defineField({

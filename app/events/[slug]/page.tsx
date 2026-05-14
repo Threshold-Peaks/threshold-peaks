@@ -9,6 +9,17 @@ import { urlFor } from "@/sanity/lib/image";
 
 export const revalidate = 60;
 
+type EventTag =
+  | string
+  | {
+      title?: string;
+      name?: string;
+      label?: string;
+      value?: string;
+      current?: string;
+      slug?: { current?: string };
+    };
+
 type EventItem = {
   _id: string;
   title?: string;
@@ -23,6 +34,7 @@ type EventItem = {
   teaser?: string;
   status?: string;
   externalUrl?: string;
+  tags?: string | EventTag[];
   image?: SanityImageSource & {
     alt?: string;
   };
@@ -50,6 +62,7 @@ const eventDetailQuery = `*[
   "teaser": coalesce(teaser, excerpt, description),
   status,
   externalUrl,
+  tags,
   "image": coalesce(image, mainImage, coverImage),
   body
 }`;
@@ -87,6 +100,45 @@ const portableTextComponents: PortableTextComponents = {
     },
   },
 };
+
+
+function getEventTagLabel(tag: EventTag) {
+  const raw =
+    typeof tag === "string"
+      ? tag
+      : tag.title ||
+        tag.name ||
+        tag.label ||
+        tag.value ||
+        tag.current ||
+        tag.slug?.current ||
+        "";
+
+  return raw.replace(/^#/, "").trim();
+}
+
+function getEventTags(tags?: string | EventTag[]) {
+  if (!tags) return [];
+
+  if (typeof tags === "string") {
+    return Array.from(
+      new Set(
+        tags
+          .split(/[\s,]+/)
+          .map((tag) => tag.replace(/^#/, "").trim())
+          .filter(Boolean),
+      ),
+    );
+  }
+
+  return Array.from(
+    new Set(tags.map((tag) => getEventTagLabel(tag)).filter(Boolean)),
+  );
+}
+
+function getEventTagHref(tag: string) {
+  return `/?eventTags=${encodeURIComponent(tag)}#portal-events`;
+}
 
 function formatDate(date?: string) {
   if (!date) return null;
@@ -139,6 +191,7 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   const imageUrl = event.image ? urlFor(event.image).width(1600).url() : null;
   const formattedDate = formatDate(event.startDate);
+  const tags = getEventTags(event.tags);
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-neutral-950">
@@ -164,6 +217,20 @@ export default async function EventDetailPage({ params }: PageProps) {
             </p>
           )}
         </header>
+
+        {tags.length > 0 ? (
+          <section className="mb-8 flex flex-wrap gap-x-3 gap-y-1 border-b border-black/10 pb-6">
+            {tags.map((tag) => (
+              <Link
+                key={tag}
+                href={getEventTagHref(tag)}
+                className="px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+              >
+                #{tag}
+              </Link>
+            ))}
+          </section>
+        ) : null}
 
         {imageUrl && (
           <div className="mb-10 overflow-hidden rounded-[2rem] bg-white shadow-sm">
