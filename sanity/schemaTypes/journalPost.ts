@@ -1,5 +1,24 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
+const categoryOptions = [
+  {title: 'Running', value: 'running'},
+  {title: 'Cycling', value: 'cycling'},
+  {title: 'Music', value: 'music'},
+  {title: 'Story', value: 'story'},
+  {title: 'Gear', value: 'gear'},
+  {title: 'Event Recap', value: 'event'},
+]
+
+const categoryTitles: Record<string, string> = {
+  running: 'Running',
+  cycling: 'Cycling',
+  music: 'Music',
+  story: 'Story',
+  lifestyle: 'Lifestyle',
+  gear: 'Gear',
+  event: 'Event Recap',
+}
+
 export const journalPost = defineType({
   name: 'journalPost',
   title: 'Journal-Beitrag',
@@ -9,7 +28,7 @@ export const journalPost = defineType({
       name: 'title',
       title: 'Titel',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().min(3).max(120),
     }),
 
     defineField({
@@ -35,13 +54,7 @@ export const journalPost = defineType({
       title: 'Kategorie',
       type: 'string',
       options: {
-        list: [
-          {title: 'Running', value: 'running'},
-          {title: 'Cycling', value: 'cycling'},
-          {title: 'Music', value: 'music'},
-          {title: 'Lifestyle', value: 'lifestyle'},
-          {title: 'Event', value: 'event'},
-        ],
+        list: categoryOptions,
         layout: 'radio',
       },
       validation: (Rule) => Rule.required(),
@@ -49,10 +62,11 @@ export const journalPost = defineType({
 
     defineField({
       name: 'excerpt',
-      title: 'Kurzbeschreibung',
+      title: 'Kurzbeschreibung / Teaser',
       type: 'text',
       rows: 3,
-      description: 'Kurzer Teaser für Übersichten und Vorschauen.',
+      description: 'Kurzer Einstieg für Übersichten und Vorschauen. Ein bis zwei Sätze reichen völlig.',
+      validation: (Rule) => Rule.max(220).warning('Der Teaser wirkt ab etwa 220 Zeichen schnell zu lang.'),
     }),
 
     defineField({
@@ -67,7 +81,16 @@ export const journalPost = defineType({
           name: 'alt',
           title: 'Alternativtext',
           type: 'string',
-          description: 'Kurze Beschreibung des Bildes für SEO und Barrierefreiheit.',
+          description: 'Sachliche Bildbeschreibung für Barrierefreiheit und SEO.',
+          validation: (Rule) => Rule.max(160),
+        }),
+        defineField({
+          name: 'caption',
+          title: 'Kurzer Satz zum Bild',
+          type: 'text',
+          rows: 2,
+          description: 'Optionaler persönlicher Satz zum Titelbild.',
+          validation: (Rule) => Rule.max(180).warning('Kurze Bildsätze wirken meistens stärker.'),
         }),
       ],
     }),
@@ -79,6 +102,37 @@ export const journalPost = defineType({
       of: [
         defineArrayMember({
           type: 'block',
+          styles: [
+            {title: 'Normal', value: 'normal'},
+            {title: 'Überschrift', value: 'h2'},
+            {title: 'Zwischenüberschrift', value: 'h3'},
+            {title: 'Zitat', value: 'blockquote'},
+          ],
+          lists: [
+            {title: 'Aufzählung', value: 'bullet'},
+            {title: 'Nummeriert', value: 'number'},
+          ],
+          marks: {
+            decorators: [
+              {title: 'Fett', value: 'strong'},
+              {title: 'Kursiv', value: 'em'},
+            ],
+            annotations: [
+              defineArrayMember({
+                name: 'link',
+                title: 'Link',
+                type: 'object',
+                fields: [
+                  defineField({
+                    name: 'href',
+                    title: 'URL',
+                    type: 'url',
+                    validation: (Rule) => Rule.uri({scheme: ['http', 'https', 'mailto', 'tel']}),
+                  }),
+                ],
+              }),
+            ],
+          },
         }),
       ],
     }),
@@ -88,6 +142,7 @@ export const journalPost = defineType({
       title: 'Strava-Link',
       type: 'url',
       description: 'Optionaler Link zu einer Strava-Aktivität.',
+      validation: (Rule) => Rule.uri({scheme: ['http', 'https']}).warning(),
     }),
 
     defineField({
@@ -95,6 +150,26 @@ export const journalPost = defineType({
       title: 'SoundCloud-Link',
       type: 'url',
       description: 'Optionaler Link zu einem SoundCloud-Set oder Track.',
+      validation: (Rule) => Rule.uri({scheme: ['http', 'https']}).warning(),
+    }),
+
+    defineField({
+      name: 'location',
+      title: 'Ort / Strecke',
+      type: 'string',
+      description: 'Optional, zum Beispiel Verl, Bahntraining, Teuto, Gravelrunde oder Wettkampfort.',
+      validation: (Rule) => Rule.max(80),
+    }),
+
+    defineField({
+      name: 'tags',
+      title: 'Tags',
+      type: 'array',
+      description: 'Optional. Kleine Stichworte wie Intervall, Wettkampf, Gravel, Techno oder Recovery.',
+      of: [defineArrayMember({type: 'string'})],
+      options: {
+        layout: 'tags',
+      },
     }),
 
     defineField({
@@ -108,21 +183,26 @@ export const journalPost = defineType({
   preview: {
     select: {
       title: 'title',
-      subtitle: 'category',
+      category: 'category',
+      publishedAt: 'publishedAt',
+      location: 'location',
       media: 'mainImage',
     },
-    prepare({title, subtitle, media}) {
-      const categories: Record<string, string> = {
-        running: 'Running',
-        cycling: 'Cycling',
-        music: 'Music',
-        lifestyle: 'Lifestyle',
-        event: 'Event',
-      }
+    prepare({title, category, publishedAt, location, media}) {
+      const formattedDate = publishedAt
+        ? new Intl.DateTimeFormat('de-DE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          }).format(new Date(publishedAt))
+        : 'Ohne Datum'
+
+      const categoryTitle = category ? categoryTitles[category] ?? category : 'Ohne Kategorie'
+      const subtitleParts = [categoryTitle, formattedDate, location].filter(Boolean)
 
       return {
-        title: title || 'Untitled',
-        subtitle: subtitle ? categories[subtitle] ?? subtitle : 'Ohne Kategorie',
+        title: title || 'Unbenannter Journal-Beitrag',
+        subtitle: subtitleParts.join(' · '),
         media,
       }
     },
