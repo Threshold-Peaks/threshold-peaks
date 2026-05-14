@@ -64,13 +64,15 @@ function getOgImage(post: JournalPost) {
     return `${baseUrl}/opengraph-image`;
   }
 
-  return urlFor(post.mainImage)
+  const imageUrl = urlFor(post.mainImage)
     .width(1200)
     .height(630)
-    .fit("crop")
+    .fit("fill")
     .format("jpg")
     .quality(85)
     .url();
+
+  return `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}bg=f5f3ee`;
 }
 
 export async function generateMetadata({

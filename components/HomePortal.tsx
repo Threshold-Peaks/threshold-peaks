@@ -930,7 +930,7 @@ function AboutPanel() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-      <div className="border-l border-black/15 pl-6">
+      <div className="pl-6">
         <p className="mb-4 text-[10px] font-black uppercase tracking-[0.34em] text-black/35">
           About
         </p>
