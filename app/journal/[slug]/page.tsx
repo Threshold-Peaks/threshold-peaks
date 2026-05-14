@@ -59,7 +59,27 @@ function getMetaDescription(post: JournalPost) {
   );
 }
 
-function getOgImage(post: JournalPost) {
+function withOgBackground(imageUrl: string) {
+  return `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}bg=f5f3ee`;
+}
+
+function getSquareOgImage(post: JournalPost) {
+  if (!post.mainImage) {
+    return `${baseUrl}/opengraph-image`;
+  }
+
+  const imageUrl = urlFor(post.mainImage)
+    .width(1200)
+    .height(1200)
+    .fit("fill")
+    .format("jpg")
+    .quality(85)
+    .url();
+
+  return withOgBackground(imageUrl);
+}
+
+function getWideOgImage(post: JournalPost) {
   if (!post.mainImage) {
     return `${baseUrl}/opengraph-image`;
   }
@@ -72,7 +92,7 @@ function getOgImage(post: JournalPost) {
     .quality(85)
     .url();
 
-  return `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}bg=f5f3ee`;
+  return withOgBackground(imageUrl);
 }
 
 export async function generateMetadata({
@@ -94,7 +114,8 @@ export async function generateMetadata({
   const title = post.title;
   const description = getMetaDescription(post);
   const url = `${baseUrl}/journal/${slug}`;
-  const image = getOgImage(post);
+  const squareImage = getSquareOgImage(post);
+  const wideImage = getWideOgImage(post);
   const tags = Array.from(
     new Set(
       (post.tags ?? [])
@@ -128,7 +149,13 @@ export async function generateMetadata({
       ...(tags.length > 0 ? { tags } : {}),
       images: [
         {
-          url: image,
+          url: squareImage,
+          width: 1200,
+          height: 1200,
+          alt: post.mainImage?.alt || post.title,
+        },
+        {
+          url: wideImage,
           width: 1200,
           height: 630,
           alt: post.mainImage?.alt || post.title,
@@ -139,7 +166,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [image],
+      images: [wideImage],
     },
   };
 }
