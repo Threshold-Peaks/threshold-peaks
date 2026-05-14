@@ -334,6 +334,55 @@ function normalizeJournalTagFilter(value?: string | null) {
   return (value || "").replace(/^#/, "").trim().toLowerCase();
 }
 
+function getUniqueJournalTags(tags: string[]) {
+  const seen = new Set<string>();
+
+  return tags
+    .map((tag) => tag.replace(/^#/, "").trim())
+    .filter(Boolean)
+    .filter((tag) => {
+      const key = normalizeJournalTagFilter(tag);
+
+      if (seen.has(key)) return false;
+
+      seen.add(key);
+      return true;
+    });
+}
+
+function toggleJournalTagFilter(activeTags: string[], tag: string) {
+  const cleanTag = tag.replace(/^#/, "").trim();
+  const normalizedTag = normalizeJournalTagFilter(cleanTag);
+
+  if (!cleanTag) return activeTags;
+
+  if (
+    activeTags.some(
+      (activeTag) => normalizeJournalTagFilter(activeTag) === normalizedTag,
+    )
+  ) {
+    return activeTags.filter(
+      (activeTag) => normalizeJournalTagFilter(activeTag) !== normalizedTag,
+    );
+  }
+
+  return getUniqueJournalTags([...activeTags, cleanTag]);
+}
+
+function getJournalTagsFromSearch(search: string) {
+  const params = new URLSearchParams(search);
+  const tagsParam = params.get("tags");
+  const legacyTagParam = params.get("tag");
+  const rawValue = tagsParam || legacyTagParam || "";
+
+  return getUniqueJournalTags(
+    rawValue
+      .split(",")
+      .map((tag) => decodeURIComponent(tag).replace(/^#/, "").trim())
+      .filter(Boolean),
+  );
+}
+
 function formatGalleryCategory(category?: string) {
   const categories: Record<string, string> = {
     running: "Running",
@@ -425,7 +474,7 @@ export default function HomePortal({
     gallery: false,
     events: false,
   });
-  const [activeJournalTag, setActiveJournalTag] = useState<string | null>(null);
+  const [activeJournalTags, setActiveJournalTags] = useState<string[]>([]);
 
   function clearPortalDetails() {
     setSelectedPost(null);
@@ -445,7 +494,11 @@ export default function HomePortal({
     clearPortalDetails();
 
     if (tab === "journal") {
-      setActiveJournalTag(null);
+      setActiveJournalTags([]);
+
+      if (typeof window !== "undefined") {
+        window.history.replaceState(null, "", "/#portal-journal");
+      }
     }
 
     setShowAllContent((current) => ({
@@ -454,33 +507,49 @@ export default function HomePortal({
     }));
   }
 
-  function handleJournalTagFilter(tag: string) {
+  function updateJournalTagUrl(tags: string[]) {
+    if (typeof window === "undefined") return;
+
+    const cleanTags = getUniqueJournalTags(tags);
+    const query = cleanTags.length
+      ? `?tags=${cleanTags.map((tag) => encodeURIComponent(tag)).join(",")}`
+      : "";
+
+    window.history.replaceState(null, "", `/${query}#portal-journal`);
+  }
+
+  function scrollPortalToTop() {
+    if (typeof window === "undefined") return;
+
+    window.setTimeout(() => {
+      document.getElementById("top")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  }
+
+  function handleJournalTagToggle(tag: string) {
+    const nextTags = toggleJournalTagFilter(activeJournalTags, tag);
+
     setActiveTab("journal");
     clearPortalDetails();
-    setActiveJournalTag(tag);
+    setActiveJournalTags(nextTags);
     setShowAllContent((current) => ({
       ...current,
       journal: true,
     }));
-
-    if (typeof window !== "undefined") {
-      window.history.replaceState(
-        null,
-        "",
-        `/?tag=${encodeURIComponent(tag)}#portal-journal`,
-      );
-
-      window.setTimeout(() => {
-        document.getElementById("top")?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 50);
-    }
+    updateJournalTagUrl(nextTags);
+    scrollPortalToTop();
   }
 
-  function clearJournalTagFilter() {
-    setActiveJournalTag(null);
+  function clearJournalTagFilters() {
+    setActiveJournalTags([]);
+    setShowAllContent((current) => ({
+      ...current,
+      journal: true,
+    }));
+    updateJournalTagUrl([]);
   }
 
   useEffect(() => {
@@ -507,17 +576,14 @@ export default function HomePortal({
 
       if (!nextTab) return;
 
-      const urlTag = new URLSearchParams(window.location.search).get("tag");
-      const nextJournalTag =
-        nextTab === "journal" && urlTag
-          ? urlTag.replace(/^#/, "").trim()
-          : null;
+      const nextJournalTags =
+        nextTab === "journal" ? getJournalTagsFromSearch(window.location.search) : [];
 
       setActiveTab(nextTab);
       clearPortalDetails();
 
-      if (nextJournalTag) {
-        setActiveJournalTag(nextJournalTag);
+      if (nextJournalTags.length > 0) {
+        setActiveJournalTags(nextJournalTags);
         setShowAllContent({
           journal: true,
           gallery: false,
@@ -525,7 +591,7 @@ export default function HomePortal({
         });
       } else {
         resetShowAllContent();
-        setActiveJournalTag(null);
+        setActiveJournalTags([]);
       }
 
       const topElement = document.getElementById("top");
@@ -554,15 +620,22 @@ export default function HomePortal({
   const baseVisiblePosts =
     showAllContent.journal && allPosts.length > 0 ? allPosts : latestPosts;
 
-  const visiblePosts = activeJournalTag
-    ? (allPosts.length > 0 ? allPosts : baseVisiblePosts).filter((post) =>
-        getJournalTags(post.tags).some(
-          (tag) =>
-            normalizeJournalTagFilter(tag) ===
-            normalizeJournalTagFilter(activeJournalTag),
-        ),
-      )
-    : baseVisiblePosts;
+  const journalFilterSourcePosts = allPosts.length > 0 ? allPosts : latestPosts;
+  const availableJournalTags = getUniqueJournalTags(
+    journalFilterSourcePosts.flatMap((post) => getJournalTags(post.tags)),
+  ).sort((firstTag, secondTag) => firstTag.localeCompare(secondTag, "de"));
+  const normalizedActiveJournalTags = activeJournalTags.map((tag) =>
+    normalizeJournalTagFilter(tag),
+  );
+
+  const visiblePosts =
+    activeJournalTags.length > 0
+      ? journalFilterSourcePosts.filter((post) =>
+          getJournalTags(post.tags).some((tag) =>
+            normalizedActiveJournalTags.includes(normalizeJournalTagFilter(tag)),
+          ),
+        )
+      : baseVisiblePosts;
 
   const visibleAlbums =
     showAllContent.gallery && allAlbums.length > 0 ? allAlbums : latestAlbums;
@@ -632,7 +705,7 @@ export default function HomePortal({
               {!selectedPost &&
               !selectedAlbum &&
               !selectedEvent &&
-              !(activeTab === "journal" && activeJournalTag) ? (
+              !(activeTab === "journal" && activeJournalTags.length > 0) ? (
                 <PortalMainLink
                   activeTab={activeTab}
                   showAllContent={showAllContent}
@@ -652,14 +725,16 @@ export default function HomePortal({
                     <JournalPortalDetail
                       post={selectedPost}
                       onBack={() => setSelectedPost(null)}
-                      onTagClick={handleJournalTagFilter}
+                      onTagClick={handleJournalTagToggle}
                     />
                   ) : (
                     <JournalPanel
                       posts={visiblePosts}
                       onOpenPost={setSelectedPost}
-                      activeTag={activeJournalTag}
-                      onClearTag={clearJournalTagFilter}
+                      availableTags={availableJournalTags}
+                      activeTags={activeJournalTags}
+                      onToggleTag={handleJournalTagToggle}
+                      onClearTags={clearJournalTagFilters}
                     />
                   )
                 ) : null}
@@ -822,13 +897,17 @@ function AboutPanel() {
 function JournalPanel({
   posts,
   onOpenPost,
-  activeTag,
-  onClearTag,
+  availableTags,
+  activeTags,
+  onToggleTag,
+  onClearTags,
 }: {
   posts: HomeJournalPost[];
   onOpenPost: (post: HomeJournalPost) => void;
-  activeTag?: string | null;
-  onClearTag: () => void;
+  availableTags: string[];
+  activeTags: string[];
+  onToggleTag: (tag: string) => void;
+  onClearTags: () => void;
 }) {
   const fallbackPosts: HomeJournalPost[] = [
     {
@@ -854,87 +933,125 @@ function JournalPanel({
     },
   ];
 
-  const items = posts.length > 0 ? posts : activeTag ? [] : fallbackPosts;
+  const hasActiveTags = activeTags.length > 0;
+  const items = posts.length > 0 ? posts : hasActiveTags ? [] : fallbackPosts;
+
+  function isTagActive(tag: string) {
+    return activeTags.some(
+      (activeTag) =>
+        normalizeJournalTagFilter(activeTag) === normalizeJournalTagFilter(tag),
+    );
+  }
 
   return (
     <div>
-      {activeTag ? (
-        <div className="mb-6 flex flex-col gap-3 rounded-3xl border border-black/10 bg-white/45 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-black/45">
-            Aktiver Tag-Filter: <span className="text-black">#{activeTag}</span>
-          </p>
+      {availableTags.length > 0 ? (
+        <div className="mb-6 rounded-3xl border border-black/10 bg-white/45 px-5 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-black/45">
+              {hasActiveTags ? "Aktive Tag-Filter" : "Nach Hashtags filtern"}
+            </p>
 
-          <button
-            type="button"
-            onClick={onClearTag}
-            className="self-start border-b border-black/20 pb-1 text-xs font-black uppercase tracking-[0.2em] text-black/45 transition hover:border-orange-500 hover:text-orange-600 sm:self-auto"
-          >
-            Filter zurücksetzen
-          </button>
+            {hasActiveTags ? (
+              <button
+                type="button"
+                onClick={onClearTags}
+                className="self-start border-b border-black/20 pb-1 text-xs font-black uppercase tracking-[0.2em] text-black/45 transition hover:border-orange-500 hover:text-orange-600 sm:self-auto"
+              >
+                Filter zurücksetzen
+              </button>
+            ) : null}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {availableTags.map((tag) => {
+              const active = isTagActive(tag);
+
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => onToggleTag(tag)}
+                  className={
+                    active
+                      ? "rounded-full border border-black bg-black px-4 py-2 text-xs font-black text-white shadow-sm transition hover:border-orange-500 hover:bg-orange-600"
+                      : "rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-black text-black/50 transition hover:border-orange-500/40 hover:text-orange-600"
+                  }
+                >
+                  #{tag}
+                </button>
+              );
+            })}
+          </div>
         </div>
       ) : null}
 
       {items.length === 0 ? (
         <div className="border-y border-black/10 py-7">
           <h4 className="text-2xl font-black tracking-[-0.04em]">
-            Keine Beiträge für diesen Tag.
+            Keine Beiträge für diese Tag-Auswahl.
           </h4>
 
           <p className="mt-4 max-w-xl leading-8 text-black/65">
-            Für #{activeTag} gibt es aktuell keinen passenden Journal-Beitrag.
+            Für {activeTags.map((tag) => `#${tag}`).join(" oder ")} gibt es
+            aktuell keinen passenden Journal-Beitrag.
           </p>
         </div>
       ) : (
         <div className="divide-y divide-black/10 border-y border-black/10">
           {items.map((post) => {
-        const tags = getJournalTags(post.tags).slice(0, 4);
+            const tags = getJournalTags(post.tags).slice(0, 4);
 
-        return (
-          <button
-            key={post._id}
-            type="button"
-            onClick={() => onOpenPost(post)}
-            className="group grid w-full gap-4 py-5 text-left text-[#111217] transition hover:bg-white/50 md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center md:px-3"
-          >
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-                {formatHomeDate(post.publishedAt)}
-              </p>
+            return (
+              <button
+                key={post._id}
+                type="button"
+                onClick={() => onOpenPost(post)}
+                className="group grid w-full gap-4 py-5 text-left text-[#111217] transition hover:bg-white/50 md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center md:px-3"
+              >
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                    {formatHomeDate(post.publishedAt)}
+                  </p>
 
-              <p className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/40">
-                {formatJournalCategory(post.category)}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
-                {post.title}
-              </h4>
-
-              <p className="mt-2 max-w-3xl leading-7 text-black/55">
-                {post.excerpt ||
-                  "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
-              </p>
-
-              {tags.length > 0 ? (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-black/10 bg-white/45 px-3 py-1.5 text-[11px] font-black text-black/45"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+                  <p className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/40">
+                    {formatJournalCategory(post.category)}
+                  </p>
                 </div>
-              ) : null}
-            </div>
 
-            <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
-              →
-            </span>
-          </button>
-        );
+                <div>
+                  <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+                    {post.title}
+                  </h4>
+
+                  <p className="mt-2 max-w-3xl leading-7 text-black/55">
+                    {post.excerpt ||
+                      "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
+                  </p>
+
+                  {tags.length > 0 ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className={
+                            isTagActive(tag)
+                              ? "rounded-full border border-black bg-black px-3 py-1.5 text-[11px] font-black text-white"
+                              : "rounded-full border border-black/10 bg-white/45 px-3 py-1.5 text-[11px] font-black text-black/45"
+                          }
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+
+                <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
+                  →
+                </span>
+              </button>
+            );
           })}
         </div>
       )}
