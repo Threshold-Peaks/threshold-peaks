@@ -64,7 +64,13 @@ function getOgImage(post: JournalPost) {
     return `${baseUrl}/opengraph-image`;
   }
 
-  return urlFor(post.mainImage).width(1200).fit("max").url();
+  return urlFor(post.mainImage)
+    .width(1200)
+    .height(630)
+    .fit("crop")
+    .format("jpg")
+    .quality(85)
+    .url();
 }
 
 export async function generateMetadata({
@@ -122,6 +128,7 @@ export async function generateMetadata({
         {
           url: image,
           width: 1200,
+          height: 630,
           alt: post.mainImage?.alt || post.title,
         },
       ],
