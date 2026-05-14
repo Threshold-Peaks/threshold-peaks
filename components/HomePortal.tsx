@@ -1597,7 +1597,8 @@ function GalleryAlbumPortalDetail({
         onClick={onBack}
         className={`${detailActionButtonClass} mb-10`}
       >
-        ← Zurück zur Galerie
+        <span className="sm:hidden">← Galerie</span>
+        <span className="hidden sm:inline">← Zurück zur Galerie</span>
       </button>
 
       <header className="grid grid-cols-[minmax(0,1fr)_128px] items-start gap-x-4 gap-y-6 border-b border-black/10 pb-8 sm:grid-cols-[minmax(0,1fr)_160px] sm:gap-x-6 sm:gap-y-7 sm:pb-10 md:grid-cols-[minmax(0,1fr)_210px] lg:grid-cols-[minmax(0,1fr)_minmax(260px,380px)] lg:items-end lg:gap-8">
@@ -1745,7 +1746,8 @@ function GalleryAlbumPortalDetail({
         onClick={onBack}
         className={`${detailActionButtonClass} mt-8`}
       >
-        ← Zurück zur Galerie
+        <span className="sm:hidden">← Galerie</span>
+        <span className="hidden sm:inline">← Zurück zur Galerie</span>
       </button>
     </article>
   );
