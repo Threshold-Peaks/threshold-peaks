@@ -783,39 +783,56 @@ function JournalPanel({
 
   return (
     <div className="divide-y divide-black/10 border-y border-black/10">
-      {items.map((post) => (
-        <button
-          key={post._id}
-          type="button"
-          onClick={() => onOpenPost(post)}
-          className="group grid w-full gap-4 py-5 text-left text-[#111217] transition hover:bg-white/50 md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center md:px-3"
-        >
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-              {formatHomeDate(post.publishedAt)}
-            </p>
+      {items.map((post) => {
+        const tags = getJournalTags(post.tags).slice(0, 4);
 
-            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/40">
-              {formatJournalCategory(post.category)}
-            </p>
-          </div>
+        return (
+          <button
+            key={post._id}
+            type="button"
+            onClick={() => onOpenPost(post)}
+            className="group grid w-full gap-4 py-5 text-left text-[#111217] transition hover:bg-white/50 md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center md:px-3"
+          >
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                {formatHomeDate(post.publishedAt)}
+              </p>
 
-          <div>
-            <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
-              {post.title}
-            </h4>
+              <p className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/40">
+                {formatJournalCategory(post.category)}
+              </p>
+            </div>
 
-            <p className="mt-2 max-w-3xl leading-7 text-black/55">
-              {post.excerpt ||
-                "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
-            </p>
-          </div>
+            <div>
+              <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+                {post.title}
+              </h4>
 
-          <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
-            →
-          </span>
-        </button>
-      ))}
+              <p className="mt-2 max-w-3xl leading-7 text-black/55">
+                {post.excerpt ||
+                  "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
+              </p>
+
+              {tags.length > 0 ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-black/10 bg-white/45 px-3 py-1.5 text-[11px] font-black text-black/45"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
+              →
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -971,12 +988,13 @@ function JournalPortalDetail({
 
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
-                  <span
+                  <Link
                     key={tag}
+                    href={`/journal?tag=${encodeURIComponent(tag)}`}
                     className="rounded-full border border-black/10 bg-white/45 px-4 py-2 text-xs font-black text-black/55 backdrop-blur transition hover:border-orange-500/40 hover:text-orange-600"
                   >
                     #{tag}
-                  </span>
+                  </Link>
                 ))}
               </div>
             </section>

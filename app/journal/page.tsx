@@ -7,6 +7,17 @@ import { urlFor } from "@/sanity/lib/image";
 
 export const revalidate = 60;
 
+type JournalTag =
+  | string
+  | {
+      title?: string;
+      name?: string;
+      label?: string;
+      value?: string;
+      current?: string;
+      slug?: { current?: string };
+    };
+
 type SanityJournalPost = {
   _id: string;
   title: string;
@@ -17,6 +28,7 @@ type SanityJournalPost = {
   category?: string;
   excerpt?: string;
   featured?: boolean;
+  tags?: string | JournalTag[];
   mainImage?: SanityImageSource & {
     alt?: string;
   };
@@ -25,6 +37,7 @@ type SanityJournalPost = {
 type JournalPageProps = {
   searchParams?: Promise<{
     category?: string;
+    tag?: string;
   }>;
 };
 
@@ -45,6 +58,7 @@ const query = `*[_type == "journalPost"] | order(publishedAt desc) {
   category,
   excerpt,
   featured,
+  tags,
   mainImage
 }`;
 
@@ -63,8 +77,10 @@ function formatCategory(category?: string) {
     running: "Running",
     cycling: "Cycling",
     music: "Music",
+    story: "Story",
     lifestyle: "Lifestyle",
-    event: "Event",
+    gear: "Gear",
+    event: "Event Recap",
 
     laufen: "Running",
     radfahren: "Cycling",
@@ -74,24 +90,88 @@ function formatCategory(category?: string) {
   return category ? categories[category] ?? category : "Journal";
 }
 
+function getJournalTagLabel(tag: JournalTag) {
+  const raw =
+    typeof tag === "string"
+      ? tag
+      : tag.title ||
+        tag.name ||
+        tag.label ||
+        tag.value ||
+        tag.current ||
+        tag.slug?.current ||
+        "";
+
+  return raw.replace(/^#/, "").trim();
+}
+
+function getJournalTags(tags?: string | JournalTag[]) {
+  if (!tags) return [];
+
+  if (typeof tags === "string") {
+    return Array.from(
+      new Set(
+        tags
+          .split(/[\s,]+/)
+          .map((tag) => tag.replace(/^#/, "").trim())
+          .filter(Boolean),
+      ),
+    );
+  }
+
+  return Array.from(
+    new Set(tags.map((tag) => getJournalTagLabel(tag)).filter(Boolean)),
+  );
+}
+
+function normalizeFilterValue(value?: string) {
+  return decodeURIComponent(value || "")
+    .replace(/^#/, "")
+    .trim()
+    .toLowerCase();
+}
+
 function getFilterHref(category: string) {
   if (category === "all") {
     return "/journal";
   }
 
-  return `/journal?category=${category}`;
+  return `/journal?category=${encodeURIComponent(category)}`;
+}
+
+function getTagHref(tag: string) {
+  return `/journal?tag=${encodeURIComponent(tag)}`;
+}
+
+function getAllTags(posts: SanityJournalPost[]) {
+  const tags = posts.flatMap((post) => getJournalTags(post.tags));
+
+  return Array.from(new Set(tags)).sort((a, b) =>
+    a.localeCompare(b, "de", { sensitivity: "base" }),
+  );
 }
 
 export default async function JournalPage({ searchParams }: JournalPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const selectedCategory = resolvedSearchParams.category || "all";
+  const selectedTag = normalizeFilterValue(resolvedSearchParams.tag);
 
   const posts = await client.fetch<SanityJournalPost[]>(query);
+  const allTags = getAllTags(posts);
 
-  const filteredPosts =
-    selectedCategory === "all"
-      ? posts
-      : posts.filter((post) => post.category === selectedCategory);
+  const filteredPosts = posts.filter((post) => {
+    const categoryMatches =
+      selectedCategory === "all" || post.category === selectedCategory;
+    const tagMatches =
+      !selectedTag ||
+      getJournalTags(post.tags).some(
+        (tag) => normalizeFilterValue(tag) === selectedTag,
+      );
+
+    return categoryMatches && tagMatches;
+  });
+
+  const hasActiveFilter = selectedCategory !== "all" || Boolean(selectedTag);
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
@@ -115,30 +195,76 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
             </p>
           </div>
 
-          <div className="mb-10 flex flex-wrap gap-3">
-            {categoryFilters.map((filter) => {
-              const isActive = selectedCategory === filter.value;
+          <div className="mb-6">
+            <p className="mb-3 text-[10px] font-black uppercase tracking-[0.32em] text-black/35">
+              Kategorien
+            </p>
 
-              return (
-                <Link
-                  key={filter.value}
-                  href={getFilterHref(filter.value)}
-                  className={`rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:text-orange-600 ${
-                    isActive
-                      ? "bg-black text-white hover:text-white"
-                      : "bg-[#ded9cf] text-black/65"
-                  }`}
-                >
-                  {filter.label}
-                </Link>
-              );
-            })}
+            <div className="flex flex-wrap gap-3">
+              {categoryFilters.map((filter) => {
+                const isActive =
+                  !selectedTag && selectedCategory === filter.value;
+
+                return (
+                  <Link
+                    key={filter.value}
+                    href={getFilterHref(filter.value)}
+                    className={`rounded-full px-5 py-3 text-xs font-black uppercase tracking-[0.24em] shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:text-orange-600 ${
+                      isActive
+                        ? "bg-black text-white hover:text-white"
+                        : "bg-[#ded9cf] text-black/65"
+                    }`}
+                  >
+                    {filter.label}
+                  </Link>
+                );
+              })}
+            </div>
           </div>
+
+          {allTags.length > 0 ? (
+            <div className="mb-10">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.32em] text-black/35">
+                  Tags
+                </p>
+
+                {hasActiveFilter ? (
+                  <Link
+                    href="/journal"
+                    className="border-b border-black/20 pb-1 text-xs font-black uppercase tracking-[0.22em] text-black/45 transition hover:border-orange-500 hover:text-orange-600"
+                  >
+                    Filter zurücksetzen
+                  </Link>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => {
+                  const isActive = normalizeFilterValue(tag) === selectedTag;
+
+                  return (
+                    <Link
+                      key={tag}
+                      href={getTagHref(tag)}
+                      className={`rounded-full border px-4 py-2 text-xs font-black transition hover:-translate-y-0.5 hover:border-orange-500/50 hover:text-orange-600 ${
+                        isActive
+                          ? "border-black bg-black text-white hover:text-white"
+                          : "border-black/10 bg-white/55 text-black/55"
+                      }`}
+                    >
+                      #{tag}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           {filteredPosts.length === 0 ? (
             <div className="rounded-3xl bg-white p-8 shadow-sm ring-1 ring-black/10">
               <h2 className="text-2xl font-black tracking-tight">
-                Keine Beiträge in dieser Kategorie.
+                Keine Beiträge für diesen Filter.
               </h2>
 
               <p className="mt-4 text-base leading-8 text-neutral-600">
@@ -159,6 +285,7 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
                 const href = post.slug?.current
                   ? `/journal/${post.slug.current}`
                   : "/journal";
+                const tags = getJournalTags(post.tags).slice(0, 4);
 
                 return (
                   <Link
@@ -217,6 +344,19 @@ export default async function JournalPage({ searchParams }: JournalPageProps) {
                           {post.excerpt ||
                             "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
                         </p>
+
+                        {tags.length > 0 ? (
+                          <div className="mt-6 flex flex-wrap gap-2">
+                            {tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="rounded-full border border-black/10 bg-[#f5f3ee] px-3 py-1.5 text-[11px] font-black text-black/45"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
 
                         <div className="mt-auto border-t border-neutral-200 pt-5">
                           <div className="flex items-center justify-between text-sm font-black text-black">
