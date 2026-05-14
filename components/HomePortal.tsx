@@ -1691,9 +1691,13 @@ function GalleryAlbumPortalDetail({
           <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
             {galleryImages.map((image, index) => {
               const imageDimensions = getSanityImageDimensions(image);
-              const imageRatioClass = ratioClasses[index % ratioClasses.length];
-              const imagePositionClass =
-                index === 1 ? "object-[center_70%]" : "object-top";
+              const imageRatioClass =
+  index === 1 || index === 2
+    ? "aspect-[4/5]"
+    : ratioClasses[index % ratioClasses.length];
+
+const imagePositionClass =
+  index === 1 || index === 2 ? "object-center" : "object-top";
 
               return (
                 <figure
