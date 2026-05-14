@@ -339,24 +339,20 @@ export default async function JournalPostPage({
 
               {post.mainImage ? (
                 <figure className="w-full lg:justify-self-end">
-                  <div className="relative overflow-hidden rounded-[1.6rem]">
+                  <div className="relative mx-auto aspect-[1.28/1] w-full max-w-[380px] overflow-hidden rounded-[1.7rem] bg-transparent lg:mx-0">
                     <Image
                       src={urlFor(post.mainImage).width(900).fit("max").url()}
                       alt={post.mainImage.alt || post.title || "Journal Bild"}
-                      width={900}
-                      height={900}
+                      fill
                       priority
-                      className="max-h-[340px] w-full object-contain [mask-image:radial-gradient(ellipse_at_center,black_58%,transparent_100%)]"
+                      sizes="(min-width: 1024px) 380px, 100vw"
+                      className="object-cover"
+                      style={{ objectPosition: "center 24%" }}
                     />
-
-                    <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#f5f3ee] to-transparent" />
-                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#f5f3ee] to-transparent" />
-                    <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#f5f3ee] to-transparent" />
-                    <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#f5f3ee] to-transparent" />
                   </div>
 
                   {post.mainImage.alt ? (
-                    <figcaption className="mt-3 border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50">
+                    <figcaption className="mx-auto mt-3 max-w-[380px] border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50 lg:mx-0">
                       {post.mainImage.alt}
                     </figcaption>
                   ) : null}

@@ -1318,23 +1318,20 @@ function JournalPortalDetail({
 
           {post.mainImage ? (
             <figure className="w-full lg:justify-self-end">
-              <div className="overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1">
+              <div className="relative mx-auto aspect-[1.28/1] w-full max-w-[380px] overflow-hidden rounded-[1.7rem] bg-transparent lg:mx-0">
                 <SanityImage
-                  src={urlFor(post.mainImage)
-                    .width(900)
-                    .height(900)
-                    .fit("crop")
-                    .url()}
+                  src={urlFor(post.mainImage).width(900).fit("max").url()}
                   alt={post.mainImage.alt || post.title || "Journal Bild"}
-                  width={900}
-                  height={900}
+                  fill
                   priority
-                  className="aspect-[4/3] w-full rounded-[1.2rem] object-cover object-top lg:aspect-[5/4]"
+                  sizes="(min-width: 1024px) 380px, 100vw"
+                  className="object-cover"
+                  style={{ objectPosition: "center 24%" }}
                 />
               </div>
 
               {post.mainImage.caption ? (
-                <figcaption className="mt-3 border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50">
+                <figcaption className="mx-auto mt-3 max-w-[380px] border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50 lg:mx-0">
                   {post.mainImage.caption}
                 </figcaption>
               ) : null}
