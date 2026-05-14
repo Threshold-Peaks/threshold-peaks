@@ -59,8 +59,9 @@ function getMetaDescription(post: JournalPost) {
   );
 }
 
-function withOgBackground(imageUrl: string) {
-  return `${imageUrl}${imageUrl.includes("?") ? "&" : "?"}bg=f5f3ee`;
+function appendOgParams(imageUrl: string, version: string) {
+  const separator = imageUrl.includes("?") ? "&" : "?";
+  return `${imageUrl}${separator}bg=f5f3ee&ogv=${version}`;
 }
 
 function getSquareOgImage(post: JournalPost) {
@@ -72,12 +73,12 @@ function getSquareOgImage(post: JournalPost) {
     .width(1200)
     .height(1200)
     .fit("crop")
-    .focalPoint(0.5, 0.22)
+    .focalPoint(0.5, 0.12)
     .format("jpg")
     .quality(85)
     .url();
 
-  return withOgBackground(imageUrl);
+  return appendOgParams(imageUrl, "wa-square-v7");
 }
 
 function getWideOgImage(post: JournalPost) {
@@ -93,7 +94,7 @@ function getWideOgImage(post: JournalPost) {
     .quality(85)
     .url();
 
-  return withOgBackground(imageUrl);
+  return appendOgParams(imageUrl, "wide-v7");
 }
 
 export async function generateMetadata({
@@ -142,7 +143,6 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url,
       siteName: "Threshold Peaks",
       type: "article",
       ...(post.publishedAt ? { publishedTime: post.publishedAt } : {}),
