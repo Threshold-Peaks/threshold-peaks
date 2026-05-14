@@ -52,6 +52,19 @@ export const galleryAlbum = defineType({
       initialValue: 'running',
     }),
 
+
+
+    defineField({
+      name: 'tags',
+      title: 'Hashtags',
+      type: 'array',
+      of: [defineArrayMember({type: 'string'})],
+      options: {
+        layout: 'tags',
+      },
+      description: 'Hashtags für Filter und Verknüpfungen. Ohne # eingeben und nach jedem Begriff Enter drücken.',
+    }),
+
     defineField({
       name: 'description',
       title: 'Kurzbeschreibung',

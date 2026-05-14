@@ -1,4 +1,5 @@
 import BackHeader from "@/components/BackHeader";
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Image } from "next-sanity/image";
@@ -7,6 +8,17 @@ import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 
 export const revalidate = 60;
+
+type GalleryTag =
+  | string
+  | {
+      title?: string;
+      name?: string;
+      label?: string;
+      value?: string;
+      current?: string;
+      slug?: { current?: string };
+    };
 
 type GalleryImage = SanityImageSource & {
   alt?: string;
@@ -17,6 +29,7 @@ type GalleryAlbum = {
   title: string;
   category?: string;
   description?: string;
+  tags?: string | GalleryTag[];
   images?: GalleryImage[];
 };
 
@@ -29,6 +42,7 @@ type PageProps = {
 const albumQuery = `*[_type == "galleryAlbum" && slug.current == $slug][0] {
   title,
   category,
+  tags,
   "description": coalesce(description, teaser, excerpt),
   images[] {
     ...,
@@ -72,6 +86,62 @@ export async function generateMetadata({
   };
 }
 
+function formatCategory(category?: string) {
+  const categories: Record<string, string> = {
+    running: "Running",
+    cycling: "Cycling",
+    music: "Music",
+    lifestyle: "Lifestyle",
+    event: "Event",
+    laufen: "Running",
+    radfahren: "Cycling",
+    musik: "Music",
+  };
+
+  return category ? (categories[category] ?? category) : "Galerie";
+}
+
+function getTagLabel(tag: GalleryTag) {
+  const raw =
+    typeof tag === "string"
+      ? tag
+      : tag.title ||
+        tag.name ||
+        tag.label ||
+        tag.value ||
+        tag.current ||
+        tag.slug?.current ||
+        "";
+
+  return raw.replace(/^#/, "").trim();
+}
+
+function getGalleryTags(tags?: string | GalleryTag[]) {
+  if (!tags) return [];
+
+  if (typeof tags === "string") {
+    return Array.from(
+      new Set(
+        tags
+          .split(/[\s,]+/)
+          .map((tag) => tag.replace(/^#/, "").trim())
+          .filter(Boolean),
+      ),
+    );
+  }
+
+  return Array.from(
+    new Set(tags.map((tag) => getTagLabel(tag)).filter(Boolean)),
+  );
+}
+
+function getPortalGalleryTagHref(tag: string) {
+  const params = new URLSearchParams();
+  params.set("galleryTags", tag);
+
+  return `/?${params.toString()}#portal-gallery`;
+}
+
 export default async function GalleryAlbumPage({ params }: PageProps) {
   const { slug } = await params;
 
@@ -84,15 +154,16 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
   }
 
   const images = album.images || [];
+  const tags = getGalleryTags(album.tags);
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
-      <BackHeader href="/gallery" label="Zurück zur Galerie-Übersicht" />
+      <BackHeader href="/#portal-gallery" label="Zurück zur Galerie" />
 
       <article className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <header className="mb-12 max-w-3xl">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-black/50">
-            {album.category || "Galerie"}
+            {formatCategory(album.category)}
           </p>
 
           <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
@@ -103,6 +174,26 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
             <p className="mt-5 text-base leading-7 text-black/65 sm:text-lg">
               {album.description}
             </p>
+          ) : null}
+
+          {tags.length > 0 ? (
+            <div className="mt-7 border-t border-black/10 pt-5">
+              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                Hashtags
+              </p>
+
+              <div className="flex flex-wrap gap-x-3 gap-y-1">
+                {tags.map((tag) => (
+                  <Link
+                    key={tag}
+                    href={getPortalGalleryTagHref(tag)}
+                    className="px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                  >
+                    #{tag}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ) : null}
         </header>
 
@@ -132,7 +223,9 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
                   key={`${album.title}-${index}`}
                   className="mb-6 break-inside-avoid overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm"
                 >
-                  <div className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}>
+                  <div
+                    className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}
+                  >
                     <Image
                       src={urlFor(image)
                         .width(1200)

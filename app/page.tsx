@@ -50,6 +50,7 @@ type HomeGalleryImage = SanityImageSource & {
 };
 
 type HomeGalleryAlbum = {
+  tags?: string[];
   _id: string;
   title: string;
   slug?: {
@@ -99,6 +100,7 @@ const allGalleryQuery = `*[_type == "galleryAlbum"] | order(coalesce(date, _crea
   title,
   slug,
   category,
+  tags,
   "description": coalesce(description, teaser, excerpt),
   "coverImage": coalesce(coverImage, images[0]),
   images

@@ -25,6 +25,8 @@ type HomeJournalTag =
       slug?: { current?: string };
     };
 
+type HomeGalleryTag = HomeJournalTag;
+
 type HomeJournalPost = {
   _id: string;
   title: string;
@@ -54,7 +56,10 @@ type HomeGalleryAlbum = {
     current?: string;
   };
   category?: string;
+  date?: string;
+  location?: string;
   description?: string;
+  tags?: string | HomeGalleryTag[];
   coverImage?: HomeGalleryImage;
   images?: HomeGalleryImage[];
 };
@@ -330,57 +335,61 @@ function getJournalTags(tags?: string | HomeJournalTag[]) {
   );
 }
 
-function normalizeJournalTagFilter(value?: string | null) {
-  return (value || "").replace(/^#/, "").trim().toLowerCase();
+function getGalleryTags(tags?: string | HomeGalleryTag[]) {
+  return getJournalTags(tags);
 }
 
-function getUniqueJournalTags(tags: string[]) {
-  const seen = new Set<string>();
+function getTagsFromSearchParam(value?: string | null) {
+  if (!value) return [];
 
-  return tags
-    .map((tag) => tag.replace(/^#/, "").trim())
-    .filter(Boolean)
-    .filter((tag) => {
-      const key = normalizeJournalTagFilter(tag);
-
-      if (seen.has(key)) return false;
-
-      seen.add(key);
-      return true;
-    });
+  return Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((tag) => decodeURIComponent(tag).replace(/^#/, "").trim())
+        .filter(Boolean),
+    ),
+  );
 }
 
-function toggleJournalTagFilter(activeTags: string[], tag: string) {
-  const cleanTag = tag.replace(/^#/, "").trim();
-  const normalizedTag = normalizeJournalTagFilter(cleanTag);
+function createTagsParam(tags: string[]) {
+  return tags.map((tag) => tag.replace(/^#/, "").trim()).filter(Boolean).join(",");
+}
 
-  if (!cleanTag) return activeTags;
+function isSameTag(firstTag: string, secondTag: string) {
+  return firstTag.toLowerCase() === secondTag.toLowerCase();
+}
 
-  if (
-    activeTags.some(
-      (activeTag) => normalizeJournalTagFilter(activeTag) === normalizedTag,
-    )
-  ) {
-    return activeTags.filter(
-      (activeTag) => normalizeJournalTagFilter(activeTag) !== normalizedTag,
-    );
+function isTagSelected(selectedTags: string[], tag: string) {
+  return selectedTags.some((selectedTag) => isSameTag(selectedTag, tag));
+}
+
+function toggleTagValue(selectedTags: string[], tag: string) {
+  if (isTagSelected(selectedTags, tag)) {
+    return selectedTags.filter((selectedTag) => !isSameTag(selectedTag, tag));
   }
 
-  return getUniqueJournalTags([...activeTags, cleanTag]);
+  return [...selectedTags, tag];
 }
 
-function getJournalTagsFromSearch(search: string) {
-  const params = new URLSearchParams(search);
-  const tagsParam = params.get("tags");
-  const legacyTagParam = params.get("tag");
-  const rawValue = tagsParam || legacyTagParam || "";
+function hasAnySelectedTag(itemTags: string[], selectedTags: string[]) {
+  if (selectedTags.length === 0) return true;
 
-  return getUniqueJournalTags(
-    rawValue
-      .split(",")
-      .map((tag) => decodeURIComponent(tag).replace(/^#/, "").trim())
-      .filter(Boolean),
+  return selectedTags.some((selectedTag) =>
+    itemTags.some((itemTag) => isSameTag(itemTag, selectedTag)),
   );
+}
+
+function getAllJournalTags(posts: HomeJournalPost[]) {
+  return Array.from(
+    new Set(posts.flatMap((post) => getJournalTags(post.tags))),
+  ).sort((firstTag, secondTag) => firstTag.localeCompare(secondTag, "de"));
+}
+
+function getAllGalleryTags(albums: HomeGalleryAlbum[]) {
+  return Array.from(
+    new Set(albums.flatMap((album) => getGalleryTags(album.tags))),
+  ).sort((firstTag, secondTag) => firstTag.localeCompare(secondTag, "de"));
 }
 
 function formatGalleryCategory(category?: string) {
@@ -467,6 +476,8 @@ export default function HomePortal({
     null,
   );
   const [selectedEvent, setSelectedEvent] = useState<HomeEvent | null>(null);
+  const [selectedJournalTags, setSelectedJournalTags] = useState<string[]>([]);
+  const [selectedGalleryTags, setSelectedGalleryTags] = useState<string[]>([]);
   const [showAllContent, setShowAllContent] = useState<
     Record<PortalContentTab, boolean>
   >({
@@ -474,7 +485,6 @@ export default function HomePortal({
     gallery: false,
     events: false,
   });
-  const [activeJournalTags, setActiveJournalTags] = useState<string[]>([]);
 
   function clearPortalDetails() {
     setSelectedPost(null);
@@ -493,63 +503,68 @@ export default function HomePortal({
   function toggleShowAllContent(tab: PortalContentTab) {
     clearPortalDetails();
 
-    if (tab === "journal") {
-      setActiveJournalTags([]);
-
-      if (typeof window !== "undefined") {
-        window.history.replaceState(null, "", "/#portal-journal");
-      }
-    }
-
     setShowAllContent((current) => ({
       ...current,
       [tab]: !current[tab],
     }));
   }
 
-  function updateJournalTagUrl(tags: string[]) {
+  function syncPortalTagsToUrl(tab: "journal" | "gallery", tags: string[]) {
     if (typeof window === "undefined") return;
 
-    const cleanTags = getUniqueJournalTags(tags);
-    const query = cleanTags.length
-      ? `?tags=${cleanTags.map((tag) => encodeURIComponent(tag)).join(",")}`
-      : "";
+    const params = new URLSearchParams(window.location.search);
+    const tagKey = tab === "gallery" ? "galleryTags" : "tags";
+    const legacyTagKey = tab === "gallery" ? "galleryTag" : "tag";
+    const nextTags = createTagsParam(tags);
 
-    window.history.replaceState(null, "", `/${query}#portal-journal`);
+    params.delete(legacyTagKey);
+
+    if (nextTags) {
+      params.set(tagKey, nextTags);
+    } else {
+      params.delete(tagKey);
+    }
+
+    const query = params.toString();
+    window.history.replaceState(
+      null,
+      "",
+      `${query ? `/?${query}` : "/"}#portal-${tab}`,
+    );
   }
 
-  function scrollPortalToTop() {
-    if (typeof window === "undefined") return;
-
-    window.setTimeout(() => {
-      document.getElementById("top")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 50);
-  }
-
-  function handleJournalTagToggle(tag: string) {
-    const nextTags = toggleJournalTagFilter(activeJournalTags, tag);
-
-    setActiveTab("journal");
+  function toggleJournalTagFilter(tag: string) {
     clearPortalDetails();
-    setActiveJournalTags(nextTags);
-    setShowAllContent((current) => ({
-      ...current,
-      journal: true,
-    }));
-    updateJournalTagUrl(nextTags);
-    scrollPortalToTop();
+    setActiveTab("journal");
+    setShowAllContent((current) => ({ ...current, journal: true }));
+
+    setSelectedJournalTags((currentTags) => {
+      const nextTags = toggleTagValue(currentTags, tag);
+      syncPortalTagsToUrl("journal", nextTags);
+      return nextTags;
+    });
   }
 
-  function clearJournalTagFilters() {
-    setActiveJournalTags([]);
-    setShowAllContent((current) => ({
-      ...current,
-      journal: true,
-    }));
-    updateJournalTagUrl([]);
+  function resetJournalTagFilter() {
+    setSelectedJournalTags([]);
+    syncPortalTagsToUrl("journal", []);
+  }
+
+  function toggleGalleryTagFilter(tag: string) {
+    clearPortalDetails();
+    setActiveTab("gallery");
+    setShowAllContent((current) => ({ ...current, gallery: true }));
+
+    setSelectedGalleryTags((currentTags) => {
+      const nextTags = toggleTagValue(currentTags, tag);
+      syncPortalTagsToUrl("gallery", nextTags);
+      return nextTags;
+    });
+  }
+
+  function resetGalleryTagFilter() {
+    setSelectedGalleryTags([]);
+    syncPortalTagsToUrl("gallery", []);
   }
 
   useEffect(() => {
@@ -576,22 +591,24 @@ export default function HomePortal({
 
       if (!nextTab) return;
 
-      const nextJournalTags =
-        nextTab === "journal" ? getJournalTagsFromSearch(window.location.search) : [];
-
       setActiveTab(nextTab);
       clearPortalDetails();
+      resetShowAllContent();
 
-      if (nextJournalTags.length > 0) {
-        setActiveJournalTags(nextJournalTags);
-        setShowAllContent({
-          journal: true,
-          gallery: false,
-          events: false,
-        });
-      } else {
-        resetShowAllContent();
-        setActiveJournalTags([]);
+      const params = new URLSearchParams(window.location.search);
+
+      if (nextTab === "journal") {
+        setSelectedJournalTags(
+          getTagsFromSearchParam(params.get("tags") || params.get("tag")),
+        );
+      }
+
+      if (nextTab === "gallery") {
+        setSelectedGalleryTags(
+          getTagsFromSearchParam(
+            params.get("galleryTags") || params.get("galleryTag"),
+          ),
+        );
       }
 
       const topElement = document.getElementById("top");
@@ -617,28 +634,35 @@ export default function HomePortal({
 
   const activeTabMeta = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
 
-  const baseVisiblePosts =
-    showAllContent.journal && allPosts.length > 0 ? allPosts : latestPosts;
+  const journalTagSource = allPosts.length > 0 ? allPosts : latestPosts;
+  const galleryTagSource = allAlbums.length > 0 ? allAlbums : latestAlbums;
 
-  const journalFilterSourcePosts = allPosts.length > 0 ? allPosts : latestPosts;
-  const availableJournalTags = getUniqueJournalTags(
-    journalFilterSourcePosts.flatMap((post) => getJournalTags(post.tags)),
-  ).sort((firstTag, secondTag) => firstTag.localeCompare(secondTag, "de"));
-  const normalizedActiveJournalTags = activeJournalTags.map((tag) =>
-    normalizeJournalTagFilter(tag),
-  );
+  const allJournalTags = getAllJournalTags(journalTagSource);
+  const allGalleryTags = getAllGalleryTags(galleryTagSource);
+
+  const visiblePostSource =
+    selectedJournalTags.length > 0 || showAllContent.journal
+      ? journalTagSource
+      : latestPosts;
 
   const visiblePosts =
-    activeJournalTags.length > 0
-      ? journalFilterSourcePosts.filter((post) =>
-          getJournalTags(post.tags).some((tag) =>
-            normalizedActiveJournalTags.includes(normalizeJournalTagFilter(tag)),
-          ),
+    selectedJournalTags.length > 0
+      ? visiblePostSource.filter((post) =>
+          hasAnySelectedTag(getJournalTags(post.tags), selectedJournalTags),
         )
-      : baseVisiblePosts;
+      : visiblePostSource;
+
+  const visibleAlbumSource =
+    selectedGalleryTags.length > 0 || showAllContent.gallery
+      ? galleryTagSource
+      : latestAlbums;
 
   const visibleAlbums =
-    showAllContent.gallery && allAlbums.length > 0 ? allAlbums : latestAlbums;
+    selectedGalleryTags.length > 0
+      ? visibleAlbumSource.filter((album) =>
+          hasAnySelectedTag(getGalleryTags(album.tags), selectedGalleryTags),
+        )
+      : visibleAlbumSource;
 
   const visibleEvents =
     showAllContent.events && allEvents.length > 0 ? allEvents : latestEvents;
@@ -702,10 +726,7 @@ export default function HomePortal({
                 </p>
               </div>
 
-              {!selectedPost &&
-              !selectedAlbum &&
-              !selectedEvent &&
-              !(activeTab === "journal" && activeJournalTags.length > 0) ? (
+              {!selectedPost && !selectedAlbum && !selectedEvent ? (
                 <PortalMainLink
                   activeTab={activeTab}
                   showAllContent={showAllContent}
@@ -724,17 +745,18 @@ export default function HomePortal({
                   selectedPost ? (
                     <JournalPortalDetail
                       post={selectedPost}
+                      selectedTags={selectedJournalTags}
+                      onToggleTag={toggleJournalTagFilter}
                       onBack={() => setSelectedPost(null)}
-                      onTagClick={handleJournalTagToggle}
                     />
                   ) : (
                     <JournalPanel
                       posts={visiblePosts}
+                      allTags={allJournalTags}
+                      selectedTags={selectedJournalTags}
+                      onToggleTag={toggleJournalTagFilter}
+                      onResetTags={resetJournalTagFilter}
                       onOpenPost={setSelectedPost}
-                      availableTags={availableJournalTags}
-                      activeTags={activeJournalTags}
-                      onToggleTag={handleJournalTagToggle}
-                      onClearTags={clearJournalTagFilters}
                     />
                   )
                 ) : null}
@@ -743,11 +765,17 @@ export default function HomePortal({
                   selectedAlbum ? (
                     <GalleryAlbumPortalDetail
                       album={selectedAlbum}
+                      selectedTags={selectedGalleryTags}
+                      onToggleTag={toggleGalleryTagFilter}
                       onBack={() => setSelectedAlbum(null)}
                     />
                   ) : (
                     <GalleryPanel
                       albums={visibleAlbums}
+                      allTags={allGalleryTags}
+                      selectedTags={selectedGalleryTags}
+                      onToggleTag={toggleGalleryTagFilter}
+                      onResetTags={resetGalleryTagFilter}
                       onOpenAlbum={setSelectedAlbum}
                     />
                   )
@@ -894,20 +922,79 @@ function AboutPanel() {
   );
 }
 
+function PortalTagFilter({
+  label,
+  tags,
+  selectedTags,
+  onToggleTag,
+  onResetTags,
+}: {
+  label: string;
+  tags: string[];
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
+  onResetTags: () => void;
+}) {
+  if (tags.length === 0) return null;
+
+  const hasActiveTags = selectedTags.length > 0;
+
+  return (
+    <section className="mb-7 rounded-[1.5rem] border border-black/10 bg-white/40 p-5 shadow-sm backdrop-blur">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+          {hasActiveTags ? `Aktive ${label}-Hashtags` : `Nach ${label}-Hashtags filtern`}
+        </p>
+
+        {hasActiveTags ? (
+          <button
+            type="button"
+            onClick={onResetTags}
+            className="text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:text-orange-600"
+          >
+            Filter zurücksetzen
+          </button>
+        ) : null}
+      </div>
+
+      <div className="flex flex-wrap gap-x-3 gap-y-2">
+        {tags.map((tag) => {
+          const active = isTagSelected(selectedTags, tag);
+
+          return (
+            <button
+              key={tag}
+              type="button"
+              onClick={() => onToggleTag(tag)}
+              className={
+                active
+                  ? "rounded-full border border-orange-500 bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-sm shadow-orange-500/20 transition hover:border-orange-600 hover:bg-orange-600"
+                  : "rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-black text-black/50 transition hover:border-orange-500/40 hover:text-orange-600"
+              }
+            >
+              #{tag}
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function JournalPanel({
   posts,
-  onOpenPost,
-  availableTags,
-  activeTags,
+  allTags,
+  selectedTags,
   onToggleTag,
-  onClearTags,
+  onResetTags,
+  onOpenPost,
 }: {
   posts: HomeJournalPost[];
-  onOpenPost: (post: HomeJournalPost) => void;
-  availableTags: string[];
-  activeTags: string[];
+  allTags: string[];
+  selectedTags: string[];
   onToggleTag: (tag: string) => void;
-  onClearTags: () => void;
+  onResetTags: () => void;
+  onOpenPost: (post: HomeJournalPost) => void;
 }) {
   const fallbackPosts: HomeJournalPost[] = [
     {
@@ -933,124 +1020,89 @@ function JournalPanel({
     },
   ];
 
-  const hasActiveTags = activeTags.length > 0;
-  const items = posts.length > 0 ? posts : hasActiveTags ? [] : fallbackPosts;
-
-  function isTagActive(tag: string) {
-    return activeTags.some(
-      (activeTag) =>
-        normalizeJournalTagFilter(activeTag) === normalizeJournalTagFilter(tag),
-    );
-  }
+  const items = posts.length > 0 ? posts : selectedTags.length > 0 ? [] : fallbackPosts;
 
   return (
     <div>
-      {availableTags.length > 0 ? (
-        <div className="mb-6 rounded-3xl border border-black/10 bg-white/45 px-5 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-black/45">
-              {hasActiveTags ? "Aktive Tag-Filter" : "Nach Hashtags filtern"}
-            </p>
-
-            {hasActiveTags ? (
-              <button
-                type="button"
-                onClick={onClearTags}
-                className="self-start border-b border-black/20 pb-1 text-xs font-black uppercase tracking-[0.2em] text-black/45 transition hover:border-orange-500 hover:text-orange-600 sm:self-auto"
-              >
-                Filter zurücksetzen
-              </button>
-            ) : null}
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {availableTags.map((tag) => {
-              const active = isTagActive(tag);
-
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => onToggleTag(tag)}
-                  className={
-                    active
-                      ? "rounded-full border border-orange-500 bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-sm shadow-orange-500/20 transition hover:border-orange-600 hover:bg-orange-600"
-                      : "rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-black text-black/50 transition hover:border-orange-500/40 hover:text-orange-600"
-                  }
-                >
-                  #{tag}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
+      <PortalTagFilter
+        label="Journal"
+        tags={allTags}
+        selectedTags={selectedTags}
+        onToggleTag={onToggleTag}
+        onResetTags={onResetTags}
+      />
 
       {items.length === 0 ? (
         <div className="border-y border-black/10 py-7">
           <h4 className="text-2xl font-black tracking-[-0.04em]">
-            Keine Beiträge für diese Tag-Auswahl.
+            Keine Beiträge zu diesem Hashtag.
           </h4>
 
           <p className="mt-4 max-w-xl leading-8 text-black/65">
-            Für {activeTags.map((tag) => `#${tag}`).join(" oder ")} gibt es
-            aktuell keinen passenden Journal-Beitrag.
+            Der Filter ist gerade etwas zu eng geschnürt. Setz ihn zurück oder
+            wähle einen anderen Hashtag.
           </p>
         </div>
       ) : (
         <div className="divide-y divide-black/10 border-y border-black/10">
           {items.map((post) => {
-            const tags = getJournalTags(post.tags).slice(0, 4);
+            const tags = getJournalTags(post.tags);
 
             return (
-              <button
+              <article
                 key={post._id}
-                type="button"
-                onClick={() => onOpenPost(post)}
                 className="group grid w-full gap-4 py-5 text-left text-[#111217] transition hover:bg-white/50 md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center md:px-3"
               >
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-                    {formatHomeDate(post.publishedAt)}
-                  </p>
+                <button
+                  type="button"
+                  onClick={() => onOpenPost(post)}
+                  className="contents text-left"
+                >
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                      {formatHomeDate(post.publishedAt)}
+                    </p>
 
-                  <p className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/40">
-                    {formatJournalCategory(post.category)}
-                  </p>
-                </div>
+                    <p className="mt-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/40">
+                      {formatJournalCategory(post.category)}
+                    </p>
+                  </div>
 
-                <div>
-                  <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
-                    {post.title}
-                  </h4>
+                  <div>
+                    <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+                      {post.title}
+                    </h4>
 
-                  <p className="mt-2 max-w-3xl leading-7 text-black/55">
-                    {post.excerpt ||
-                      "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
-                  </p>
+                    <p className="mt-2 max-w-3xl leading-7 text-black/55">
+                      {post.excerpt ||
+                        "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
+                    </p>
+                  </div>
 
-                  {tags.length > 0 ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className={
-  isTagActive(tag)
-    ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
-    : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
-}
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
+                  <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
+                    →
+                  </span>
+                </button>
 
-                <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
-                  →
-                </span>
-              </button>
+                {tags.length > 0 ? (
+                  <div className="md:col-start-2 md:-mt-2 flex flex-wrap gap-x-3 gap-y-1">
+                    {tags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => onToggleTag(tag)}
+                        className={
+                          isTagSelected(selectedTags, tag)
+                            ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+                            : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                        }
+                      >
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </article>
             );
           })}
         </div>
@@ -1061,12 +1113,14 @@ function JournalPanel({
 
 function JournalPortalDetail({
   post,
+  selectedTags,
+  onToggleTag,
   onBack,
-  onTagClick,
 }: {
   post: HomeJournalPost;
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
   onBack: () => void;
-  onTagClick: (tag: string) => void;
 }) {
   const hasExternalLinks = Boolean(post.stravaUrl || post.soundcloudUrl);
   const externalLinkLabel =
@@ -1215,8 +1269,15 @@ function JournalPortalDetail({
                   <button
                     key={tag}
                     type="button"
-                    onClick={() => onTagClick(tag)}
-                    className="rounded-full border border-black/10 bg-white/45 px-4 py-2 text-xs font-black text-black/55 backdrop-blur transition hover:border-orange-500/40 hover:text-orange-600"
+                    onClick={() => {
+                      onToggleTag(tag);
+                      onBack();
+                    }}
+                    className={
+                      isTagSelected(selectedTags, tag)
+                        ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+                        : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                    }
                   >
                     #{tag}
                   </button>
@@ -1232,25 +1293,19 @@ function JournalPortalDetail({
 
 function GalleryPanel({
   albums,
+  allTags,
+  selectedTags,
+  onToggleTag,
+  onResetTags,
   onOpenAlbum,
 }: {
   albums: HomeGalleryAlbum[];
+  allTags: string[];
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
+  onResetTags: () => void;
   onOpenAlbum: (album: HomeGalleryAlbum) => void;
 }) {
-  if (albums.length === 0) {
-    return (
-      <div className="border-y border-black/10 py-7">
-        <h4 className="text-2xl font-black tracking-[-0.04em]">
-          Noch keine Alben vorhanden.
-        </h4>
-
-        <p className="mt-4 max-w-xl leading-8 text-black/65">
-          Sobald du im Sanity Studio Alben veröffentlichst, erscheinen sie hier.
-        </p>
-      </div>
-    );
-  }
-
   const ratioClasses = [
     "aspect-[4/5]",
     "aspect-[3/4]",
@@ -1260,88 +1315,147 @@ function GalleryPanel({
   ];
 
   return (
-    <div className="columns-1 gap-6 space-y-7 sm:columns-2 lg:columns-4">
-      {albums.map((album, index) => {
-        const image = album.coverImage || album.images?.[0];
-        const imageCount = album.images?.length ?? 0;
-        const imageRatioClass = ratioClasses[index % ratioClasses.length];
+    <div>
+      <PortalTagFilter
+        label="Galerie"
+        tags={allTags}
+        selectedTags={selectedTags}
+        onToggleTag={onToggleTag}
+        onResetTags={onResetTags}
+      />
 
-        return (
-          <button
-            key={album._id}
-            type="button"
-            onClick={() => onOpenAlbum(album)}
-            className="group mb-7 block w-full break-inside-avoid text-left outline-none"
-          >
-            <div
-              className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioClass}`}
-            >
-              {image ? (
-                <SanityImage
-                  src={urlFor(image).width(900).height(1200).fit("crop").url()}
-                  alt={image.alt || album.title}
-                  width={900}
-                  height={1200}
-                  priority={index === 0}
-                  className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
-                />
-              ) : (
-                <div className="flex h-full min-h-[320px] items-center justify-center p-6 text-center text-[10px] font-black uppercase tracking-[0.28em] text-black/45">
-                  Kein Bild hinterlegt
-                </div>
-              )}
-            </div>
+      {albums.length === 0 ? (
+        <div className="border-y border-black/10 py-7">
+          <h4 className="text-2xl font-black tracking-[-0.04em]">
+            {selectedTags.length > 0
+              ? "Keine Alben zu dieser Auswahl."
+              : "Noch keine Galerie-Alben vorhanden."}
+          </h4>
 
-            <div className="mt-3 border-b border-black/10 pb-4">
-              <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
-                <span>{formatGalleryCategory(album.category)}</span>
+          <p className="mt-4 max-w-xl leading-8 text-black/65">
+            {selectedTags.length > 0
+              ? "Der Galerie-Filter ist gerade etwas zu eng geschnürt. Setz ihn zurück oder wähle einen anderen Hashtag."
+              : "Sobald passende Galerie-Alben im Sanity Studio veröffentlicht sind, erscheinen sie hier."}
+          </p>
+        </div>
+      ) : (
+        <div className="columns-1 gap-6 space-y-7 sm:columns-2 lg:columns-4">
+          {albums.map((album, index) => {
+            const image = album.coverImage || album.images?.[0];
+            const imageCount = album.images?.length ?? 0;
+            const imageRatioClass = ratioClasses[index % ratioClasses.length];
+            const tags = getGalleryTags(album.tags);
 
-                {imageCount > 0 ? (
-                  <>
-                    <span className="h-1 w-1 rounded-full bg-black/25" />
-                    <span>
-                      {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
-                    </span>
-                  </>
+            return (
+              <article
+                key={album._id}
+                className="group mb-7 block w-full break-inside-avoid text-left outline-none"
+              >
+                <button
+                  type="button"
+                  onClick={() => onOpenAlbum(album)}
+                  className="block w-full text-left"
+                >
+                  <div
+                    className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioClass}`}
+                  >
+                    {image ? (
+                      <SanityImage
+                        src={urlFor(image)
+                          .width(900)
+                          .height(1200)
+                          .fit("crop")
+                          .url()}
+                        alt={image.alt || album.title}
+                        width={900}
+                        height={1200}
+                        priority={index === 0}
+                        className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                      />
+                    ) : (
+                      <div className="flex h-full min-h-[320px] items-center justify-center p-6 text-center text-[10px] font-black uppercase tracking-[0.28em] text-black/45">
+                        Kein Bild hinterlegt
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-3 border-b border-black/10 pb-4">
+                    <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+                      <span>{formatGalleryCategory(album.category)}</span>
+
+                      {imageCount > 0 ? (
+                        <>
+                          <span className="h-1 w-1 rounded-full bg-black/25" />
+                          <span>
+                            {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
+                          </span>
+                        </>
+                      ) : null}
+                    </div>
+
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h4 className="text-xl font-black leading-tight tracking-[-0.04em] text-black transition group-hover:text-orange-600">
+                          {album.title}
+                        </h4>
+
+                        {album.description ? (
+                          <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-black/55">
+                            {album.description}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <span className="mt-1 text-lg leading-none text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600">
+                        →
+                      </span>
+                    </div>
+                  </div>
+                </button>
+
+                {tags.length > 0 ? (
+                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1">
+                    {tags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => onToggleTag(tag)}
+                        className={
+                          isTagSelected(selectedTags, tag)
+                            ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+                            : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                        }
+                      >
+                        #{tag}
+                      </button>
+                    ))}
+                  </div>
                 ) : null}
-              </div>
-
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h4 className="text-xl font-black leading-tight tracking-[-0.04em] text-black transition group-hover:text-orange-600">
-                    {album.title}
-                  </h4>
-
-                  {album.description ? (
-                    <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-black/55">
-                      {album.description}
-                    </p>
-                  ) : null}
-                </div>
-
-                <span className="mt-1 text-lg leading-none text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600">
-                  →
-                </span>
-              </div>
-            </div>
-          </button>
-        );
-      })}
+              </article>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 function GalleryAlbumPortalDetail({
   album,
+  selectedTags,
+  onToggleTag,
   onBack,
 }: {
   album: HomeGalleryAlbum;
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
   onBack: () => void;
 }) {
   const images = album.images || [];
   const coverImage = album.coverImage || images[0];
   const galleryImages =
     images.length > 0 ? images : coverImage ? [coverImage] : [];
+  const tags = getGalleryTags(album.tags);
 
   const ratioClasses = [
     "aspect-[4/5]",
@@ -1383,6 +1497,28 @@ function GalleryAlbumPortalDetail({
             <p className="mt-4 max-w-3xl text-sm font-semibold leading-6 text-neutral-600 sm:mt-5 sm:text-base sm:leading-7 md:text-lg md:leading-8 lg:mt-7 lg:text-xl lg:leading-9">
               {album.description}
             </p>
+          ) : null}
+
+          {tags.length > 0 ? (
+            <div className="mt-6 flex flex-wrap gap-x-3 gap-y-1">
+              {tags.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => {
+                    onToggleTag(tag);
+                    onBack();
+                  }}
+                  className={
+                    isTagSelected(selectedTags, tag)
+                      ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+                      : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                  }
+                >
+                  #{tag}
+                </button>
+              ))}
+            </div>
           ) : null}
         </div>
 
