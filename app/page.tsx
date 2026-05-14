@@ -101,6 +101,8 @@ const allGalleryQuery = `*[_type == "galleryAlbum"] | order(coalesce(date, _crea
   title,
   slug,
   category,
+  date,
+  location,
   tags,
   "description": coalesce(description, teaser, excerpt),
   "coverImage": coalesce(coverImage, images[0]),

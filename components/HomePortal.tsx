@@ -419,6 +419,16 @@ function formatGalleryCategory(category?: string) {
   return category ? (categories[category] ?? category) : "Galerie";
 }
 
+function formatGalleryDate(date?: string) {
+  if (!date) return null;
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
 function getSanityImageDimensions(image?: SanityImageSource | null) {
   const asset = (
     image as {
@@ -1510,6 +1520,8 @@ function GalleryAlbumPortalDetail({
   const galleryImages =
     images.length > 0 ? images : coverImage ? [coverImage] : [];
   const tags = getGalleryTags(album.tags);
+  const categoryLabel = formatGalleryCategory(album.category);
+  const formattedDate = formatGalleryDate(album.date);
 
   const ratioClasses = [
     "aspect-[4/5]",
@@ -1532,7 +1544,7 @@ function GalleryAlbumPortalDetail({
       <header className="grid grid-cols-[minmax(0,1fr)_128px] items-start gap-x-4 gap-y-6 border-b border-black/10 pb-8 sm:grid-cols-[minmax(0,1fr)_160px] sm:gap-x-6 sm:gap-y-7 sm:pb-10 md:grid-cols-[minmax(0,1fr)_210px] lg:grid-cols-[minmax(0,1fr)_minmax(260px,380px)] lg:items-end lg:gap-8">
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[8px] font-black uppercase tracking-[0.22em] text-black/35 sm:mb-4 sm:text-[10px] sm:tracking-[0.28em]">
-            <span>{formatGalleryCategory(album.category)}</span>
+            <span>{categoryLabel}</span>
 
             <span className="h-1 w-1 rounded-full bg-black/25" />
 
@@ -1552,6 +1564,33 @@ function GalleryAlbumPortalDetail({
               {album.description}
             </p>
           ) : null}
+
+          <dl className="mt-6 grid max-w-2xl grid-cols-1 gap-3 border-y border-black/10 py-4 text-xs sm:grid-cols-3">
+            <div>
+              <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
+                Kategorie
+              </dt>
+              <dd className="mt-1 font-bold text-black/60">{categoryLabel}</dd>
+            </div>
+
+            <div>
+              <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
+                Datum
+              </dt>
+              <dd className="mt-1 font-bold text-black/60">
+                {formattedDate ?? "Nicht hinterlegt"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
+                Ort
+              </dt>
+              <dd className="mt-1 font-bold text-black/60">
+                {album.location || "Nicht hinterlegt"}
+              </dd>
+            </div>
+          </dl>
 
           {tags.length > 0 ? (
             <div className="mt-6 flex flex-wrap gap-x-3 gap-y-1">
