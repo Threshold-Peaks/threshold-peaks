@@ -295,6 +295,27 @@ function formatGalleryCategory(category?: string) {
   return category ? (categories[category] ?? category) : "Galerie";
 }
 
+function getSanityImageDimensions(image?: SanityImageSource | null) {
+  const asset = (
+    image as {
+      asset?: string | { _ref?: string; _id?: string };
+    } | null
+  )?.asset;
+
+  const ref =
+    typeof asset === "string" ? asset : asset?._ref || asset?._id || "";
+  const match = ref.match(/-(\d+)x(\d+)-[a-zA-Z0-9]+$/);
+
+  if (!match) {
+    return { width: 1200, height: 1600 };
+  }
+
+  return {
+    width: Number(match[1]),
+    height: Number(match[2]),
+  };
+}
+
 function formatEventType(type?: string) {
   const types: Record<string, string> = {
     running: "Running",
@@ -1026,16 +1047,12 @@ function GalleryAlbumPortalDetail({
           <figure className="w-full justify-self-end lg:mx-0 lg:max-w-none lg:justify-self-end">
             <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
-                src={urlFor(coverImage)
-                  .width(900)
-                  .height(900)
-                  .fit("crop")
-                  .url()}
+                src={urlFor(coverImage).width(900).url()}
                 alt={coverImage.alt || album.title}
                 width={900}
                 height={900}
                 priority
-                className="aspect-square w-full object-cover sm:aspect-[4/3] lg:aspect-[5/4]"
+                className="aspect-square w-full object-cover object-top sm:aspect-[4/3] lg:aspect-[5/4]"
               />
             </div>
 
@@ -1058,6 +1075,7 @@ function GalleryAlbumPortalDetail({
         ) : (
           <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
             {galleryImages.map((image, index) => {
+              const imageDimensions = getSanityImageDimensions(image);
               const imageRatioClass = ratioClasses[index % ratioClasses.length];
 
               return (
@@ -1069,15 +1087,11 @@ function GalleryAlbumPortalDetail({
                     className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioClass}`}
                   >
                     <SanityImage
-                      src={urlFor(image)
-                        .width(1200)
-                        .height(1600)
-                        .fit("crop")
-                        .url()}
+                      src={urlFor(image).width(1400).url()}
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
-                      width={1200}
-                      height={1600}
-                      className="h-full w-full object-cover transition duration-700 hover:scale-[1.025]"
+                      width={imageDimensions.width}
+                      height={imageDimensions.height}
+                      className="h-full w-full object-cover object-top transition duration-700 hover:scale-[1.025]"
                     />
                   </div>
 
@@ -1293,11 +1307,7 @@ function EventPortalDetail({
           {image ? (
             <figure className="w-full overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1 lg:justify-self-end">
               <SanityImage
-                src={urlFor(image)
-                  .width(900)
-                  .height(900)
-                  .fit("crop")
-                  .url()}
+                src={urlFor(image).width(900).height(900).fit("crop").url()}
                 alt={image.alt || event.title || "Event Bild"}
                 width={900}
                 height={900}

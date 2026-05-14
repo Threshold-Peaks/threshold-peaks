@@ -72,6 +72,7 @@ export const galleryAlbum = defineType({
           name: 'alt',
           title: 'Alternativtext',
           type: 'string',
+          description: 'Kurze Bildbeschreibung für SEO und Barrierefreiheit.',
         }),
       ],
     }),
@@ -91,16 +92,31 @@ export const galleryAlbum = defineType({
             defineField({
               name: 'caption',
               title: 'Kurzer Satz zum Foto',
-              type: 'string',
-              description: 'Zum Beispiel: „Morgendliche Runde durch Verl.“',
+              type: 'text',
+              rows: 2,
+              description: 'Ein kurzer, persönlicher Satz zum Bild. Zum Beispiel: „Morgendliche Runde durch Verl.“',
             }),
             defineField({
               name: 'alt',
               title: 'Alternativtext',
               type: 'string',
-              description: 'Kurze Bildbeschreibung für SEO und Barrierefreiheit.',
+              description: 'Kurze sachliche Bildbeschreibung für SEO und Barrierefreiheit.',
             }),
           ],
+          preview: {
+            select: {
+              title: 'caption',
+              subtitle: 'alt',
+              media: 'asset',
+            },
+            prepare({title, subtitle, media}) {
+              return {
+                title: title || 'Galeriebild',
+                subtitle: subtitle || 'Noch kein Alternativtext hinterlegt',
+                media,
+              }
+            },
+          },
         }),
       ],
     }),
@@ -116,8 +132,19 @@ export const galleryAlbum = defineType({
   preview: {
     select: {
       title: 'title',
-      subtitle: 'category',
+      category: 'category',
+      date: 'date',
+      location: 'location',
       media: 'coverImage',
+    },
+    prepare({title, category, date, location, media}) {
+      const details = [category, date, location].filter(Boolean).join(' · ')
+
+      return {
+        title,
+        subtitle: details || 'Galerie-Album',
+        media,
+      }
     },
   },
 })
