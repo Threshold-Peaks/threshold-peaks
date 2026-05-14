@@ -59,42 +59,8 @@ function getMetaDescription(post: JournalPost) {
   );
 }
 
-function appendOgParams(imageUrl: string, version: string) {
-  const separator = imageUrl.includes("?") ? "&" : "?";
-  return `${imageUrl}${separator}bg=f5f3ee&ogv=${version}`;
-}
-
-function getSquareOgImage(post: JournalPost) {
-  if (!post.mainImage) {
-    return `${baseUrl}/opengraph-image`;
-  }
-
-  const imageUrl = urlFor(post.mainImage)
-    .width(1200)
-    .height(1200)
-    .fit("crop")
-    .focalPoint(0.5, 0.12)
-    .format("jpg")
-    .quality(85)
-    .url();
-
-  return appendOgParams(imageUrl, "wa-square-v7");
-}
-
-function getWideOgImage(post: JournalPost) {
-  if (!post.mainImage) {
-    return `${baseUrl}/opengraph-image`;
-  }
-
-  const imageUrl = urlFor(post.mainImage)
-    .width(1200)
-    .height(630)
-    .fit("fill")
-    .format("jpg")
-    .quality(85)
-    .url();
-
-  return appendOgParams(imageUrl, "wide-v7");
+function getJournalOgImageUrl(slug: string) {
+  return `${baseUrl}/journal/${slug}/opengraph-image?ogv=journal-square-card-v1`;
 }
 
 export async function generateMetadata({
@@ -116,8 +82,7 @@ export async function generateMetadata({
   const title = post.title;
   const description = getMetaDescription(post);
   const url = `${baseUrl}/journal/${slug}`;
-  const squareImage = getSquareOgImage(post);
-  const wideImage = getWideOgImage(post);
+  const ogImageUrl = getJournalOgImageUrl(slug);
   const tags = Array.from(
     new Set(
       (post.tags ?? [])
@@ -150,24 +115,18 @@ export async function generateMetadata({
       ...(tags.length > 0 ? { tags } : {}),
       images: [
         {
-          url: squareImage,
+          url: ogImageUrl,
           width: 1200,
           height: 1200,
-          alt: post.mainImage?.alt || post.title,
-        },
-        {
-          url: wideImage,
-          width: 1200,
-          height: 630,
           alt: post.mainImage?.alt || post.title,
         },
       ],
     },
     twitter: {
-      card: "summary_large_image",
+      card: "summary",
       title,
       description,
-      images: [wideImage],
+      images: [ogImageUrl],
     },
   };
 }
