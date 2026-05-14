@@ -57,6 +57,8 @@ type HomeGalleryAlbum = {
     current?: string;
   };
   category?: string;
+  date?: string;
+  location?: string;
   description?: string;
   coverImage?: HomeGalleryImage;
   images?: HomeGalleryImage[];
@@ -321,14 +323,17 @@ function HeroTopNav() {
   ];
 
   return (
-    <nav aria-label="Hauptnavigation" className="relative z-50 mt-6 md:mt-8">
-      <div className="mb-3 md:mb-5">
-        <div className="text-[9px] font-black uppercase tracking-[0.32em] text-black/35 md:text-[10px] md:tracking-[0.34em]">
+    <nav
+      aria-label="Hauptnavigation"
+      className="relative z-50 mx-auto mt-6 w-full max-w-[360px] md:mx-0 md:mt-8 md:max-w-none"
+    >
+      <div className="mb-3 text-center md:mb-5 md:text-left">
+        <div className="text-[8px] font-black uppercase tracking-[0.34em] text-black/30 md:text-[10px] md:text-black/35">
           Navigation
         </div>
       </div>
 
-      <div className="flex max-w-[340px] flex-wrap gap-2 md:block md:max-w-none md:space-y-1 md:border-l md:border-black/15 md:pl-5">
+      <div className="grid grid-cols-3 gap-x-5 gap-y-3 md:block md:space-y-1 md:border-l md:border-black/15 md:pl-5">
         {navItems.map((item) => (
           <HeroTopNavLink key={item.href} href={item.href}>
             {item.label}
@@ -349,12 +354,13 @@ function HeroTopNavLink({
   return (
     <a
       href={href}
-      className="group relative inline-flex items-center rounded-full border border-black/10 bg-white/55 px-3 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-black/55 shadow-sm backdrop-blur-md transition hover:border-orange-500/40 hover:bg-white/75 hover:text-orange-600 focus:outline-none focus-visible:border-orange-500 focus-visible:text-orange-600 md:flex md:justify-between md:rounded-none md:border-0 md:bg-transparent md:px-0 md:py-2.5 md:text-sm md:normal-case md:tracking-normal md:shadow-none md:backdrop-blur-0"
+      className="group relative inline-flex justify-center py-1 text-center text-[10px] font-black uppercase tracking-[0.2em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 md:flex md:items-center md:justify-between md:py-2.5 md:text-left md:text-sm md:normal-case md:tracking-normal md:text-black/55"
     >
       <span className="hidden md:absolute md:-left-[25px] md:block md:h-2.5 md:w-2.5 md:rounded-full md:border md:border-black/20 md:bg-[#f5f3ee] md:transition md:group-hover:border-orange-600 md:group-hover:bg-orange-600" />
 
-      <span className="transition md:group-hover:translate-x-1">
+      <span className="relative inline-flex pb-1 transition md:pb-0 md:group-hover:translate-x-1">
         {children}
+        <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 md:hidden" />
       </span>
 
       <span className="hidden text-xs text-black/25 opacity-0 transition group-hover:translate-x-1 group-hover:text-orange-600 group-hover:opacity-100 md:block">
