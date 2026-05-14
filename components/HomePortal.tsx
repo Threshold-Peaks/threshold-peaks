@@ -73,41 +73,36 @@ type HomePortalProps = {
   allAlbums: HomeGalleryAlbum[];
   latestEvents: HomeEvent[];
   allEvents: HomeEvent[];
+  embedded?: boolean;
 };
 
 const tabs: Array<{
   id: PortalTab;
-  label: string;
   title: string;
   text: string;
 }> = [
   {
     id: "about",
-    label: "About",
     title: "Über mich",
     text: "Wer hinter Threshold Peaks steckt.",
   },
   {
     id: "journal",
-    label: "Journal",
     title: "Journal",
     text: "Beiträge aus Bewegung, Klang und Alltag.",
   },
   {
     id: "gallery",
-    label: "Galerie",
     title: "Galerie",
     text: "Alben und kleine Momente unterwegs.",
   },
   {
     id: "events",
-    label: "Events",
     title: "Events",
     text: "Termine, Läufe, Rides und Highlights.",
   },
   {
     id: "contact",
-    label: "Kontakt",
     title: "Kontakt",
     text: "Kanäle und Verbindungspunkte.",
   },
@@ -271,7 +266,6 @@ function formatJournalCategory(category?: string) {
     music: "Music",
     lifestyle: "Lifestyle",
     event: "Event",
-
     laufen: "Running",
     radfahren: "Cycling",
     musik: "Music",
@@ -287,6 +281,9 @@ function formatGalleryCategory(category?: string) {
     music: "Music",
     lifestyle: "Life",
     event: "Event",
+    laufen: "Running",
+    radfahren: "Cycling",
+    musik: "Music",
   };
 
   return category ? categories[category] ?? category : "Galerie";
@@ -330,6 +327,7 @@ export default function HomePortal({
   allAlbums,
   latestEvents,
   allEvents,
+  embedded = false,
 }: HomePortalProps) {
   const [activeTab, setActiveTab] = useState<PortalTab>("about");
   const [selectedPost, setSelectedPost] = useState<HomeJournalPost | null>(
@@ -372,7 +370,9 @@ export default function HomePortal({
 
   useEffect(() => {
     function getTabIdFromHash(): PortalTab | undefined {
-      const rawHash = window.location.hash.replace("#portal-", "");
+      const rawHash = window.location.hash
+        .replace(/^#/, "")
+        .replace(/^portal-/, "");
 
       const hashMap: Record<string, PortalTab> = {
         about: "about",
@@ -396,23 +396,16 @@ export default function HomePortal({
       clearPortalDetails();
       resetShowAllContent();
 
-      const portalElement = document.getElementById("portal");
+      const topElement = document.getElementById("top");
 
-      if (!portalElement) return;
+      if (!topElement) return;
 
-      const portalRect = portalElement.getBoundingClientRect();
-
-      const isAlreadyInPortal =
-        portalRect.top < 140 && portalRect.bottom > window.innerHeight * 0.35;
-
-      if (!isAlreadyInPortal) {
-        window.setTimeout(() => {
-          portalElement.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }, 50);
-      }
+      window.setTimeout(() => {
+        topElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 50);
     }
 
     updateFromHash();
@@ -436,19 +429,48 @@ export default function HomePortal({
     showAllContent.events && allEvents.length > 0 ? allEvents : latestEvents;
 
   return (
-    <section id="portal" className="px-6 pb-16 md:px-10 lg:px-20">
-      <div className="mx-auto max-w-[1280px]">
-        <div
-          key={activeTab}
-          className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/65 shadow-sm backdrop-blur-xl"
-        >
-          <div className="min-h-[520px] p-7 md:p-10 lg:p-12">
+    <section
+      className={
+        embedded ? "relative pb-0" : "relative px-6 pb-16 md:px-10 lg:px-20"
+      }
+    >
+      <span
+        id="portal-about"
+        className="absolute -top-28 h-px w-px overflow-hidden"
+        aria-hidden="true"
+      />
+      <span
+        id="portal-journal"
+        className="absolute -top-28 h-px w-px overflow-hidden"
+        aria-hidden="true"
+      />
+      <span
+        id="portal-gallery"
+        className="absolute -top-28 h-px w-px overflow-hidden"
+        aria-hidden="true"
+      />
+      <span
+        id="portal-events"
+        className="absolute -top-28 h-px w-px overflow-hidden"
+        aria-hidden="true"
+      />
+      <span
+        id="portal-contact"
+        className="absolute -top-28 h-px w-px overflow-hidden"
+        aria-hidden="true"
+      />
+
+      <div className={embedded ? "w-full" : "mx-auto max-w-[1280px]"}>
+        <div className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/60 shadow-sm backdrop-blur-xl">
+          <div
+            className={
+              embedded
+                ? "flex min-h-[460px] flex-col p-6 md:p-8 lg:min-h-[500px] lg:p-10"
+                : "flex min-h-[720px] flex-col p-7 md:min-h-[760px] md:p-10 lg:min-h-[780px] lg:p-12"
+            }
+          >
             <div className="mb-9 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="mb-4 text-xs font-extrabold uppercase tracking-[0.45em] text-black/45">
-                  {activeTabMeta.label}
-                </p>
-
                 <h3 className="text-4xl font-black leading-tight tracking-[-0.05em] md:text-6xl">
                   {activeTabMeta.title}
                 </h3>
@@ -467,48 +489,53 @@ export default function HomePortal({
               ) : null}
             </div>
 
-            {activeTab === "about" ? <AboutPanel /> : null}
+            <div className="flex-1">
+              {activeTab === "about" ? <AboutPanel /> : null}
 
-            {activeTab === "journal" ? (
-              selectedPost ? (
-                <JournalPortalDetail
-                  post={selectedPost}
-                  onBack={() => setSelectedPost(null)}
-                />
-              ) : (
-                <JournalPanel posts={visiblePosts} onOpenPost={setSelectedPost} />
-              )
-            ) : null}
+              {activeTab === "journal" ? (
+                selectedPost ? (
+                  <JournalPortalDetail
+                    post={selectedPost}
+                    onBack={() => setSelectedPost(null)}
+                  />
+                ) : (
+                  <JournalPanel
+                    posts={visiblePosts}
+                    onOpenPost={setSelectedPost}
+                  />
+                )
+              ) : null}
 
-            {activeTab === "gallery" ? (
-              selectedAlbum ? (
-                <GalleryAlbumPortalDetail
-                  album={selectedAlbum}
-                  onBack={() => setSelectedAlbum(null)}
-                />
-              ) : (
-                <GalleryPanel
-                  albums={visibleAlbums}
-                  onOpenAlbum={setSelectedAlbum}
-                />
-              )
-            ) : null}
+              {activeTab === "gallery" ? (
+                selectedAlbum ? (
+                  <GalleryAlbumPortalDetail
+                    album={selectedAlbum}
+                    onBack={() => setSelectedAlbum(null)}
+                  />
+                ) : (
+                  <GalleryPanel
+                    albums={visibleAlbums}
+                    onOpenAlbum={setSelectedAlbum}
+                  />
+                )
+              ) : null}
 
-            {activeTab === "events" ? (
-              selectedEvent ? (
-                <EventPortalDetail
-                  event={selectedEvent}
-                  onBack={() => setSelectedEvent(null)}
-                />
-              ) : (
-                <EventsPanel
-                  events={visibleEvents}
-                  onOpenEvent={setSelectedEvent}
-                />
-              )
-            ) : null}
+              {activeTab === "events" ? (
+                selectedEvent ? (
+                  <EventPortalDetail
+                    event={selectedEvent}
+                    onBack={() => setSelectedEvent(null)}
+                  />
+                ) : (
+                  <EventsPanel
+                    events={visibleEvents}
+                    onOpenEvent={setSelectedEvent}
+                  />
+                )
+              ) : null}
 
-            {activeTab === "contact" ? <ContactPanel /> : null}
+              {activeTab === "contact" ? <ContactPanel /> : null}
+            </div>
           </div>
         </div>
       </div>
@@ -528,19 +555,11 @@ function PortalMainLink({
   const buttonClass =
     "inline-flex min-w-[220px] items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-6 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md";
 
-  if (activeTab === "about") {
+  if (activeTab === "about" || activeTab === "contact") {
     return null;
   }
 
-  if (activeTab === "contact") {
-    return (
-      <Link href="mailto:info@threshold-peaks.de" className={buttonClass}>
-        E-Mail schreiben <span>→</span>
-      </Link>
-    );
-  }
-
-  const key = activeTab;
+  const key = activeTab as PortalContentTab;
 
   const showAllLabels: Record<PortalContentTab, string> = {
     journal: "Alle Beiträge ansehen",
@@ -666,29 +685,29 @@ function JournalPanel({
           key={post._id}
           type="button"
           onClick={() => onOpenPost(post)}
-          className="group flex min-h-[300px] flex-col rounded-[1.5rem] border border-black/10 bg-[#111217] p-6 text-left text-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+          className="group flex min-h-[300px] flex-col rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 text-left text-[#111217] shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl"
         >
-          <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-white/40">
+          <p className="mb-5 text-[10px] font-black uppercase tracking-[0.35em] text-black/40">
             {formatHomeDate(post.publishedAt)}
           </p>
 
-          <h4 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-400">
+          <h4 className="mb-4 text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
             {post.title}
           </h4>
 
-          <p className="leading-7 text-white/65">
+          <p className="leading-7 text-black/65">
             {post.excerpt ||
               "Ein neuer Beitrag aus dem Threshold Peaks Journal."}
           </p>
 
-          <div className="mt-auto flex items-center justify-between border-t border-white/10 pt-5">
-            <span className="rounded-full bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-white/60">
+          <div className="mt-auto flex items-center justify-between border-t border-black/10 pt-5">
+            <span className="rounded-full bg-white/60 px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-black/55">
               {formatJournalCategory(post.category)}
             </span>
 
-            <span className="transition group-hover:translate-x-1 group-hover:text-orange-400">
-              →
-            </span>
+            <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
+  →
+</span>
           </div>
         </button>
       ))}
@@ -888,43 +907,78 @@ function GalleryPanel({
     );
   }
 
+  const ratioClasses = [
+    "aspect-[4/5]",
+    "aspect-[3/4]",
+    "aspect-[5/4]",
+    "aspect-[4/3]",
+    "aspect-[2/3]",
+  ];
+
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="columns-1 gap-5 space-y-5 sm:columns-2 lg:columns-4">
       {albums.map((album, index) => {
         const image = album.coverImage || album.images?.[0];
+        const imageCount = album.images?.length ?? 0;
+        const imageRatioClass = ratioClasses[index % ratioClasses.length];
 
         return (
           <button
             key={album._id}
             type="button"
             onClick={() => onOpenAlbum(album)}
-            className="group relative min-h-[340px] overflow-hidden rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+            className="group mb-5 block w-full break-inside-avoid overflow-hidden rounded-[1.75rem] border border-black/10 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
           >
-            {image ? (
-              <SanityImage
-                src={urlFor(image).width(800).height(1000).fit("crop").url()}
-                alt={image.alt || album.title}
-                width={800}
-                height={1000}
-                priority={index === 0}
-                className="h-full min-h-[340px] w-full object-cover transition duration-500 group-hover:scale-105"
-              />
-            ) : (
-              <div className="flex min-h-[340px] items-center justify-center p-6 text-center text-sm font-black uppercase tracking-[0.28em] text-black/45">
-                Kein Bild hinterlegt
+            <div
+              className={`relative overflow-hidden bg-[#d7d5ce] ${imageRatioClass}`}
+            >
+              {image ? (
+                <SanityImage
+                  src={urlFor(image).width(900).height(1200).fit("crop").url()}
+                  alt={image.alt || album.title}
+                  width={900}
+                  height={1200}
+                  priority={index === 0}
+                  className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full min-h-[320px] items-center justify-center p-6 text-center text-sm font-black uppercase tracking-[0.28em] text-black/45">
+                  Kein Bild hinterlegt
+                </div>
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+              <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+                <span className="rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-black shadow-sm backdrop-blur-md">
+                  {formatGalleryCategory(album.category)}
+                </span>
+
+                {imageCount > 0 ? (
+                  <span className="rounded-full bg-black/55 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.22em] text-white shadow-sm backdrop-blur-md">
+                    {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
+                  </span>
+                ) : null}
               </div>
-            )}
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
+                <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-400">
+                  {album.title}
+                </h4>
 
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.35em] text-white/70">
-                {formatGalleryCategory(album.category)}
-              </p>
+                {album.description ? (
+                  <p className="mt-3 line-clamp-2 text-sm font-semibold leading-6 text-white/75">
+                    {album.description}
+                  </p>
+                ) : null}
+              </div>
+            </div>
 
-              <h4 className="text-2xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-400">
-                {album.title}
-              </h4>
+            <div className="flex items-center justify-between border-t border-black/10 bg-[#f5f3ee] px-5 py-4 text-sm font-black text-black">
+              <span>Album öffnen</span>
+              <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
+                →
+              </span>
             </div>
           </button>
         );
@@ -942,6 +996,15 @@ function GalleryAlbumPortalDetail({
 }) {
   const images = album.images || [];
   const coverImage = album.coverImage || images[0];
+  const galleryImages = images.length > 0 ? images : coverImage ? [coverImage] : [];
+
+  const ratioClasses = [
+    "aspect-[4/5]",
+    "aspect-[3/4]",
+    "aspect-[5/4]",
+    "aspect-[4/3]",
+    "aspect-[2/3]",
+  ];
 
   return (
     <article className="text-neutral-950">
@@ -953,170 +1016,153 @@ function GalleryAlbumPortalDetail({
         ← Zurück zur Galerie
       </button>
 
-      <header className="max-w-4xl">
-        <div className="mb-8 flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-neutral-700">
-            {formatGalleryCategory(album.category)}
-          </span>
-
-          <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
-            {images.length === 1
-              ? "1 Bild"
-              : `${images.length} Bilder`}
-          </span>
-        </div>
-
-        <h1 className="text-5xl font-black leading-none tracking-tight md:text-7xl">
-          {album.title}
-        </h1>
-
-        {album.description ? (
-          <p className="mt-8 max-w-3xl text-xl leading-9 text-neutral-600">
-            {album.description}
-          </p>
-        ) : null}
-      </header>
-
-      {coverImage ? (
-        <div className="mt-12 max-w-5xl">
-          <div className="mb-4 flex items-center gap-3">
-            <span className="rounded-full bg-black px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white">
-              Galerie-Cover
+      <header className="grid gap-8 lg:grid-cols-[1fr_0.38fr] lg:items-end">
+        <div>
+          <div className="mb-8 flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-neutral-700">
+              {formatGalleryCategory(album.category)}
             </span>
 
-            <span className="text-xs font-black uppercase tracking-[0.25em] text-black/40">
-              Album
+            <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
+              {galleryImages.length === 1
+                ? "1 Bild"
+                : `${galleryImages.length} Bilder`}
             </span>
           </div>
 
-          <div className="overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-black/10">
-            <div className="overflow-hidden rounded-[1.5rem] bg-[#ded9cf]">
-              <SanityImage
-                src={urlFor(coverImage).width(1400).height(900).fit("crop").url()}
-                alt={coverImage.alt || album.title}
-                width={1400}
-                height={900}
-                priority
-                className="aspect-[16/10] w-full object-cover"
-              />
+          <h1 className="max-w-4xl text-5xl font-black leading-none tracking-tight md:text-7xl">
+            {album.title}
+          </h1>
+
+          {album.description ? (
+            <p className="mt-8 max-w-3xl text-xl leading-9 text-neutral-600">
+              {album.description}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
+          <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
+            Album
+          </p>
+
+          <div className="space-y-4 text-sm font-bold text-black/65">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                Kategorie
+              </p>
+              <p className="mt-1 text-black">
+                {formatGalleryCategory(album.category)}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+                Umfang
+              </p>
+              <p className="mt-1 text-black">
+                {galleryImages.length === 1
+                  ? "1 Bild"
+                  : `${galleryImages.length} Bilder`}
+              </p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {coverImage ? (
+        <div className="mt-12 overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-black/10">
+          <div className="relative overflow-hidden rounded-[1.5rem] bg-[#ded9cf]">
+            <SanityImage
+              src={urlFor(coverImage)
+                .width(1600)
+                .height(1000)
+                .fit("crop")
+                .url()}
+              alt={coverImage.alt || album.title}
+              width={1600}
+              height={1000}
+              priority
+              className="aspect-[16/10] w-full object-cover"
+            />
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+
+            <div className="absolute bottom-5 left-5 right-5 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <span className="inline-flex rounded-full bg-black/70 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white backdrop-blur-md">
+                  Galerie-Cover
+                </span>
+
+                {coverImage.caption ? (
+                  <p className="mt-4 max-w-2xl text-base font-semibold leading-7 text-white">
+                    {coverImage.caption}
+                  </p>
+                ) : null}
+              </div>
+
+              <span className="rounded-full bg-white/85 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-black backdrop-blur-md">
+                Threshold Peaks
+              </span>
             </div>
           </div>
         </div>
       ) : null}
 
-      <div className="mt-14 grid gap-8 lg:grid-cols-[minmax(240px,0.9fr)_minmax(0,3fr)] lg:items-start">
-        <aside className="space-y-5 lg:sticky lg:top-8">
-          <div className="rounded-[2rem] bg-[#d7d5ce] p-6 shadow-sm ring-1 ring-black/10">
-            <p className="mb-4 text-xs font-black uppercase tracking-[0.32em] text-black/40">
-              Album
+      <div className="mt-10 rounded-[2rem] bg-white p-4 shadow-sm ring-1 ring-black/10 md:p-6">
+        {galleryImages.length === 0 ? (
+          <div className="rounded-[1.5rem] bg-[#f5f3ee] p-7">
+            <p className="leading-8 text-black/65">
+              In diesem Album sind noch keine Bilder hinterlegt.
             </p>
-
-            <div className="space-y-4 text-sm font-bold text-black/65">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
-                  Kategorie
-                </p>
-                <p className="mt-1 text-black">
-                  {formatGalleryCategory(album.category)}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
-                  Umfang
-                </p>
-                <p className="mt-1 text-black">
-                  {images.length === 1
-                    ? "1 Bild"
-                    : `${images.length} Bilder`}
-                </p>
-              </div>
-            </div>
           </div>
+        ) : (
+          <div className="columns-1 gap-5 space-y-5 sm:columns-2 lg:columns-3">
+            {galleryImages.map((image, index) => {
+              const imageRatioClass = ratioClasses[index % ratioClasses.length];
 
-          <button
-            type="button"
-            onClick={onBack}
-            className="group block w-full rounded-[2rem] bg-[#d7d5ce] p-6 text-left text-black shadow-sm ring-1 ring-black/10 transition hover:-translate-y-0.5 hover:shadow-md"
-          >
-            <p className="mb-2 text-xs font-black uppercase tracking-[0.32em] text-black/40">
-              Zurück
-            </p>
-
-            <div className="flex items-center justify-between gap-4 text-sm font-black">
-              <span>Zurück zur Galerie</span>
-              <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
-                →
-              </span>
-            </div>
-          </button>
-        </aside>
-
-        <div className="rounded-[2rem] bg-white p-4 shadow-sm ring-1 ring-black/10 md:p-6">
-          {images.length === 0 ? (
-            <div className="rounded-[1.5rem] bg-[#f5f3ee] p-7">
-              <p className="leading-8 text-black/65">
-                In diesem Album sind noch keine Bilder hinterlegt.
-              </p>
-            </div>
-          ) : (
-            <div className="columns-1 gap-5 space-y-5 sm:columns-2 lg:columns-3">
-              {images.map((image, index) => {
-                const isLarge = index % 5 === 0;
-                const isTall = index % 5 === 2;
-                const isWide = index % 5 === 4;
-
-                const imageRatioClass = isLarge
-                  ? "aspect-[4/5]"
-                  : isTall
-                    ? "aspect-[3/4]"
-                    : isWide
-                      ? "aspect-[5/4]"
-                      : "aspect-[4/3]";
-
-                return (
-                  <figure
-                    key={`${album._id}-${index}`}
-                    className="mb-5 break-inside-avoid overflow-hidden rounded-[1.5rem] bg-[#f5f3ee] shadow-sm ring-1 ring-black/10"
+              return (
+                <figure
+                  key={`${album._id}-${index}`}
+                  className="mb-5 break-inside-avoid overflow-hidden rounded-[1.5rem] bg-[#f5f3ee] shadow-sm ring-1 ring-black/10 transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+                >
+                  <div
+                    className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}
                   >
-                    <div
-                      className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}
-                    >
-                      <SanityImage
-                        src={urlFor(image)
-                          .width(1200)
-                          .height(1600)
-                          .fit("crop")
-                          .url()}
-                        alt={image.alt || `${album.title} Bild ${index + 1}`}
-                        width={1200}
-                        height={1600}
-                        className="h-full w-full object-cover transition duration-500 hover:scale-[1.03]"
-                      />
-                    </div>
+                    <SanityImage
+                      src={urlFor(image)
+                        .width(1200)
+                        .height(1600)
+                        .fit("crop")
+                        .url()}
+                      alt={image.alt || `${album.title} Bild ${index + 1}`}
+                      width={1200}
+                      height={1600}
+                      className="h-full w-full object-cover transition duration-700 hover:scale-[1.03]"
+                    />
+                  </div>
 
-                    {(image.caption || image.alt) ? (
-                      <figcaption className="px-5 py-4">
-                        {image.caption ? (
-                          <p className="text-sm font-semibold leading-6 text-black/65">
-                            {image.caption}
-                          </p>
-                        ) : null}
-
-                        {!image.caption && image.alt ? (
-                          <p className="text-sm font-semibold leading-6 text-black/55">
-                            {image.alt}
-                          </p>
-                        ) : null}
-                      </figcaption>
-                    ) : null}
-                  </figure>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  {(image.caption || image.alt) ? (
+                    <figcaption className="border-t border-black/10 bg-white px-5 py-4">
+                      <p className="text-sm font-semibold leading-6 text-black/70">
+                        {image.caption || image.alt}
+                      </p>
+                    </figcaption>
+                  ) : null}
+                </figure>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      <button
+        type="button"
+        onClick={onBack}
+        className="mt-8 inline-flex items-center rounded-md border border-black/10 bg-[#d7d5ce] px-5 py-3 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md"
+      >
+        ← Zurück zur Galerie
+      </button>
     </article>
   );
 }
@@ -1343,56 +1389,124 @@ function EventPortalDetail({
 }
 
 function ContactPanel() {
-  const links = [
+  const links: Array<{
+    title: string;
+    kicker: string;
+    text: string;
+    href?: string;
+    label: string;
+  }> = [
     {
       title: "Instagram",
-      text: "Training, Ausdauer, Alltag und kleine Momente unterwegs.",
+      kicker: "Momente",
+      text: "Training, Ausdauer, Alltag und kleine Eindrücke unterwegs.",
       href: "https://www.instagram.com/threshold.peaks/",
+      label: "Instagram öffnen",
     },
     {
       title: "Strava",
-      text: "Läufe, Rides und sportliche Aktivitäten.",
+      kicker: "Aktivitäten",
+      text: "Läufe, Rides und sportliche Aktivitäten im Überblick.",
       href: "https://www.strava.com/athletes/47713057",
+      label: "Strava öffnen",
     },
     {
       title: "SoundCloud",
+      kicker: "Musik",
       text: "DJ-Sets und elektronische Sounds folgen demnächst.",
-      href: "#",
-    },
-    {
-      title: "E-Mail",
-      text: "Schreib mir direkt an info@threshold-peaks.de",
-      href: "mailto:info@threshold-peaks.de",
+      label: "Folgt bald",
     },
   ];
 
+  const cardClass =
+    "group rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-5 shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl";
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {links.map((item) => {
-        const isExternal = item.href.startsWith("http");
+    <div className="grid gap-5 lg:grid-cols-[1.1fr_1.4fr]">
+      <div className="rounded-[2rem] border border-black/10 bg-white p-7 text-[#111217] shadow-sm md:p-8">
+        <p className="mb-5 text-xs font-black uppercase tracking-[0.35em] text-black/40">
+          Direktkontakt
+        </p>
 
-        return (
-          <Link
-            key={item.title}
-            href={item.href}
-            target={isExternal ? "_blank" : undefined}
-            rel={isExternal ? "noreferrer" : undefined}
-            className="group rounded-[1.5rem] border border-black/10 bg-[#d7d5ce] p-6 shadow-sm transition hover:-translate-y-1 hover:bg-[#c9c6bd] hover:shadow-xl"
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <h4 className="text-lg font-black transition group-hover:text-orange-600">
-                {item.title}
-              </h4>
+        <h4 className="max-w-xl text-3xl font-black leading-tight tracking-[-0.04em] md:text-4xl">
+          Schreib mir, wenn du Fragen, Ideen oder Feedback hast.
+        </h4>
 
-              <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
-                →
-              </span>
-            </div>
+        <p className="mt-5 max-w-xl leading-8 text-black/65">
+          Ob Training, Events, Website, Musik oder einfach ein kurzer Austausch:
+          Threshold Peaks lebt von Bewegung, Klang und guten Gedanken dazwischen.
+        </p>
 
-            <p className="leading-7 text-black/65">{item.text}</p>
-          </Link>
-        );
-      })}
+        <a
+          href="mailto:info@threshold-peaks.de"
+          className="mt-8 inline-flex w-full items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-6 py-4 text-sm font-black text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md sm:w-auto sm:min-w-[260px]"
+        >
+          info@threshold-peaks.de
+          <span>→</span>
+        </a>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+        {links.map((item) => {
+          const isExternal = item.href?.startsWith("http");
+
+          const cardContent = (
+            <>
+              <div className="mb-4 flex items-start justify-between gap-4">
+                <div>
+                  <p className="mb-3 text-[10px] font-black uppercase tracking-[0.28em] text-black/40">
+                    {item.kicker}
+                  </p>
+
+                  <h4 className="text-xl font-black leading-tight tracking-[-0.03em] transition group-hover:text-orange-600">
+                    {item.title}
+                  </h4>
+                </div>
+
+                <span className="rounded-full bg-white/60 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-black/50 transition group-hover:text-orange-600">
+                  {item.href ? "↗" : "bald"}
+                </span>
+              </div>
+
+              <p className="text-sm font-semibold leading-7 text-black/65">
+                {item.text}
+              </p>
+
+              <div className="mt-5 flex items-center justify-between border-t border-black/10 pt-4 text-sm font-black text-black">
+                <span>{item.label}</span>
+
+                {item.href ? (
+                  <span className="transition group-hover:translate-x-1 group-hover:text-orange-600">
+                    →
+                  </span>
+                ) : (
+                  <span className="text-black/35">•</span>
+                )}
+              </div>
+            </>
+          );
+
+          if (!item.href) {
+            return (
+              <div key={item.title} className={`${cardClass} cursor-default`}>
+                {cardContent}
+              </div>
+            );
+          }
+
+          return (
+            <a
+              key={item.title}
+              href={item.href}
+              target={isExternal ? "_blank" : undefined}
+              rel={isExternal ? "noreferrer" : undefined}
+              className={cardClass}
+            >
+              {cardContent}
+            </a>
+          );
+        })}
+      </div>
     </div>
   );
 }

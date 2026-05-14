@@ -9,9 +9,6 @@ import { client } from "@/sanity/lib/client";
 
 export const revalidate = 60;
 
-const grayButtonClass =
-  "inline-flex items-center justify-between rounded-md border border-black/10 bg-[#d7d5ce] px-7 py-4 text-sm font-bold text-[#111217] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#c9c6bd] hover:text-orange-600 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-4 focus-visible:ring-offset-[#f5f3ee]";
-
 type PortableTextBlock = any[];
 
 type HomeJournalImage = SanityImageSource & {
@@ -127,7 +124,7 @@ function isUpcomingHomeEvent(event: HomeEvent) {
   return eventDate >= getTodayKey();
 }
 
-export default async function StartseiteTest() {
+export default async function Home() {
   const [allPosts, allAlbums, fetchedEvents] = await Promise.all([
     client.fetch<HomeJournalPost[]>(allJournalQuery),
     client.fetch<HomeGalleryAlbum[]>(allGalleryQuery),
@@ -154,7 +151,6 @@ export default async function StartseiteTest() {
               src="/images/runner-hero.webp"
               alt="Runner im Stadion"
               fill
-              loading="eager"
               priority
               sizes="(max-width: 768px) 100vw, 64vw"
               className="object-cover object-[72%_top] opacity-35 contrast-105 saturate-105 brightness-105 md:object-[82%_top] md:opacity-100 md:contrast-110 md:saturate-110"
@@ -169,10 +165,10 @@ export default async function StartseiteTest() {
         </div>
 
         {/* HEADER */}
-        <header className="relative z-50 flex h-20 items-center justify-between px-6 md:h-24 md:justify-start md:px-10 lg:px-20">
+        <header className="relative z-50 px-6 pt-6 md:px-10 md:pt-8 lg:px-20">
           <a
             href="#top"
-            className="flex items-center gap-3 transition hover:text-orange-600"
+            className="absolute left-6 top-6 inline-flex items-center gap-3 transition hover:text-orange-600 md:left-10 md:top-8"
             aria-label="Zur Startseite"
           >
             <ThresholdPeaksIcon />
@@ -187,81 +183,65 @@ export default async function StartseiteTest() {
             </div>
           </a>
 
-          <nav className="ml-10 hidden items-center gap-6 text-sm font-semibold md:flex">
-            <NavLink href="#top">Home</NavLink>
-            <NavLink href="#portal-about">About</NavLink>
-            <NavLink href="#portal-journal">Journal</NavLink>
-            <NavLink href="#portal-gallery">Galerie</NavLink>
-            <NavLink href="#portal-events">Events</NavLink>
-            <NavLink href="#portal-contact">Kontakt</NavLink>
-          </nav>
+          <div className="mx-auto max-w-[1280px]">
+            <div
+              aria-hidden="true"
+              className="invisible inline-flex items-center gap-3"
+            >
+              <ThresholdPeaksIcon />
 
-          <details className="group relative md:hidden">
-            <summary className="list-none rounded-full border border-black/10 bg-white/70 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition hover:text-orange-600 active:scale-95 [&::-webkit-details-marker]:hidden">
-              Menü
-            </summary>
-
-            <div className="absolute right-0 top-14 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
-              <MobileNavLink href="#top">Home</MobileNavLink>
-              <MobileNavLink href="#portal-about">About</MobileNavLink>
-              <MobileNavLink href="#portal-journal">Journal</MobileNavLink>
-              <MobileNavLink href="#portal-gallery">Galerie</MobileNavLink>
-              <MobileNavLink href="#portal-events">Events</MobileNavLink>
-              <MobileNavLink href="#portal-contact">Kontakt</MobileNavLink>
+              <div className="leading-none">
+                <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
+                  Threshold Peaks
+                </div>
+                <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
+                  Beat the extra mile
+                </div>
+              </div>
             </div>
-          </details>
+
+            <HeroTopNav />
+
+            <details className="group relative mt-5 inline-block md:hidden">
+              <summary className="list-none rounded-full border border-black/10 bg-white/75 px-5 py-3 text-xs font-black uppercase tracking-[0.28em] shadow-sm backdrop-blur-md transition hover:text-orange-600 active:scale-95 [&::-webkit-details-marker]:hidden">
+                Menü
+              </summary>
+
+              <div className="absolute left-0 top-14 z-50 w-52 overflow-hidden rounded-3xl border border-black/10 bg-white/95 p-2 shadow-xl backdrop-blur-xl">
+                <MobileNavLink href="/">Home</MobileNavLink>
+                <MobileNavLink href="/#about">About</MobileNavLink>
+                <MobileNavLink href="/#journal">Journal</MobileNavLink>
+                <MobileNavLink href="/#gallery">Galerie</MobileNavLink>
+                <MobileNavLink href="/#events">Events</MobileNavLink>
+                <MobileNavLink href="/#contact">Kontakt</MobileNavLink>
+              </div>
+            </details>
+          </div>
         </header>
 
-        {/* HERO TEXT */}
-        <div className="relative z-10 px-6 pt-16 md:px-10 md:pt-20 lg:px-20 lg:pt-24">
-          <p className="mb-6 text-xs font-extrabold uppercase tracking-[0.42em] md:mb-7 md:text-sm md:tracking-[0.48em]">
-            Laufen • Radfahren • Musik
-          </p>
-
-          <h1 className="max-w-[590px] text-[54px] font-black leading-[0.92] tracking-[-0.06em] sm:text-[64px] md:text-[92px]">
-            Bewegung <br />
-            ist Freiheit.
-          </h1>
-
-          <div className="my-8 h-px w-12 bg-black/45 md:my-9" />
-
-          <p className="max-w-[440px] text-base leading-7 text-black/75 md:text-lg md:leading-8">
-            Threshold Peaks verbindet Ausdauer, elektronische Musik und aktiven
-            Lifestyle. Hier findest du Storys, Bilder, Events und kleine
-            Momente zwischen Training, Rhythmus und Alltag.
-          </p>
-
-          <a
-            href="#portal"
-            className={`${grayButtonClass} mt-8 min-w-[230px] md:mt-9`}
-          >
-            Portal öffnen <span>→</span>
-          </a>
-        </div>
-      </section>
-
-      {/* PORTAL */}
-      <div className="relative z-30 -mt-44 md:-mt-72 lg:-mt-[34rem] xl:-mt-[38rem]">
-        <HomePortal
-          latestPosts={latestPosts}
-          allPosts={allPosts}
-          latestAlbums={latestAlbums}
-          allAlbums={allAlbums}
-          latestEvents={latestEvents}
-          allEvents={upcomingEvents}
-        />
-      </div>
-
-      {/* STRAVA DEZENT */}
-      <section id="strava" className="px-6 pb-16 pt-16 md:px-10 md:pt-20 lg:px-20">
-        <div className="mx-auto max-w-[1280px]">
-          <StravaLatest />
+        {/* HERO CONTENT */}
+        <div className="relative z-10 px-6 pb-4 pt-8 md:px-10 md:pt-10 lg:px-20 lg:pt-12">
+          <div className="mx-auto max-w-[1280px]">
+            <HomePortal
+              latestPosts={latestPosts}
+              allPosts={allPosts}
+              latestAlbums={latestAlbums}
+              allAlbums={allAlbums}
+              latestEvents={latestEvents}
+              allEvents={upcomingEvents}
+              embedded
+            />
+          </div>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer className="px-6 pb-10 pt-4 md:px-10 lg:px-20">
         <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/60 p-7 text-sm text-black/65 shadow-sm backdrop-blur-xl md:p-8">
+          <div className="mb-8 border-b border-black/10 pb-7">
+            <StravaLatest variant="footer" />
+          </div>
+
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <a
               href="#top"
@@ -281,21 +261,20 @@ export default async function StartseiteTest() {
             </a>
 
             <div className="flex flex-wrap gap-5 font-bold">
-              <Link href="/#portal-journal" className="transition hover:text-orange-600">
-                Journal
-              </Link>
-              <Link href="/#portal-gallery" className="transition hover:text-orange-600">
-                Galerie
-              </Link>
-              <Link href="/#portal-events" className="transition hover:text-orange-600">
-                Events
-              </Link>
-              <Link href="/impressum" className="transition hover:text-orange-600">
+              <Link
+                href="/impressum"
+                className="transition hover:text-orange-600"
+              >
                 Impressum
               </Link>
-              <Link href="/datenschutz" className="transition hover:text-orange-600">
+
+              <Link
+                href="/datenschutz"
+                className="transition hover:text-orange-600"
+              >
                 Datenschutz
               </Link>
+
               <Link href="/studio" className="transition hover:text-orange-600">
                 CMS Login
               </Link>
@@ -339,15 +318,39 @@ function ThresholdPeaksIcon() {
   );
 }
 
-function NavLink({ href, children }: { href: string; children: ReactNode }) {
+function HeroTopNav() {
   return (
-    <a
+    <nav
+      aria-label="Hauptnavigation"
+      className="mt-6 hidden w-fit flex-wrap items-center gap-2 rounded-[1.5rem] border border-black/10 bg-white/60 p-2 shadow-sm backdrop-blur-xl md:flex"
+    >
+      <HeroTopNavLink href="/">Home</HeroTopNavLink>
+      <HeroTopNavLink href="/#about">About</HeroTopNavLink>
+      <HeroTopNavLink href="/#journal">Journal</HeroTopNavLink>
+      <HeroTopNavLink href="/#gallery">Galerie</HeroTopNavLink>
+      <HeroTopNavLink href="/#events">Events</HeroTopNavLink>
+      <HeroTopNavLink href="/#contact">Kontakt</HeroTopNavLink>
+    </nav>
+  );
+}
+
+function HeroTopNavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: ReactNode;
+}) {
+  return (
+    <Link
       href={href}
-      className="group relative pb-2 text-black transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
+      className="group inline-flex items-center gap-3 rounded-2xl px-4 py-2.5 text-sm font-black text-black/70 transition hover:bg-[#d7d5ce] hover:text-orange-600"
     >
       <span>{children}</span>
-      <span className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-0 rounded-full bg-orange-500 transition-all group-hover:w-full" />
-    </a>
+      <span className="text-black/25 transition group-hover:translate-x-1 group-hover:text-orange-600">
+        →
+      </span>
+    </Link>
   );
 }
 
@@ -359,11 +362,11 @@ function MobileNavLink({
   children: ReactNode;
 }) {
   return (
-    <a
+    <Link
       href={href}
       className="block rounded-2xl px-4 py-2.5 text-sm font-bold text-black transition hover:bg-black/5 hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
     >
       {children}
-    </a>
+    </Link>
   );
 }
