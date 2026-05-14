@@ -330,6 +330,10 @@ function getJournalTags(tags?: string | HomeJournalTag[]) {
   );
 }
 
+function normalizeJournalTagFilter(value?: string | null) {
+  return (value || "").replace(/^#/, "").trim().toLowerCase();
+}
+
 function formatGalleryCategory(category?: string) {
   const categories: Record<string, string> = {
     running: "Running",
@@ -421,6 +425,7 @@ export default function HomePortal({
     gallery: false,
     events: false,
   });
+  const [activeJournalTag, setActiveJournalTag] = useState<string | null>(null);
 
   function clearPortalDetails() {
     setSelectedPost(null);
@@ -439,10 +444,43 @@ export default function HomePortal({
   function toggleShowAllContent(tab: PortalContentTab) {
     clearPortalDetails();
 
+    if (tab === "journal") {
+      setActiveJournalTag(null);
+    }
+
     setShowAllContent((current) => ({
       ...current,
       [tab]: !current[tab],
     }));
+  }
+
+  function handleJournalTagFilter(tag: string) {
+    setActiveTab("journal");
+    clearPortalDetails();
+    setActiveJournalTag(tag);
+    setShowAllContent((current) => ({
+      ...current,
+      journal: true,
+    }));
+
+    if (typeof window !== "undefined") {
+      window.history.replaceState(
+        null,
+        "",
+        `/?tag=${encodeURIComponent(tag)}#portal-journal`,
+      );
+
+      window.setTimeout(() => {
+        document.getElementById("top")?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 50);
+    }
+  }
+
+  function clearJournalTagFilter() {
+    setActiveJournalTag(null);
   }
 
   useEffect(() => {
@@ -469,9 +507,26 @@ export default function HomePortal({
 
       if (!nextTab) return;
 
+      const urlTag = new URLSearchParams(window.location.search).get("tag");
+      const nextJournalTag =
+        nextTab === "journal" && urlTag
+          ? urlTag.replace(/^#/, "").trim()
+          : null;
+
       setActiveTab(nextTab);
       clearPortalDetails();
-      resetShowAllContent();
+
+      if (nextJournalTag) {
+        setActiveJournalTag(nextJournalTag);
+        setShowAllContent({
+          journal: true,
+          gallery: false,
+          events: false,
+        });
+      } else {
+        resetShowAllContent();
+        setActiveJournalTag(null);
+      }
 
       const topElement = document.getElementById("top");
 
@@ -496,8 +551,18 @@ export default function HomePortal({
 
   const activeTabMeta = tabs.find((tab) => tab.id === activeTab) ?? tabs[0];
 
-  const visiblePosts =
+  const baseVisiblePosts =
     showAllContent.journal && allPosts.length > 0 ? allPosts : latestPosts;
+
+  const visiblePosts = activeJournalTag
+    ? (allPosts.length > 0 ? allPosts : baseVisiblePosts).filter((post) =>
+        getJournalTags(post.tags).some(
+          (tag) =>
+            normalizeJournalTagFilter(tag) ===
+            normalizeJournalTagFilter(activeJournalTag),
+        ),
+      )
+    : baseVisiblePosts;
 
   const visibleAlbums =
     showAllContent.gallery && allAlbums.length > 0 ? allAlbums : latestAlbums;
@@ -564,7 +629,10 @@ export default function HomePortal({
                 </p>
               </div>
 
-              {!selectedPost && !selectedAlbum && !selectedEvent ? (
+              {!selectedPost &&
+              !selectedAlbum &&
+              !selectedEvent &&
+              !(activeTab === "journal" && activeJournalTag) ? (
                 <PortalMainLink
                   activeTab={activeTab}
                   showAllContent={showAllContent}
@@ -584,11 +652,14 @@ export default function HomePortal({
                     <JournalPortalDetail
                       post={selectedPost}
                       onBack={() => setSelectedPost(null)}
+                      onTagClick={handleJournalTagFilter}
                     />
                   ) : (
                     <JournalPanel
                       posts={visiblePosts}
                       onOpenPost={setSelectedPost}
+                      activeTag={activeJournalTag}
+                      onClearTag={clearJournalTagFilter}
                     />
                   )
                 ) : null}
@@ -751,9 +822,13 @@ function AboutPanel() {
 function JournalPanel({
   posts,
   onOpenPost,
+  activeTag,
+  onClearTag,
 }: {
   posts: HomeJournalPost[];
   onOpenPost: (post: HomeJournalPost) => void;
+  activeTag?: string | null;
+  onClearTag: () => void;
 }) {
   const fallbackPosts: HomeJournalPost[] = [
     {
@@ -779,11 +854,39 @@ function JournalPanel({
     },
   ];
 
-  const items = posts.length > 0 ? posts : fallbackPosts;
+  const items = posts.length > 0 ? posts : activeTag ? [] : fallbackPosts;
 
   return (
-    <div className="divide-y divide-black/10 border-y border-black/10">
-      {items.map((post) => {
+    <div>
+      {activeTag ? (
+        <div className="mb-6 flex flex-col gap-3 rounded-3xl border border-black/10 bg-white/45 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-black/45">
+            Aktiver Tag-Filter: <span className="text-black">#{activeTag}</span>
+          </p>
+
+          <button
+            type="button"
+            onClick={onClearTag}
+            className="self-start border-b border-black/20 pb-1 text-xs font-black uppercase tracking-[0.2em] text-black/45 transition hover:border-orange-500 hover:text-orange-600 sm:self-auto"
+          >
+            Filter zurücksetzen
+          </button>
+        </div>
+      ) : null}
+
+      {items.length === 0 ? (
+        <div className="border-y border-black/10 py-7">
+          <h4 className="text-2xl font-black tracking-[-0.04em]">
+            Keine Beiträge für diesen Tag.
+          </h4>
+
+          <p className="mt-4 max-w-xl leading-8 text-black/65">
+            Für #{activeTag} gibt es aktuell keinen passenden Journal-Beitrag.
+          </p>
+        </div>
+      ) : (
+        <div className="divide-y divide-black/10 border-y border-black/10">
+          {items.map((post) => {
         const tags = getJournalTags(post.tags).slice(0, 4);
 
         return (
@@ -832,7 +935,9 @@ function JournalPanel({
             </span>
           </button>
         );
-      })}
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -840,9 +945,11 @@ function JournalPanel({
 function JournalPortalDetail({
   post,
   onBack,
+  onTagClick,
 }: {
   post: HomeJournalPost;
   onBack: () => void;
+  onTagClick: (tag: string) => void;
 }) {
   const hasExternalLinks = Boolean(post.stravaUrl || post.soundcloudUrl);
   const externalLinkLabel =
@@ -988,13 +1095,14 @@ function JournalPortalDetail({
 
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag) => (
-                  <Link
+                  <button
                     key={tag}
-                    href={`/journal?tag=${encodeURIComponent(tag)}`}
+                    type="button"
+                    onClick={() => onTagClick(tag)}
                     className="rounded-full border border-black/10 bg-white/45 px-4 py-2 text-xs font-black text-black/55 backdrop-blur transition hover:border-orange-500/40 hover:text-orange-600"
                   >
                     #{tag}
-                  </Link>
+                  </button>
                 ))}
               </div>
             </section>
