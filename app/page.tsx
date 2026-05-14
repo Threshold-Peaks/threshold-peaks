@@ -254,22 +254,25 @@ export default async function Home() {
               </div>
             </a>
 
-            <div className="flex flex-wrap gap-5 font-bold">
+            <div className="grid w-full grid-cols-3 items-center gap-3 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-black/55 md:flex md:w-auto md:flex-wrap md:gap-5 md:text-left md:text-sm md:normal-case md:tracking-normal md:text-black/65">
               <Link
                 href="/impressum"
-                className="transition hover:text-orange-600"
+                className="whitespace-nowrap transition hover:text-orange-600"
               >
                 Impressum
               </Link>
 
               <Link
                 href="/datenschutz"
-                className="transition hover:text-orange-600"
+                className="whitespace-nowrap transition hover:text-orange-600"
               >
                 Datenschutz
               </Link>
 
-              <Link href="/studio" className="transition hover:text-orange-600">
+              <Link
+                href="/studio"
+                className="whitespace-nowrap transition hover:text-orange-600"
+              >
                 CMS Login
               </Link>
             </div>
