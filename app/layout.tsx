@@ -1,64 +1,92 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://www.threshold-peaks.de"),
+const siteUrl = "https://www.threshold-peaks.de";
+const siteName = "Threshold Peaks";
+const siteTitle = "Threshold Peaks | Beat the extra mile";
+const siteDescription =
+  "Threshold Peaks verbindet Ausdauer, elektronische Musik und aktiven Lifestyle. Persönliche Geschichten, Training, Galerie und Events zwischen Puls, Bass und draußen unterwegs sein.";
 
-  applicationName: "Threshold Peaks",
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+
+  applicationName: siteName,
 
   title: {
-    default: "Threshold Peaks | Beat the extra mile",
-    template: "%s | Threshold Peaks",
+    default: siteTitle,
+    template: `%s | ${siteName}`,
   },
 
-  description:
-    "Threshold Peaks verbindet Laufen, Radfahren, elektronische Musik und aktiven Lifestyle. Persönliche Geschichten, Strava-Aktivitäten, Events und Momente aus Bewegung und Klang.",
+  description: siteDescription,
 
   keywords: [
     "Threshold Peaks",
     "Beat the extra mile",
+    "Ausdauer",
     "Laufen",
+    "Running",
     "Radfahren",
+    "Cycling",
     "Gravel",
     "Leichtathletik",
+    "Training",
     "Elektronische Musik",
     "DJ",
     "Strava",
-    "Ausdauer",
+    "Events",
     "Verl",
   ],
 
   authors: [{ name: "Matthias Klenk" }],
   creator: "Matthias Klenk",
-  publisher: "Threshold Peaks",
+  publisher: siteName,
+  category: "Lifestyle",
 
   alternates: {
     canonical: "/",
   },
 
   openGraph: {
-    title: "Threshold Peaks | Beat the extra mile",
-    description:
-      "Laufen, Radfahren, elektronische Musik und aktiver Lifestyle. Persönliche Geschichten, Strava-Aktivitäten, Events und Momente aus Bewegung und Klang.",
+    title: siteTitle,
+    description: siteDescription,
     url: "/",
-    siteName: "Threshold Peaks",
+    siteName,
     locale: "de_DE",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Threshold Peaks | Beat the extra mile",
+      },
+    ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Threshold Peaks | Beat the extra mile",
-    description:
-      "Laufen, Radfahren, elektronische Musik und aktiver Lifestyle. Beat the extra mile.",
+    title: siteTitle,
+    description: siteDescription,
+    images: ["/opengraph-image"],
   },
 
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 
-  
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
@@ -73,9 +101,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <body>
-  {children}
-</body>
+      <body>{children}</body>
     </html>
   );
 }
