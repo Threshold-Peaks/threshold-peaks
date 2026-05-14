@@ -773,9 +773,6 @@ export default function HomePortal({
                 <span className="absolute left-0 top-1 h-full w-px bg-black/15" />
                 <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee]" />
 
-                <p className="mb-3 text-[10px] font-black uppercase tracking-[0.34em] text-black/35">
-                  Threshold Peaks Portal
-                </p>
 
                 <h3 className="text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
                   {activeTabMeta.title}
