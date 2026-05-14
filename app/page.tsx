@@ -254,13 +254,17 @@ export default async function Home() {
               </div>
             </a>
 
-            <div className="grid w-full grid-cols-3 items-center gap-3 text-center text-[11px] font-bold uppercase tracking-[0.12em] text-black/55 md:flex md:w-auto md:flex-wrap md:gap-5 md:text-left md:text-sm md:normal-case md:tracking-normal md:text-black/65">
+            <div className="flex w-full items-center justify-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.1em] text-black/55 md:w-auto md:justify-end md:gap-3 md:text-sm md:normal-case md:tracking-normal md:text-black/65">
               <Link
                 href="/impressum"
                 className="whitespace-nowrap transition hover:text-orange-600"
               >
                 Impressum
               </Link>
+
+              <span className="select-none text-black/30" aria-hidden="true">
+                ·
+              </span>
 
               <Link
                 href="/datenschutz"
@@ -269,11 +273,15 @@ export default async function Home() {
                 Datenschutz
               </Link>
 
+              <span className="select-none text-black/30" aria-hidden="true">
+                ·
+              </span>
+
               <Link
                 href="/studio"
                 className="whitespace-nowrap transition hover:text-orange-600"
               >
-                CMS Login
+                Admin
               </Link>
             </div>
           </div>
