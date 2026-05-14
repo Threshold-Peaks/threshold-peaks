@@ -184,16 +184,16 @@ export default function OpenGraphImage() {
           <div
             style={{
               display: "flex",
-              marginTop: "34px",
-              maxWidth: "900px",
-              fontSize: "28px",
-              lineHeight: 1.35,
+              marginTop: "30px",
+              maxWidth: "880px",
+              fontSize: "27px",
+              lineHeight: 1.32,
               color: "rgba(17,18,23,0.68)",
               fontWeight: 700,
             }}
           >
             Ausdauer, elektronische Musik und echte Momente zwischen Training,
-            Events und frei bewegten Gedanken.
+            Klang und Gedanken in Bewegung.
           </div>
         </div>
 
@@ -205,7 +205,7 @@ export default function OpenGraphImage() {
             justifyContent: "space-between",
             alignItems: "center",
             borderTop: "1px solid rgba(17,18,23,0.14)",
-            paddingTop: "28px",
+            paddingTop: "34px",
             fontSize: "18px",
             fontWeight: 850,
             color: "rgba(17,18,23,0.58)",
