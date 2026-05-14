@@ -87,10 +87,25 @@ export async function generateMetadata({
   const description = getMetaDescription(post);
   const url = `${baseUrl}/journal/${slug}`;
   const image = getOgImage(post);
+  const tags = Array.from(
+    new Set(
+      (post.tags ?? [])
+        .map((tag) => getTagLabel(tag))
+        .filter((tag): tag is string => Boolean(tag)),
+    ),
+  );
+  const keywords = [
+    "Threshold Peaks",
+    "Beat the extra mile",
+    "Journal",
+    formatCategory(post.category),
+    ...tags,
+  ];
 
   return {
     title,
     description,
+    keywords,
     alternates: {
       canonical: url,
     },
@@ -100,6 +115,9 @@ export async function generateMetadata({
       url,
       siteName: "Threshold Peaks",
       type: "article",
+      ...(post.publishedAt ? { publishedTime: post.publishedAt } : {}),
+      authors: ["Threshold Peaks"],
+      ...(tags.length > 0 ? { tags } : {}),
       images: [
         {
           url: image,
@@ -141,7 +159,7 @@ function formatCategory(category?: string) {
     musik: "Music",
   };
 
-  return category ? categories[category] ?? category : "Journal";
+  return category ? (categories[category] ?? category) : "Journal";
 }
 
 function getTagLabel(tag: JournalTag) {
@@ -149,14 +167,7 @@ function getTagLabel(tag: JournalTag) {
     return tag.replace(/^#/, "").trim();
   }
 
-  return (
-    tag.title ||
-    tag.name ||
-    tag.label ||
-    tag.value ||
-    tag.current ||
-    ""
-  )
+  return (tag.title || tag.name || tag.label || tag.value || tag.current || "")
     .replace(/^#/, "")
     .trim();
 }
@@ -243,8 +254,8 @@ export default async function JournalPostPage({
     new Set(
       (post.tags ?? [])
         .map((tag) => getTagLabel(tag))
-        .filter((tag): tag is string => Boolean(tag))
-    )
+        .filter((tag): tag is string => Boolean(tag)),
+    ),
   );
 
   return (
