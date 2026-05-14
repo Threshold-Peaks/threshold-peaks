@@ -1033,26 +1033,15 @@ function PortalTagFilter({
           </span>
         </button>
 
-        <div className="flex items-center gap-4">
-          {hasActiveTags ? (
-            <button
-              type="button"
-              onClick={onResetTags}
-              className="text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:text-orange-600"
-            >
-              Filter zurücksetzen
-            </button>
-          ) : null}
-
+        {hasActiveTags ? (
           <button
             type="button"
-            onClick={() => setIsOpen((current) => !current)}
-            className="border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/45 transition hover:border-orange-500 hover:text-orange-600"
-            aria-expanded={isOpen}
+            onClick={onResetTags}
+            className="text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:text-orange-600 sm:text-right"
           >
-            {isOpen ? "Schließen" : "Öffnen"}
+            Filter zurücksetzen
           </button>
-        </div>
+        ) : null}
       </div>
 
       {hasActiveTags && !isOpen ? (
