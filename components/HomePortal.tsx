@@ -1009,7 +1009,7 @@ function PortalTagFilter({
   const activeTags = tags.filter((tag) => isTagSelected(selectedTags, tag));
 
   return (
-    <section className="mb-7 rounded-[1.35rem] border border-black/10 bg-white/35 px-4 py-3 shadow-sm backdrop-blur">
+    <section className="mt-7 rounded-[1.35rem] border border-black/10 bg-white/35 px-4 py-3 shadow-sm backdrop-blur">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
@@ -1140,14 +1140,6 @@ function JournalPanel({
 
   return (
     <div>
-      <PortalTagFilter
-        label="Journal"
-        tags={allTags}
-        selectedTags={selectedTags}
-        onToggleTag={onToggleTag}
-        onResetTags={onResetTags}
-      />
-
       {items.length === 0 ? (
         <div className="border-y border-black/10 py-7">
           <h4 className="text-2xl font-black tracking-[-0.04em]">
@@ -1223,6 +1215,14 @@ function JournalPanel({
           })}
         </div>
       )}
+
+      <PortalTagFilter
+        label="Journal"
+        tags={allTags}
+        selectedTags={selectedTags}
+        onToggleTag={onToggleTag}
+        onResetTags={onResetTags}
+      />
     </div>
   );
 }
@@ -1439,14 +1439,6 @@ function GalleryPanel({
 
   return (
     <div>
-      <PortalTagFilter
-        label="Galerie"
-        tags={allTags}
-        selectedTags={selectedTags}
-        onToggleTag={onToggleTag}
-        onResetTags={onResetTags}
-      />
-
       {albums.length === 0 ? (
         <div className="border-y border-black/10 py-7">
           <h4 className="text-2xl font-black tracking-[-0.04em]">
@@ -1559,6 +1551,14 @@ function GalleryPanel({
           })}
         </div>
       )}
+
+      <PortalTagFilter
+        label="Galerie"
+        tags={allTags}
+        selectedTags={selectedTags}
+        onToggleTag={onToggleTag}
+        onResetTags={onResetTags}
+      />
     </div>
   );
 }
@@ -1791,14 +1791,6 @@ function EventsPanel({
 
   return (
     <div>
-      <PortalTagFilter
-        label="Event"
-        tags={allTags}
-        selectedTags={selectedTags}
-        onToggleTag={onToggleTag}
-        onResetTags={onResetTags}
-      />
-
       {items.length === 0 ? (
         <div className="border-y border-black/10 py-7">
           <h4 className="text-2xl font-black tracking-[-0.04em]">
@@ -1867,6 +1859,14 @@ function EventsPanel({
           })}
         </div>
       )}
+
+      <PortalTagFilter
+        label="Event"
+        tags={allTags}
+        selectedTags={selectedTags}
+        onToggleTag={onToggleTag}
+        onResetTags={onResetTags}
+      />
     </div>
   );
 }
