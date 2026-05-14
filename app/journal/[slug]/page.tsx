@@ -175,6 +175,20 @@ function getPortalTagHref(tag: string) {
   return `/?tags=${encodeURIComponent(tag)}#portal-journal`;
 }
 
+function DetailFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="py-4 md:px-5 md:first:pl-0">
+      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/30">
+        {label}
+      </p>
+      <p className="mt-2 text-sm font-bold leading-6 text-black/65">{value}</p>
+    </div>
+  );
+}
+
+const detailActionLinkClass =
+  "inline-flex items-center justify-between gap-4 border-b border-black/10 pb-3 text-xs font-black text-black/55 transition hover:border-orange-500/40 hover:text-orange-600 sm:text-sm";
+
 const portableTextComponents: PortableTextComponents = {
   block: {
     h2: ({ children }) => (
@@ -262,156 +276,122 @@ export default async function JournalPostPage({
       <BackHeader href="/#portal-journal" label="Zurück zum Journal" />
 
       <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
-        <div className="mx-auto max-w-[1280px]">
+        <div className="mx-auto max-w-5xl">
           <article>
-            <header className="max-w-4xl">
-              <div className="mb-8 flex flex-wrap items-center gap-3">
-                <span className="rounded-full bg-[#ded9cf] px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-neutral-700">
-                  {formatCategory(post.category)}
-                </span>
-
-                <span className="text-xs font-black uppercase tracking-[0.25em] text-neutral-500">
-                  {formatDate(post.publishedAt)}
-                </span>
-              </div>
-
-              <h1 className="text-5xl font-black leading-none tracking-tight md:text-7xl">
-                {post.title}
-              </h1>
-
-              {post.excerpt && (
-                <p className="mt-8 max-w-3xl text-xl leading-9 text-neutral-600">
-                  {post.excerpt}
-                </p>
-              )}
-            </header>
-
-            {post.mainImage && (
-              <div className="mt-12 max-w-4xl">
-                <div className="mb-4 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-                  <span>Journal-Cover</span>
-                  <span className="h-px w-8 bg-black/10" />
-                  <span>Aufmacher</span>
+            <header className="mb-10 grid gap-8 border-b border-black/10 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-end">
+              <div>
+                <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-black uppercase tracking-[0.25em] text-black/40">
+                  <span>{formatCategory(post.category)}</span>
+                  <span className="h-1 w-1 rounded-full bg-black/25" />
+                  <span>{formatDate(post.publishedAt)}</span>
                 </div>
 
-                <div className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-white/35 p-2">
-                  <div className="overflow-hidden rounded-[1.25rem] bg-[#ded9cf]">
-                    <Image
-                      src={urlFor(post.mainImage).width(1200).fit("max").url()}
-                      alt={post.mainImage.alt || post.title}
-                      width={1200}
-                      height={800}
-                      priority
-                      className="h-auto w-full object-contain"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+                <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-[-0.045em] text-neutral-950 md:text-6xl">
+                  {post.title}
+                </h1>
 
-            <div className="mt-14 grid gap-8 lg:grid-cols-[minmax(240px,0.9fr)_minmax(0,3fr)] lg:items-start">
-              <aside className="space-y-4 lg:sticky lg:top-8">
-                <div className="rounded-[1.75rem] border border-black/10 bg-white/30 p-5">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/30">
-                    Beitrag
+                {post.excerpt ? (
+                  <p className="mt-5 max-w-3xl text-lg font-semibold leading-8 text-neutral-600">
+                    {post.excerpt}
                   </p>
-
-                  <div className="mt-4 divide-y divide-black/10 text-xs font-bold text-black/60">
-                    <div className="flex items-baseline justify-between gap-4 py-3 first:pt-0">
-                      <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/30">
-                        Kategorie
-                      </span>
-                      <span className="text-right text-black/65">
-                        {formatCategory(post.category)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-baseline justify-between gap-4 py-3 last:pb-0">
-                      <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/30">
-                        Datum
-                      </span>
-                      <span className="text-right text-black/65">
-                        {formatDate(post.publishedAt)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {(post.stravaUrl || post.soundcloudUrl) && (
-                  <div className="rounded-[1.75rem] border border-black/10 bg-white/20 p-5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/30">
-                      Links
-                    </p>
-
-                    <div className="mt-4 divide-y divide-black/10">
-                      {post.stravaUrl && (
-                        <Link
-                          href={post.stravaUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="group flex items-center justify-between gap-4 py-3 text-xs font-black text-black/55 transition hover:text-orange-600"
-                        >
-                          <span>Strava öffnen</span>
-                          <span className="transition group-hover:translate-x-1">→</span>
-                        </Link>
-                      )}
-
-                      {post.soundcloudUrl && (
-                        <Link
-                          href={post.soundcloudUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="group flex items-center justify-between gap-4 py-3 text-xs font-black text-black/55 transition hover:text-orange-600"
-                        >
-                          <span>SoundCloud öffnen</span>
-                          <span className="transition group-hover:translate-x-1">→</span>
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <Link
-                  href="/#portal-journal"
-                  className="group flex items-center justify-between gap-4 rounded-[1.75rem] border border-black/10 bg-transparent px-5 py-4 text-xs font-black text-black/55 transition hover:border-orange-500/30 hover:text-orange-600"
-                >
-                  <span>Zurück zum Journal</span>
-                  <span className="transition group-hover:translate-x-1">→</span>
-                </Link>
-              </aside>
-
-              <div className="rounded-[2rem] bg-white p-7 shadow-sm ring-1 ring-black/10 md:p-10">
-                {post.body && post.body.length > 0 ? (
-                  <PortableText
-                    value={post.body}
-                    components={portableTextComponents}
-                  />
-                ) : (
-                  <p className="text-base leading-8 text-neutral-600">
-                    Für diesen Beitrag wurde noch kein Text hinterlegt.
-                  </p>
-                )}
-
-                {tags && tags.length > 0 ? (
-                  <section className="mt-12 border-t border-black/10 pt-7">
-                    <p className="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-                      Hashtags
-                    </p>
-
-                    <div className="flex flex-wrap gap-x-3 gap-y-2">
-                      {tags.map((tag) => (
-                        <Link
-                          key={tag}
-                          href={getPortalTagHref(tag)}
-                          className="px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
-                        >
-                          #{tag}
-                        </Link>
-                      ))}
-                    </div>
-                  </section>
                 ) : null}
               </div>
+
+              {post.mainImage ? (
+                <figure className="w-full lg:justify-self-end">
+                  <div className="overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1">
+                    <Image
+                      src={urlFor(post.mainImage).width(900).fit("max").url()}
+                      alt={post.mainImage.alt || post.title || "Journal Bild"}
+                      width={900}
+                      height={900}
+                      priority
+                      className="max-h-[360px] w-full rounded-[1.2rem] object-contain"
+                    />
+                  </div>
+
+                  {post.mainImage.alt ? (
+                    <figcaption className="mt-3 border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50">
+                      {post.mainImage.alt}
+                    </figcaption>
+                  ) : null}
+                </figure>
+              ) : null}
+            </header>
+
+            <section className="mb-12 border-b border-black/10">
+              <div className="divide-y divide-black/10 md:grid md:grid-cols-[repeat(auto-fit,minmax(160px,1fr))] md:divide-x md:divide-y-0">
+                <DetailFact
+                  label="Kategorie"
+                  value={formatCategory(post.category)}
+                />
+                <DetailFact
+                  label="Datum"
+                  value={formatDate(post.publishedAt)}
+                />
+                <DetailFact label="Bereich" value="Journal" />
+              </div>
+            </section>
+
+            {(post.stravaUrl || post.soundcloudUrl) && (
+              <section className="mb-12 flex flex-wrap gap-5 border-b border-black/10 pb-8">
+                {post.stravaUrl ? (
+                  <Link
+                    href={post.stravaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={detailActionLinkClass}
+                  >
+                    <span>Strava öffnen</span>
+                    <span>→</span>
+                  </Link>
+                ) : null}
+
+                {post.soundcloudUrl ? (
+                  <Link
+                    href={post.soundcloudUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={detailActionLinkClass}
+                  >
+                    <span>SoundCloud öffnen</span>
+                    <span>→</span>
+                  </Link>
+                ) : null}
+              </section>
+            )}
+
+            <div className="max-w-3xl">
+              {post.body && post.body.length > 0 ? (
+                <PortableText
+                  value={post.body}
+                  components={portableTextComponents}
+                />
+              ) : (
+                <p className="text-base leading-8 text-neutral-600">
+                  Für diesen Beitrag wurde noch kein Text hinterlegt.
+                </p>
+              )}
+
+              {tags.length > 0 ? (
+                <section className="mt-12 border-t border-black/10 pt-6">
+                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                    Hashtags
+                  </p>
+
+                  <div className="flex flex-wrap gap-x-3 gap-y-2">
+                    {tags.map((tag) => (
+                      <Link
+                        key={tag}
+                        href={getPortalTagHref(tag)}
+                        className="px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                      >
+                        #{tag}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ) : null}
             </div>
           </article>
         </div>
