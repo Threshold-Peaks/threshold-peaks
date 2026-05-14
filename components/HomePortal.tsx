@@ -974,7 +974,7 @@ function JournalPanel({
                   onClick={() => onToggleTag(tag)}
                   className={
                     active
-                      ? "rounded-full border border-black bg-black px-4 py-2 text-xs font-black text-white shadow-sm transition hover:border-orange-500 hover:bg-orange-600"
+                      ? "rounded-full border border-orange-500 bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-sm shadow-orange-500/20 transition hover:border-orange-600 hover:bg-orange-600"
                       : "rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-black text-black/50 transition hover:border-orange-500/40 hover:text-orange-600"
                   }
                 >
@@ -1035,10 +1035,10 @@ function JournalPanel({
                         <span
                           key={tag}
                           className={
-                            isTagActive(tag)
-                              ? "rounded-full border border-black bg-black px-3 py-1.5 text-[11px] font-black text-white"
-                              : "rounded-full border border-black/10 bg-white/45 px-3 py-1.5 text-[11px] font-black text-black/45"
-                          }
+  isTagActive(tag)
+    ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+    : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+}
                         >
                           #{tag}
                         </span>
