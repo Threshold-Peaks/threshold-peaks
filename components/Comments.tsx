@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import LikeButton from "@/components/LikeButton";
 
 type CommentTargetType = "journal" | "gallery" | "event";
 
@@ -194,6 +195,14 @@ export default function Comments({
                 <p className="max-w-3xl whitespace-pre-line text-sm font-semibold leading-7 text-black/65">
                   {comment.body}
                 </p>
+
+                <div className="mt-4 flex items-center justify-start border-t border-black/5 pt-3">
+                  <LikeButton
+                    targetType="comment"
+                    targetId={comment._id}
+                    className="tracking-[0.16em]"
+                  />
+                </div>
               </article>
             ))}
           </div>
