@@ -584,6 +584,23 @@ export default function HomePortal({
     }));
   }
 
+  function openLinkedGalleryAlbum(album: HomeGalleryAlbum) {
+    setActiveTab("gallery");
+    setSelectedPost(null);
+    setSelectedEvent(null);
+    setSelectedAlbum(album);
+    setShowAllContent((current) => ({ ...current, gallery: true }));
+
+    if (typeof window !== "undefined") {
+      window.history.replaceState(null, "", "/#portal-gallery");
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "auto",
+      });
+    }
+  }
+
   function syncPortalTagsToUrl(
     tab: "journal" | "gallery" | "events",
     tags: string[],
@@ -897,6 +914,7 @@ export default function HomePortal({
                       selectedTags={selectedJournalTags}
                       onToggleTag={toggleJournalTagFilter}
                       onBack={() => setSelectedPost(null)}
+                      onOpenLinkedGalleryAlbum={openLinkedGalleryAlbum}
                     />
                   ) : (
                     <JournalPanel
@@ -1320,11 +1338,13 @@ function JournalPortalDetail({
   selectedTags,
   onToggleTag,
   onBack,
+  onOpenLinkedGalleryAlbum,
 }: {
   post: HomeJournalPost;
   selectedTags: string[];
   onToggleTag: (tag: string) => void;
   onBack: () => void;
+  onOpenLinkedGalleryAlbum: (album: HomeGalleryAlbum) => void;
 }) {
   const hasExternalLinks = Boolean(post.stravaUrl || post.soundcloudUrl);
   const externalLinkLabel =
@@ -1468,7 +1488,10 @@ function JournalPortalDetail({
             </p>
           )}
 
-          <LinkedGalleryAlbumsSection albums={linkedGalleryAlbums} />
+          <LinkedGalleryAlbumsSection
+            albums={linkedGalleryAlbums}
+            onOpenAlbum={onOpenLinkedGalleryAlbum}
+          />
 
           {tags.length > 0 ? (
             <section className="mt-12 border-t border-black/10 pt-6">
@@ -1510,7 +1533,13 @@ function JournalPortalDetail({
 }
 
 
-function LinkedGalleryAlbumsSection({ albums }: { albums?: HomeGalleryAlbum[] }) {
+function LinkedGalleryAlbumsSection({
+  albums,
+  onOpenAlbum,
+}: {
+  albums?: HomeGalleryAlbum[];
+  onOpenAlbum: (album: HomeGalleryAlbum) => void;
+}) {
   const visibleAlbums = (albums ?? []).filter((album) => album?._id);
 
   if (visibleAlbums.length === 0) return null;
@@ -1537,15 +1566,13 @@ function LinkedGalleryAlbumsSection({ albums }: { albums?: HomeGalleryAlbum[] })
         {visibleAlbums.map((album, index) => {
           const image = album.coverImage || album.images?.[0];
           const imageCount = album.images?.length ?? 0;
-          const href = album.slug?.current
-            ? `/gallery/${album.slug.current}`
-            : "/#portal-gallery";
 
           return (
-            <Link
+            <button
               key={album._id}
-              href={href}
-              className="group grid gap-4 border-y border-black/10 py-4 transition hover:bg-white/35 sm:grid-cols-[112px_minmax(0,1fr)] sm:items-center sm:border-y-0 sm:border-t sm:pb-0"
+              type="button"
+              onClick={() => onOpenAlbum(album)}
+              className="group grid w-full gap-4 border-y border-black/10 py-4 text-left transition hover:bg-white/35 sm:grid-cols-[112px_minmax(0,1fr)] sm:items-center sm:border-y-0 sm:border-t sm:pb-0"
             >
               <div className="relative aspect-[4/5] overflow-hidden rounded-[1.1rem] bg-black/5 ring-1 ring-black/10">
                 {image ? (
@@ -1589,7 +1616,7 @@ function LinkedGalleryAlbumsSection({ albums }: { albums?: HomeGalleryAlbum[] })
                   Album öffnen <span>→</span>
                 </p>
               </div>
-            </Link>
+            </button>
           );
         })}
       </div>
