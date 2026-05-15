@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Image as SanityImage } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { urlFor } from "@/sanity/lib/image";
@@ -558,6 +558,7 @@ export default function HomePortal({
     gallery: false,
     events: false,
   });
+  const portalNavigationDelayRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   function clearPortalDetails() {
     setSelectedPost(null);
@@ -675,16 +676,16 @@ export default function HomePortal({
       return hashMap[rawHash];
     }
 
-    function updateFromHash() {
+    function applyPortalTabFromHash() {
       const nextTab = getTabIdFromHash();
 
       if (!nextTab) return;
 
+      const params = new URLSearchParams(window.location.search);
+
       setActiveTab(nextTab);
       clearPortalDetails();
       resetShowAllContent();
-
-      const params = new URLSearchParams(window.location.search);
 
       if (nextTab === "journal") {
         setSelectedJournalTags(
@@ -707,24 +708,66 @@ export default function HomePortal({
           ),
         );
       }
+    }
 
-      const topElement = document.getElementById("top");
+    function scrollToPageTop() {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "auto",
+      });
+    }
 
-      if (!topElement) return;
+    function updateFromHash() {
+      const nextTab = getTabIdFromHash();
 
-      window.setTimeout(() => {
-        topElement.scrollIntoView({
-          behavior: "auto",
-          block: "start",
-        });
-      }, 50);
+      if (!nextTab) return;
+
+      if (portalNavigationDelayRef.current) {
+        window.clearTimeout(portalNavigationDelayRef.current);
+      }
+
+      scrollToPageTop();
+
+      portalNavigationDelayRef.current = window.setTimeout(() => {
+        applyPortalTabFromHash();
+      }, 120);
+    }
+
+    function handlePortalNavigationClick(event: MouseEvent) {
+      const link = (event.target as Element | null)?.closest(
+        'a[href="#top"], a[href^="#portal-"], a[href^="/#portal-"]',
+      ) as HTMLAnchorElement | null;
+
+      if (!link) return;
+
+      const url = new URL(link.href, window.location.href);
+
+      if (url.hash === "#top") {
+        event.preventDefault();
+        window.history.pushState(null, "", "#top");
+        scrollToPageTop();
+        return;
+      }
+
+      if (!url.hash.startsWith("#portal-")) return;
+
+      event.preventDefault();
+      window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      updateFromHash();
     }
 
     updateFromHash();
 
+    document.addEventListener("click", handlePortalNavigationClick);
     window.addEventListener("hashchange", updateFromHash);
 
     return () => {
+      if (portalNavigationDelayRef.current) {
+        window.clearTimeout(portalNavigationDelayRef.current);
+      }
+
+      document.removeEventListener("click", handlePortalNavigationClick);
       window.removeEventListener("hashchange", updateFromHash);
     };
   }, []);
