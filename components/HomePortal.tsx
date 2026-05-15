@@ -48,6 +48,7 @@ type HomeJournalPost = {
 type HomeGalleryImage = SanityImageSource & {
   alt?: string;
   caption?: string;
+  displayFormat?: ImageDisplayFormat | string;
 };
 
 type HomeGalleryAlbum = {
@@ -86,6 +87,14 @@ type HomeEvent = {
 
 type PortalTab = "about" | "journal" | "gallery" | "events" | "contact";
 type PortalContentTab = Exclude<PortalTab, "about" | "contact">;
+
+type ImageDisplayFormat =
+  | "auto"
+  | "portrait"
+  | "tall"
+  | "square"
+  | "landscape"
+  | "wide";
 
 type HomePortalProps = {
   latestPosts: HomeJournalPost[];
@@ -136,6 +145,65 @@ const tabs: Array<{
     text: "Kanäle und Verbindungspunkte.",
   },
 ];
+
+const imageDisplayFormatConfigs = {
+  portrait: { className: "aspect-[4/5]", width: 1000, height: 1250 },
+  tall: { className: "aspect-[2/3]", width: 900, height: 1350 },
+  square: { className: "aspect-square", width: 1000, height: 1000 },
+  landscape: { className: "aspect-[5/4]", width: 1250, height: 1000 },
+  wide: { className: "aspect-[4/3]", width: 1200, height: 900 },
+} as const;
+
+const galleryAutoRatioConfigs = [
+  imageDisplayFormatConfigs.portrait,
+  { className: "aspect-[3/4]", width: 900, height: 1200 },
+  imageDisplayFormatConfigs.landscape,
+  imageDisplayFormatConfigs.wide,
+  imageDisplayFormatConfigs.tall,
+] as const;
+
+const galleryDefaultCoverRatioConfig = {
+  className: "aspect-[4/5]",
+  width: 900,
+  height: 1125,
+} as const;
+
+const albumCoverRatioConfig = {
+  className: "aspect-[4/5]",
+  width: 1000,
+  height: 1250,
+} as const;
+
+function getDisplayFormatRatioConfig(displayFormat?: string | null) {
+  if (!displayFormat || displayFormat === "auto") return null;
+
+  return imageDisplayFormatConfigs[
+    displayFormat as keyof typeof imageDisplayFormatConfigs
+  ] ?? null;
+}
+
+function getGalleryAutoRatioConfig(index: number) {
+  return galleryAutoRatioConfigs[index % galleryAutoRatioConfigs.length];
+}
+
+function getGalleryCoverRatioConfig(displayFormat?: string | null) {
+  return getDisplayFormatRatioConfig(displayFormat) ?? galleryDefaultCoverRatioConfig;
+}
+
+function getGalleryDetailImageRatioConfig(
+  index: number,
+  displayFormat?: string | null,
+) {
+  const selectedRatioConfig = getDisplayFormatRatioConfig(displayFormat);
+
+  if (selectedRatioConfig) return selectedRatioConfig;
+
+  if (index === 1 || index === 2) {
+    return imageDisplayFormatConfigs.portrait;
+  }
+
+  return getGalleryAutoRatioConfig(index);
+}
 
 const journalPortableTextComponents: PortableTextComponents = {
   block: {
@@ -429,27 +497,6 @@ function formatGalleryDate(date?: string) {
     month: "long",
     year: "numeric",
   }).format(new Date(date));
-}
-
-function getSanityImageDimensions(image?: SanityImageSource | null) {
-  const asset = (
-    image as {
-      asset?: string | { _ref?: string; _id?: string };
-    } | null
-  )?.asset;
-
-  const ref =
-    typeof asset === "string" ? asset : asset?._ref || asset?._id || "";
-  const match = ref.match(/-(\d+)x(\d+)-[a-zA-Z0-9]+$/);
-
-  if (!match) {
-    return { width: 1200, height: 1600 };
-  }
-
-  return {
-    width: Number(match[1]),
-    height: Number(match[2]),
-  };
 }
 
 function formatEventType(type?: string) {
@@ -1422,12 +1469,6 @@ function GalleryPanel({
   onResetTags: () => void;
   onOpenAlbum: (album: HomeGalleryAlbum) => void;
 }) {
-  const albumCoverRatioConfig = {
-    className: "aspect-[4/5]",
-    width: 1000,
-    height: 1250,
-  } as const;
-
   return (
     <div>
       {albums.length === 0 ? (
@@ -1573,14 +1614,6 @@ function GalleryAlbumPortalDetail({
   const categoryLabel = formatGalleryCategory(album.category);
   const formattedDate = formatGalleryDate(album.date);
 
-  const ratioClasses = [
-    "aspect-[4/5]",
-    "aspect-[3/4]",
-    "aspect-[5/4]",
-    "aspect-[4/3]",
-    "aspect-[2/3]",
-  ];
-
   return (
     <article className="text-neutral-950">
       <button
@@ -1670,12 +1703,16 @@ function GalleryAlbumPortalDetail({
           <figure className="w-full justify-self-end lg:mx-0 lg:max-w-none lg:justify-self-end">
             <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
-                src={urlFor(coverImage).width(900).url()}
+                src={urlFor(coverImage)
+                  .width(getGalleryCoverRatioConfig(coverImage.displayFormat).width)
+                  .height(getGalleryCoverRatioConfig(coverImage.displayFormat).height)
+                  .fit("crop")
+                  .url()}
                 alt={coverImage.alt || album.title}
-                width={900}
-                height={900}
+                width={getGalleryCoverRatioConfig(coverImage.displayFormat).width}
+                height={getGalleryCoverRatioConfig(coverImage.displayFormat).height}
                 priority
-                className="aspect-square w-full object-cover object-top sm:aspect-[4/3] lg:aspect-[5/4]"
+                className={`${getGalleryCoverRatioConfig(coverImage.displayFormat).className} w-full object-cover`}
               />
             </div>
 
@@ -1698,14 +1735,10 @@ function GalleryAlbumPortalDetail({
         ) : (
           <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
             {galleryImages.map((image, index) => {
-              const imageDimensions = getSanityImageDimensions(image);
-              const imageRatioClass =
-  index === 1 || index === 2
-    ? "aspect-[4/5]"
-    : ratioClasses[index % ratioClasses.length];
-
-const imagePositionClass =
-  index === 1 || index === 2 ? "object-center" : "object-top";
+              const imageRatioConfig = getGalleryDetailImageRatioConfig(
+                index,
+                image.displayFormat,
+              );
 
               return (
                 <figure
@@ -1713,14 +1746,18 @@ const imagePositionClass =
                   className="mb-6 break-inside-avoid"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioClass}`}
+                    className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioConfig.className}`}
                   >
                     <SanityImage
-                      src={urlFor(image).width(1400).url()}
+                      src={urlFor(image)
+                        .width(imageRatioConfig.width)
+                        .height(imageRatioConfig.height)
+                        .fit("crop")
+                        .url()}
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
-                      width={imageDimensions.width}
-                      height={imageDimensions.height}
-                      className="h-full w-full object-cover object-top transition duration-500"
+                      width={imageRatioConfig.width}
+                      height={imageRatioConfig.height}
+                      className="h-full w-full object-cover transition duration-700 hover:scale-[1.025]"
                     />
                   </div>
 

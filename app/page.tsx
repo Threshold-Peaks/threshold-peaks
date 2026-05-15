@@ -47,6 +47,7 @@ type HomeJournalPost = {
 type HomeGalleryImage = SanityImageSource & {
   alt?: string;
   caption?: string;
+  displayFormat?: string;
 };
 
 type HomeGalleryAlbum = {
@@ -107,8 +108,26 @@ const allGalleryQuery = `*[_type == "galleryAlbum"] | order(coalesce(date, _crea
   location,
   tags,
   "description": coalesce(description, teaser, excerpt),
-  "coverImage": coalesce(coverImage, images[0]),
-  images
+  "coverImage": select(
+    defined(coverImage) => coverImage{
+      ...,
+      alt,
+      caption,
+      displayFormat
+    },
+    images[0]{
+      ...,
+      alt,
+      caption,
+      displayFormat
+    }
+  ),
+  images[]{
+    ...,
+    alt,
+    caption,
+    displayFormat
+  }
 }`;
 
 const allEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(startDate, date, eventDate))] | order(coalesce(startDate, date, eventDate) asc) {
