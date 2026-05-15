@@ -33,6 +33,8 @@ type JournalPost = {
   tags?: JournalTag[];
   mainImage?: SanityImageSource & {
     alt?: string;
+    caption?: string;
+    imageFormat?: string;
   };
 };
 
@@ -171,6 +173,38 @@ function getPortalTagHref(tag: string) {
   return `/?tags=${encodeURIComponent(tag)}#portal-journal`;
 }
 
+type JournalImageRatioConfig = {
+  className: string;
+  width: number;
+  height: number;
+};
+
+const journalImageRatioConfigByFormat = {
+  auto: { className: "aspect-[1.28/1]", width: 1024, height: 800 },
+  portrait: { className: "aspect-[4/5]", width: 900, height: 1125 },
+  tall: { className: "aspect-[2/3]", width: 900, height: 1350 },
+  square: { className: "aspect-square", width: 900, height: 900 },
+  landscape: { className: "aspect-[5/4]", width: 1000, height: 800 },
+  wide: { className: "aspect-[4/3]", width: 1200, height: 900 },
+} as const satisfies Record<string, JournalImageRatioConfig>;
+
+function getJournalImageRatioConfig(format?: string) {
+  if (
+    format &&
+    format !== "auto" &&
+    Object.prototype.hasOwnProperty.call(
+      journalImageRatioConfigByFormat,
+      format,
+    )
+  ) {
+    return journalImageRatioConfigByFormat[
+      format as keyof typeof journalImageRatioConfigByFormat
+    ];
+  }
+
+  return journalImageRatioConfigByFormat.auto;
+}
+
 function DetailFact({ label, value }: { label: string; value: string }) {
   return (
     <div className="py-4 md:px-5 md:first:pl-0">
@@ -306,6 +340,9 @@ export default async function JournalPostPage({
         .filter((tag): tag is string => Boolean(tag)),
     ),
   );
+  const journalImageRatioConfig = post.mainImage
+    ? getJournalImageRatioConfig(post.mainImage.imageFormat)
+    : null;
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-black">
@@ -333,23 +370,28 @@ export default async function JournalPostPage({
                 ) : null}
               </div>
 
-              {post.mainImage ? (
+              {post.mainImage && journalImageRatioConfig ? (
                 <figure className="w-full lg:justify-self-end">
-                  <div className="relative mx-auto aspect-[1.28/1] w-full max-w-[380px] overflow-hidden rounded-[1.7rem] bg-transparent lg:mx-0">
+                  <div
+                    className={`relative mx-auto w-full max-w-[380px] overflow-hidden rounded-[1.7rem] bg-transparent lg:mx-0 ${journalImageRatioConfig.className}`}
+                  >
                     <Image
-                      src={urlFor(post.mainImage).width(900).fit("max").url()}
+                      src={urlFor(post.mainImage)
+                        .width(journalImageRatioConfig.width)
+                        .height(journalImageRatioConfig.height)
+                        .fit("crop")
+                        .url()}
                       alt={post.mainImage.alt || post.title || "Journal Bild"}
-                      fill
+                      width={journalImageRatioConfig.width}
+                      height={journalImageRatioConfig.height}
                       priority
-                      sizes="(min-width: 1024px) 380px, 100vw"
-                      className="object-cover"
-                      style={{ objectPosition: "center 24%" }}
+                      className="h-full w-full object-cover"
                     />
                   </div>
 
-                  {post.mainImage.alt ? (
+                  {post.mainImage.caption || post.mainImage.alt ? (
                     <figcaption className="mx-auto mt-3 max-w-[380px] border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50 lg:mx-0">
-                      {post.mainImage.alt}
+                      {post.mainImage.caption || post.mainImage.alt}
                     </figcaption>
                   ) : null}
                 </figure>

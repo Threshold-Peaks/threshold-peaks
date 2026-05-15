@@ -9,9 +9,18 @@ import { urlFor } from "@/sanity/lib/image";
 
 type PortableTextBlock = any[];
 
+type ImageDisplayFormat =
+  | "auto"
+  | "portrait"
+  | "tall"
+  | "square"
+  | "landscape"
+  | "wide";
+
 type HomeJournalImage = SanityImageSource & {
   alt?: string;
   caption?: string;
+  imageFormat?: ImageDisplayFormat;
 };
 
 type HomeJournalTag =
@@ -48,6 +57,7 @@ type HomeJournalPost = {
 type HomeGalleryImage = SanityImageSource & {
   alt?: string;
   caption?: string;
+  imageFormat?: ImageDisplayFormat;
 };
 
 type HomeGalleryAlbum = {
@@ -361,7 +371,10 @@ function getTagsFromSearchParam(value?: string | null) {
 }
 
 function createTagsParam(tags: string[]) {
-  return tags.map((tag) => tag.replace(/^#/, "").trim()).filter(Boolean).join(",");
+  return tags
+    .map((tag) => tag.replace(/^#/, "").trim())
+    .filter(Boolean)
+    .join(",");
 }
 
 function isSameTag(firstTag: string, secondTag: string) {
@@ -431,25 +444,64 @@ function formatGalleryDate(date?: string) {
   }).format(new Date(date));
 }
 
-function getSanityImageDimensions(image?: SanityImageSource | null) {
-  const asset = (
-    image as {
-      asset?: string | { _ref?: string; _id?: string };
-    } | null
-  )?.asset;
+type ImageRatioConfig = {
+  className: string;
+  width: number;
+  height: number;
+};
 
-  const ref =
-    typeof asset === "string" ? asset : asset?._ref || asset?._id || "";
-  const match = ref.match(/-(\d+)x(\d+)-[a-zA-Z0-9]+$/);
+const imageRatioConfigByFormat = {
+  auto: { className: "aspect-[1.28/1]", width: 1024, height: 800 },
+  portrait: { className: "aspect-[4/5]", width: 1200, height: 1500 },
+  tall: { className: "aspect-[2/3]", width: 1200, height: 1800 },
+  square: { className: "aspect-square", width: 1200, height: 1200 },
+  landscape: { className: "aspect-[5/4]", width: 1400, height: 1120 },
+  wide: { className: "aspect-[4/3]", width: 1400, height: 1050 },
+} as const satisfies Record<ImageDisplayFormat, ImageRatioConfig>;
 
-  if (!match) {
-    return { width: 1200, height: 1600 };
+const galleryAutoRatioConfigs = [
+  imageRatioConfigByFormat.portrait,
+  imageRatioConfigByFormat.tall,
+  imageRatioConfigByFormat.landscape,
+  imageRatioConfigByFormat.wide,
+  imageRatioConfigByFormat.tall,
+] as const;
+
+function getImageRatioConfig(
+  format?: string,
+  fallback: ImageRatioConfig = imageRatioConfigByFormat.auto,
+) {
+  if (
+    format &&
+    format !== "auto" &&
+    Object.prototype.hasOwnProperty.call(imageRatioConfigByFormat, format)
+  ) {
+    return imageRatioConfigByFormat[
+      format as keyof typeof imageRatioConfigByFormat
+    ];
   }
 
-  return {
-    width: Number(match[1]),
-    height: Number(match[2]),
-  };
+  return fallback;
+}
+
+function getJournalImageRatioConfig(format?: string) {
+  return getImageRatioConfig(format, imageRatioConfigByFormat.auto);
+}
+
+function getGalleryImageRatioConfig(index: number, format?: string) {
+  return getImageRatioConfig(
+    format,
+    galleryAutoRatioConfigs[index % galleryAutoRatioConfigs.length],
+  );
+}
+
+function getGalleryDetailImageRatioConfig(index: number, format?: string) {
+  return getImageRatioConfig(
+    format,
+    index === 1 || index === 2 || index === 3
+      ? imageRatioConfigByFormat.portrait
+      : getGalleryImageRatioConfig(index),
+  );
 }
 
 function formatEventType(type?: string) {
@@ -542,7 +594,11 @@ export default function HomePortal({
 
     const params = new URLSearchParams(window.location.search);
     const tagKey =
-      tab === "gallery" ? "galleryTags" : tab === "events" ? "eventTags" : "tags";
+      tab === "gallery"
+        ? "galleryTags"
+        : tab === "events"
+          ? "eventTags"
+          : "tags";
     const legacyTagKey =
       tab === "gallery" ? "galleryTag" : tab === "events" ? "eventTag" : "tag";
     const nextTags = createTagsParam(tags);
@@ -772,7 +828,6 @@ export default function HomePortal({
               <div className="relative pl-6">
                 <span className="absolute left-0 top-1 h-full w-px bg-black/15" />
                 <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee]" />
-
 
                 <h3 className="text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
                   {activeTabMeta.title}
@@ -1006,7 +1061,7 @@ function PortalTagFilter({
   const activeTags = tags.filter((tag) => isTagSelected(selectedTags, tag));
 
   return (
-    <section className="mt-8 border-t border-black/10 pt-5">
+    <section className="mt-7 rounded-[1.35rem] border border-black/10 bg-white/35 px-4 py-3 shadow-sm backdrop-blur">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
@@ -1014,51 +1069,41 @@ function PortalTagFilter({
           className="group flex items-center gap-3 text-left"
           aria-expanded={isOpen}
         >
-          <span className="h-px w-7 bg-black/20 transition group-hover:bg-orange-500" />
+          <span className="h-1.5 w-1.5 rounded-full bg-black/20 transition group-hover:bg-orange-500" />
 
           <span>
-            <span className="block text-[10px] font-black uppercase tracking-[0.32em] text-black/35 transition group-hover:text-orange-600">
+            <span className="block text-[10px] font-black uppercase tracking-[0.28em] text-black/35 transition group-hover:text-orange-600">
               {label}-Hashtags
             </span>
-            <span className="mt-1 block text-[11px] font-bold text-black/40">
+            <span className="mt-1 block text-xs font-bold text-black/45">
               {hasActiveTags
-                ? `${selectedTags.length} aktiv · ${isOpen ? "Auswahl schließen" : "Auswahl öffnen"}`
+                ? `${selectedTags.length} aktiv · ${isOpen ? "Auswahl ausblenden" : "Auswahl anzeigen"}`
                 : isOpen
-                  ? "Auswahl schließen"
-                  : "Auswahl öffnen"}
+                  ? "Auswahl ausblenden"
+                  : "Auswahl anzeigen"}
             </span>
           </span>
         </button>
 
-        <div className="flex items-center gap-5">
-          {hasActiveTags ? (
-            <button
-              type="button"
-              onClick={onResetTags}
-              className="border-b border-transparent pb-1 text-left text-[10px] font-black uppercase tracking-[0.24em] text-black/35 transition hover:border-orange-500/50 hover:text-orange-600 sm:text-right"
-            >
-              Zurücksetzen
-            </button>
-          ) : null}
-
+        {hasActiveTags ? (
           <button
             type="button"
-            onClick={() => setIsOpen((current) => !current)}
-            className="border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.24em] text-black/40 transition hover:border-orange-500/60 hover:text-orange-600"
+            onClick={onResetTags}
+            className="text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:text-orange-600 sm:text-right"
           >
-            {isOpen ? "Weniger" : "Alle anzeigen"}
+            Filter zurücksetzen
           </button>
-        </div>
+        ) : null}
       </div>
 
-      {hasActiveTags ? (
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+      {hasActiveTags && !isOpen ? (
+        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5 border-t border-black/5 pt-3">
           {activeTags.map((tag) => (
             <button
               key={tag}
               type="button"
               onClick={() => onToggleTag(tag)}
-              className="border-b border-orange-500/60 pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-600 transition hover:border-orange-600 hover:text-orange-700"
+              className="px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600 transition hover:text-orange-700"
               title="Tag entfernen"
             >
               #{tag}
@@ -1068,7 +1113,7 @@ function PortalTagFilter({
       ) : null}
 
       {isOpen ? (
-        <div className="mt-5 flex flex-wrap gap-x-4 gap-y-3 border-t border-black/5 pt-5">
+        <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 border-t border-black/5 pt-4">
           {tags.map((tag) => {
             const active = isTagSelected(selectedTags, tag);
 
@@ -1079,8 +1124,8 @@ function PortalTagFilter({
                 onClick={() => onToggleTag(tag)}
                 className={
                   active
-                    ? "border-b border-orange-500 pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-600 transition hover:border-orange-600 hover:text-orange-700"
-                    : "border-b border-transparent pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-black/35 transition hover:border-orange-500/50 hover:text-orange-600"
+                    ? "rounded-full border border-orange-500 bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-sm shadow-orange-500/20 transition hover:border-orange-600 hover:bg-orange-600"
+                    : "rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-black text-black/50 transition hover:border-orange-500/40 hover:text-orange-600"
                 }
               >
                 #{tag}
@@ -1132,7 +1177,8 @@ function JournalPanel({
     },
   ];
 
-  const items = posts.length > 0 ? posts : selectedTags.length > 0 ? [] : fallbackPosts;
+  const items =
+    posts.length > 0 ? posts : selectedTags.length > 0 ? [] : fallbackPosts;
 
   return (
     <div>
@@ -1262,6 +1308,9 @@ function JournalPortalDetail({
       value: externalLinkLabel,
     },
   ];
+  const journalImageRatioConfig = post.mainImage
+    ? getJournalImageRatioConfig(post.mainImage.imageFormat)
+    : null;
 
   return (
     <article className="text-neutral-950">
@@ -1326,17 +1375,22 @@ function JournalPortalDetail({
             ) : null}
           </div>
 
-          {post.mainImage ? (
+          {post.mainImage && journalImageRatioConfig ? (
             <figure className="w-full lg:justify-self-end">
-              <div className="relative mx-auto aspect-[1.28/1] w-full max-w-[380px] overflow-hidden rounded-[1.7rem] bg-transparent lg:mx-0">
+              <div
+                className={`relative mx-auto w-full max-w-[380px] overflow-hidden rounded-[1.7rem] bg-transparent lg:mx-0 ${journalImageRatioConfig.className}`}
+              >
                 <SanityImage
-                  src={urlFor(post.mainImage).width(900).fit("max").url()}
+                  src={urlFor(post.mainImage)
+                    .width(journalImageRatioConfig.width)
+                    .height(journalImageRatioConfig.height)
+                    .fit("crop")
+                    .url()}
                   alt={post.mainImage.alt || post.title || "Journal Bild"}
-                  fill
+                  width={journalImageRatioConfig.width}
+                  height={journalImageRatioConfig.height}
                   priority
-                  sizes="(min-width: 1024px) 380px, 100vw"
-                  className="object-cover"
-                  style={{ objectPosition: "center 24%" }}
+                  className="h-full w-full object-cover transition duration-700 hover:scale-[1.025]"
                 />
               </div>
 
@@ -1359,7 +1413,6 @@ function JournalPortalDetail({
               />
             ))}
           </div>
-
         </section>
 
         <div className="max-w-3xl">
@@ -1422,14 +1475,6 @@ function GalleryPanel({
   onResetTags: () => void;
   onOpenAlbum: (album: HomeGalleryAlbum) => void;
 }) {
-  const ratioClasses = [
-    "aspect-[4/5]",
-    "aspect-[3/4]",
-    "aspect-[5/4]",
-    "aspect-[4/3]",
-    "aspect-[2/3]",
-  ];
-
   return (
     <div>
       {albums.length === 0 ? (
@@ -1451,7 +1496,10 @@ function GalleryPanel({
           {albums.map((album, index) => {
             const image = album.coverImage || album.images?.[0];
             const imageCount = album.images?.length ?? 0;
-            const imageRatioClass = ratioClasses[index % ratioClasses.length];
+            const imageRatioConfig = getGalleryImageRatioConfig(
+              index,
+              image?.imageFormat,
+            );
             const tags = getGalleryTags(album.tags);
 
             return (
@@ -1465,18 +1513,18 @@ function GalleryPanel({
                   className="block w-full text-left"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioClass}`}
+                    className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
                   >
                     {image ? (
                       <SanityImage
                         src={urlFor(image)
-                          .width(900)
-                          .height(1200)
+                          .width(imageRatioConfig.width)
+                          .height(imageRatioConfig.height)
                           .fit("crop")
                           .url()}
                         alt={image.alt || album.title}
-                        width={900}
-                        height={1200}
+                        width={imageRatioConfig.width}
+                        height={imageRatioConfig.height}
                         priority={index === 0}
                         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                       />
@@ -1495,7 +1543,9 @@ function GalleryPanel({
                         <>
                           <span className="h-1 w-1 rounded-full bg-black/25" />
                           <span>
-                            {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
+                            {imageCount === 1
+                              ? "1 Bild"
+                              : `${imageCount} Bilder`}
                           </span>
                         </>
                       ) : null}
@@ -1574,14 +1624,6 @@ function GalleryAlbumPortalDetail({
   const tags = getGalleryTags(album.tags);
   const categoryLabel = formatGalleryCategory(album.category);
   const formattedDate = formatGalleryDate(album.date);
-
-  const ratioClasses = [
-    "aspect-[4/5]",
-    "aspect-[3/4]",
-    "aspect-[5/4]",
-    "aspect-[4/3]",
-    "aspect-[2/3]",
-  ];
 
   return (
     <article className="text-neutral-950">
@@ -1671,14 +1713,27 @@ function GalleryAlbumPortalDetail({
         {coverImage ? (
           <figure className="w-full justify-self-end lg:mx-0 lg:max-w-none lg:justify-self-end">
             <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
-              <SanityImage
-                src={urlFor(coverImage).width(900).url()}
-                alt={coverImage.alt || album.title}
-                width={900}
-                height={900}
-                priority
-                className="aspect-square w-full object-cover object-top sm:aspect-[4/3] lg:aspect-[5/4]"
-              />
+              {(() => {
+                const coverImageRatioConfig = getImageRatioConfig(
+                  coverImage.imageFormat,
+                  imageRatioConfigByFormat.portrait,
+                );
+
+                return (
+                  <SanityImage
+                    src={urlFor(coverImage)
+                      .width(coverImageRatioConfig.width)
+                      .height(coverImageRatioConfig.height)
+                      .fit("crop")
+                      .url()}
+                    alt={coverImage.alt || album.title}
+                    width={coverImageRatioConfig.width}
+                    height={coverImageRatioConfig.height}
+                    priority
+                    className={`w-full object-cover ${coverImageRatioConfig.className}`}
+                  />
+                );
+              })()}
             </div>
 
             {coverImage.caption ? (
@@ -1700,14 +1755,10 @@ function GalleryAlbumPortalDetail({
         ) : (
           <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
             {galleryImages.map((image, index) => {
-              const imageDimensions = getSanityImageDimensions(image);
-              const imageRatioClass =
-  index === 1 || index === 2
-    ? "aspect-[4/5]"
-    : ratioClasses[index % ratioClasses.length];
-
-const imagePositionClass =
-  index === 1 || index === 2 ? "object-center" : "object-top";
+              const imageRatioConfig = getGalleryDetailImageRatioConfig(
+                index,
+                image?.imageFormat,
+              );
 
               return (
                 <figure
@@ -1715,14 +1766,18 @@ const imagePositionClass =
                   className="mb-6 break-inside-avoid"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioClass}`}
+                    className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioConfig.className}`}
                   >
                     <SanityImage
-                      src={urlFor(image).width(1400).url()}
+                      src={urlFor(image)
+                        .width(imageRatioConfig.width)
+                        .height(imageRatioConfig.height)
+                        .fit("crop")
+                        .url()}
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
-                      width={imageDimensions.width}
-                      height={imageDimensions.height}
-                      className="h-full w-full object-cover object-top transition duration-500"
+                      width={imageRatioConfig.width}
+                      height={imageRatioConfig.height}
+                      className="h-full w-full object-cover object-top transition duration-700 hover:scale-[1.025]"
                     />
                   </div>
 
