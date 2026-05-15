@@ -8,7 +8,7 @@ import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 
-export const revalidate = 60;
+export const revalidate = 10;
 
 const baseUrl = "https://www.threshold-peaks.de";
 
