@@ -559,7 +559,7 @@ export default function HomePortal({
     gallery: false,
     events: false,
   });
-  const portalNavigationDelayRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const portalNavigationDelayRef = useRef<number | null>(null);
 
   function clearPortalDetails() {
     setSelectedPost(null);
