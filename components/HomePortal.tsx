@@ -1422,13 +1422,11 @@ function GalleryPanel({
   onResetTags: () => void;
   onOpenAlbum: (album: HomeGalleryAlbum) => void;
 }) {
-  const ratioClasses = [
-    "aspect-[4/5]",
-    "aspect-[3/4]",
-    "aspect-[5/4]",
-    "aspect-[4/3]",
-    "aspect-[2/3]",
-  ];
+  const albumCoverRatioConfig = {
+    className: "aspect-[4/5]",
+    width: 1000,
+    height: 1250,
+  } as const;
 
   return (
     <div>
@@ -1451,7 +1449,7 @@ function GalleryPanel({
           {albums.map((album, index) => {
             const image = album.coverImage || album.images?.[0];
             const imageCount = album.images?.length ?? 0;
-            const imageRatioClass = ratioClasses[index % ratioClasses.length];
+            const imageRatioConfig = albumCoverRatioConfig;
             const tags = getGalleryTags(album.tags);
 
             return (
@@ -1465,18 +1463,18 @@ function GalleryPanel({
                   className="block w-full text-left"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioClass}`}
+                    className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
                   >
                     {image ? (
                       <SanityImage
                         src={urlFor(image)
-                          .width(900)
-                          .height(1200)
+                          .width(imageRatioConfig.width)
+                          .height(imageRatioConfig.height)
                           .fit("crop")
                           .url()}
                         alt={image.alt || album.title}
-                        width={900}
-                        height={1200}
+                        width={imageRatioConfig.width}
+                        height={imageRatioConfig.height}
                         priority={index === 0}
                         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                       />
