@@ -1992,8 +1992,8 @@ function GalleryAlbumPortalDetail({
         <span className="hidden sm:inline">← Zurück zur Galerie</span>
       </button>
 
-      <header className="grid grid-cols-1 items-start gap-7 border-b border-black/10 pb-8 sm:grid-cols-[minmax(0,1fr)_170px] sm:gap-x-6 sm:gap-y-7 sm:pb-10 md:grid-cols-[minmax(0,1fr)_220px] lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] lg:items-end lg:gap-8">
-        <div className="min-w-0">
+      <header className="relative grid grid-cols-1 items-start gap-7 border-b border-black/10 pb-8 sm:grid-cols-[minmax(0,1fr)_170px] sm:gap-x-6 sm:gap-y-7 sm:pb-10 md:grid-cols-[minmax(0,1fr)_220px] lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] lg:items-end lg:gap-8">
+        <div className="min-w-0 pr-[112px] sm:pr-0">
           <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[8px] font-black uppercase tracking-[0.22em] text-black/35 sm:mb-4 sm:text-[10px] sm:tracking-[0.28em]">
             <span>{categoryLabel}</span>
 
@@ -2016,7 +2016,7 @@ function GalleryAlbumPortalDetail({
             </p>
           ) : null}
 
-          <dl className="mt-6 grid max-w-2xl grid-cols-1 gap-3 border-y border-black/10 py-4 text-xs sm:grid-cols-4">
+          <dl className="mt-6 grid w-[calc(100%+112px)] max-w-2xl grid-cols-1 gap-3 border-y border-black/10 py-4 text-xs sm:w-auto sm:grid-cols-4">
             <div>
               <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
                 Kategorie
@@ -2056,7 +2056,7 @@ function GalleryAlbumPortalDetail({
           </dl>
 
           {tags.length > 0 ? (
-            <div className="mt-6 flex flex-wrap gap-x-3 gap-y-1">
+            <div className="mt-6 flex w-[calc(100%+112px)] flex-wrap gap-x-3 gap-y-1 sm:w-auto">
               {tags.map((tag) => (
                 <button
                   key={tag}
@@ -2079,8 +2079,8 @@ function GalleryAlbumPortalDetail({
         </div>
 
         {coverImage ? (
-          <figure className="w-full max-w-[230px] justify-self-start sm:max-w-none sm:justify-self-end lg:mx-0 lg:justify-self-end">
-            <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
+          <figure className="absolute right-0 top-0 w-[92px] justify-self-end sm:static sm:w-full sm:max-w-none sm:justify-self-end lg:mx-0 lg:justify-self-end">
+            <div className="relative overflow-hidden rounded-[1rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
                 src={urlFor(coverImage)
                   .width(getGalleryCoverRatioConfig(coverImage.displayFormat).width)
@@ -2096,7 +2096,7 @@ function GalleryAlbumPortalDetail({
             </div>
 
             {coverImage.caption ? (
-              <figcaption className="mt-2 border-b border-black/10 pb-2 text-[10px] font-semibold leading-4 text-black/50 sm:mt-3 sm:pb-3 sm:text-xs sm:leading-5 lg:text-sm lg:leading-6">
+              <figcaption className="mt-2 hidden border-b border-black/10 pb-2 text-[10px] font-semibold leading-4 text-black/50 sm:block sm:mt-3 sm:pb-3 sm:text-xs sm:leading-5 lg:text-sm lg:leading-6">
                 {coverImage.caption}
               </figcaption>
             ) : null}
