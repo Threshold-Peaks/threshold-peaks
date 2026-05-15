@@ -1712,7 +1712,7 @@ const imagePositionClass =
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
                       width={imageDimensions.width}
                       height={imageDimensions.height}
-                      className={`h-full w-full object-cover ${imagePositionClass} transition duration-700 hover:scale-[1.025]`}
+                      className="h-full w-full object-cover object-top transition duration-500"
                     />
                   </div>
 
