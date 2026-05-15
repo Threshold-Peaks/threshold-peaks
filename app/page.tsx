@@ -208,33 +208,33 @@ export default async function Home() {
         </div>
 
         {/* HERO LAYOUT */}
-<div className="relative z-10 px-6 pb-4 pt-6 md:px-10 md:pt-8 lg:px-20">
-  <div className="relative mx-auto w-full max-w-[1280px]">
-    {/* LEFT: LOGO + NAV */}
-    <div className="relative z-50 mb-8 min-[1900px]:absolute min-[1900px]:left-[-300px] min-[1900px]:top-0 min-[1900px]:w-[220px]">
-      <a
-  href="#top"
-  className="inline-flex w-max items-center gap-3 transition hover:text-orange-600"
-  aria-label="Zur Startseite"
->
-  <ThresholdPeaksIcon />
+        <div className="relative z-10 px-6 pb-4 pt-6 md:px-10 md:pt-8 lg:px-20">
+          <div className="relative mx-auto w-full max-w-[1280px]">
+            {/* LEFT: LOGO + NAV */}
+            <div className="relative z-50 mb-8">
+              <a
+                href="#top"
+                className="inline-flex w-max items-center gap-3 transition hover:text-orange-600"
+                aria-label="Zur Startseite"
+              >
+                <ThresholdPeaksIcon />
 
-  <div className="min-w-max whitespace-nowrap leading-none">
-          <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
-            Threshold Peaks
-          </div>
-          <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
-            Beat the extra mile
-          </div>
-        </div>
-      </a>
+                <div className="min-w-max whitespace-nowrap leading-none">
+                  <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
+                    Threshold Peaks
+                  </div>
+                  <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
+                    Beat the extra mile
+                  </div>
+                </div>
+              </a>
 
-      <HeroTopNav />
-    </div>
+              <HeroTopNav />
+            </div>
 
-    {/* RIGHT: PORTAL + STRAVA */}
-    <div className="w-full space-y-6 min-[1900px]:pt-[74px]">
-      <HomePortal
+            {/* RIGHT: PORTAL + STRAVA */}
+            <div className="w-full space-y-6">
+              <HomePortal
         latestPosts={latestPosts}
         allPosts={allPosts}
         latestAlbums={latestAlbums}
@@ -242,14 +242,14 @@ export default async function Home() {
         latestEvents={latestEvents}
         allEvents={upcomingEvents}
         embedded
-      />
+              />
 
-      <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white/55 p-6 shadow-[0_1px_2px_rgba(17,18,23,0.06)] ring-1 ring-white/70 backdrop-blur-2xl md:p-7">
-  <StravaLatest variant="footer" />
-</div>
-    </div>
-  </div>
-</div>
+              <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white/55 p-6 shadow-[0_1px_2px_rgba(17,18,23,0.06)] ring-1 ring-white/70 backdrop-blur-2xl md:p-7">
+                <StravaLatest variant="footer" />
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* FOOTER */}
@@ -355,15 +355,15 @@ function HeroTopNav() {
   return (
     <nav
       aria-label="Hauptnavigation"
-      className="relative z-50 mt-6 w-full max-w-[560px] md:mt-7 min-[1900px]:mt-8 min-[1900px]:max-w-none"
+      className="relative z-50 mt-7 w-full"
     >
-      <div className="mb-3 text-left min-[1900px]:mb-5">
+      <div className="mb-4 text-left">
         <div className="text-[8px] font-black uppercase tracking-[0.34em] text-black/30 md:text-[10px] md:text-black/35">
           Navigation
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-x-5 gap-y-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-2 min-[1900px]:block min-[1900px]:space-y-1 min-[1900px]:border-l min-[1900px]:border-black/15 min-[1900px]:pl-5">
+      <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
         {navItems.map((item) => (
           <HeroTopNavLink key={item.href} href={item.href}>
             {item.label}
@@ -384,18 +384,10 @@ function HeroTopNavLink({
   return (
     <a
       href={href}
-      className="group relative inline-flex justify-center py-1 text-center text-[10px] font-black uppercase tracking-[0.2em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 min-[1900px]:flex min-[1900px]:items-center min-[1900px]:justify-between min-[1900px]:py-2.5 min-[1900px]:text-left min-[1900px]:text-sm min-[1900px]:normal-case min-[1900px]:tracking-normal min-[1900px]:text-black/55"
+      className="group relative inline-flex pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
     >
-      <span className="hidden min-[1900px]:absolute min-[1900px]:-left-[25px] min-[1900px]:block min-[1900px]:h-2.5 min-[1900px]:w-2.5 min-[1900px]:rounded-full min-[1900px]:border min-[1900px]:border-black/20 min-[1900px]:bg-[#f5f3ee] min-[1900px]:transition min-[1900px]:group-hover:border-orange-600 min-[1900px]:group-hover:bg-orange-600" />
-
-      <span className="relative inline-flex pb-1 transition min-[1900px]:pb-0 min-[1900px]:group-hover:translate-x-1">
-        {children}
-        <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 min-[1900px]:hidden" />
-      </span>
-
-      <span className="hidden text-xs text-black/25 opacity-0 transition group-hover:translate-x-1 group-hover:text-orange-600 group-hover:opacity-100 min-[1900px]:block">
-        →
-      </span>
+      {children}
+      <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500" />
     </a>
   );
 }
