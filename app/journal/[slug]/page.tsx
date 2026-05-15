@@ -22,6 +22,24 @@ type JournalTag =
       current?: string;
     };
 
+type LinkedGalleryImage = SanityImageSource & {
+  alt?: string;
+  caption?: string;
+  displayFormat?: string;
+};
+
+type LinkedGalleryAlbum = {
+  _id: string;
+  title: string;
+  slug?: {
+    current?: string;
+  };
+  category?: string;
+  description?: string;
+  coverImage?: LinkedGalleryImage;
+  images?: LinkedGalleryImage[];
+};
+
 type JournalPost = {
   title: string;
   publishedAt?: string;
@@ -36,6 +54,7 @@ type JournalPost = {
     caption?: string;
     imageFormat?: string;
   };
+  linkedGalleryAlbums?: LinkedGalleryAlbum[];
 };
 
 const query = `*[_type == "journalPost" && slug.current == $slug][0]{
@@ -47,7 +66,34 @@ const query = `*[_type == "journalPost" && slug.current == $slug][0]{
   stravaUrl,
   soundcloudUrl,
   tags,
-  mainImage
+  mainImage,
+  linkedGalleryAlbums[]->{
+    _id,
+    title,
+    slug,
+    category,
+    "description": coalesce(description, teaser, excerpt),
+    "coverImage": select(
+      defined(coverImage) => coverImage{
+        ...,
+        alt,
+        caption,
+        displayFormat
+      },
+      images[0]{
+        ...,
+        alt,
+        caption,
+        displayFormat
+      }
+    ),
+    images[]{
+      ...,
+      alt,
+      caption,
+      displayFormat
+    }
+  }
 }`;
 
 async function getJournalPost(slug: string) {
@@ -171,6 +217,108 @@ function getTagLabel(tag: JournalTag) {
 
 function getPortalTagHref(tag: string) {
   return `/?tags=${encodeURIComponent(tag)}#portal-journal`;
+}
+
+function formatGalleryCategory(category?: string) {
+  const categories: Record<string, string> = {
+    running: "Running",
+    cycling: "Cycling",
+    music: "Music",
+    lifestyle: "Life",
+    event: "Event",
+    laufen: "Running",
+    radfahren: "Cycling",
+    musik: "Music",
+  };
+
+  return category ? (categories[category] ?? category) : "Galerie";
+}
+
+function LinkedGalleryAlbumsSection({ albums }: { albums?: LinkedGalleryAlbum[] }) {
+  const visibleAlbums = (albums ?? []).filter((album) => album?._id);
+
+  if (visibleAlbums.length === 0) return null;
+
+  return (
+    <section className="mt-12 border-t border-black/10 pt-7">
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+            Galerie dazu
+          </p>
+          <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.04em] text-black">
+            Bilder zur Story
+          </h2>
+        </div>
+
+        <p className="max-w-sm text-sm font-semibold leading-6 text-black/45 sm:text-right">
+          Bilder bleiben zentral in der Galerie gepflegt und sind hier mit dem
+          Journal verknüpft.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {visibleAlbums.map((album, index) => {
+          const image = album.coverImage || album.images?.[0];
+          const imageCount = album.images?.length ?? 0;
+          const href = album.slug?.current
+            ? `/gallery/${album.slug.current}`
+            : "/#portal-gallery";
+
+          return (
+            <Link
+              key={album._id}
+              href={href}
+              className="group grid gap-4 border-y border-black/10 py-4 transition hover:bg-white/35 sm:grid-cols-[112px_minmax(0,1fr)] sm:items-center sm:border-y-0 sm:border-t sm:pb-0"
+            >
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.1rem] bg-black/5 ring-1 ring-black/10">
+                {image ? (
+                  <Image
+                    src={urlFor(image).width(700).height(875).fit("crop").url()}
+                    alt={image.alt || album.title}
+                    width={700}
+                    height={875}
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                    priority={index === 0}
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center px-3 text-center text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
+                    Kein Bild
+                  </div>
+                )}
+              </div>
+
+              <div className="min-w-0">
+                <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] font-black uppercase tracking-[0.22em] text-black/35">
+                  <span>{formatGalleryCategory(album.category)}</span>
+                  {imageCount > 0 ? (
+                    <>
+                      <span className="h-1 w-1 rounded-full bg-black/20" />
+                      <span>{imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}</span>
+                    </>
+                  ) : null}
+                </div>
+
+                <h3 className="text-xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+                  {album.title}
+                </h3>
+
+                {album.description ? (
+                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-black/55">
+                    {album.description}
+                  </p>
+                ) : null}
+
+                <p className="mt-4 inline-flex items-center gap-2 border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition group-hover:border-orange-500 group-hover:text-orange-600">
+                  Album öffnen <span>→</span>
+                </p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 type JournalImageRatioConfig = {
@@ -427,6 +575,8 @@ export default async function JournalPostPage({
                   Für diesen Beitrag wurde noch kein Text hinterlegt.
                 </p>
               )}
+
+              <LinkedGalleryAlbumsSection albums={post.linkedGalleryAlbums} />
 
               {tags.length > 0 ? (
                 <section className="mt-12 border-t border-black/10 pt-6">

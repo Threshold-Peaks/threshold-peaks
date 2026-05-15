@@ -42,6 +42,7 @@ type HomeJournalPost = {
   location?: string;
   tags?: string | HomeJournalTag[];
   mainImage?: HomeJournalImage;
+  linkedGalleryAlbums?: HomeGalleryAlbum[];
 };
 
 type HomeGalleryImage = SanityImageSource & {
@@ -96,7 +97,36 @@ const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
   soundcloudUrl,
   location,
   "tags": coalesce(tags, tag, hashtags, hashtag, keywords, ""),
-  mainImage
+  mainImage,
+  linkedGalleryAlbums[]->{
+    _id,
+    title,
+    slug,
+    category,
+    date,
+    location,
+    "description": coalesce(description, teaser, excerpt),
+    "coverImage": select(
+      defined(coverImage) => coverImage{
+        ...,
+        alt,
+        caption,
+        displayFormat
+      },
+      images[0]{
+        ...,
+        alt,
+        caption,
+        displayFormat
+      }
+    ),
+    images[]{
+      ...,
+      alt,
+      caption,
+      displayFormat
+    }
+  }
 }`;
 
 const allGalleryQuery = `*[_type == "galleryAlbum"] | order(coalesce(date, _createdAt) desc) {
