@@ -241,20 +241,13 @@ function LinkedGalleryAlbumsSection({ albums }: { albums?: LinkedGalleryAlbum[] 
 
   return (
     <section className="mt-12 border-t border-black/10 pt-7">
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-            Galerie dazu
-          </p>
-          <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.04em] text-black">
-            Bilder zur Story
-          </h2>
-        </div>
-
-        <p className="max-w-sm text-sm font-semibold leading-6 text-black/45 sm:text-right">
-          Bilder bleiben zentral in der Galerie gepflegt und sind hier mit dem
-          Journal verknüpft.
+      <div className="mb-6">
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+          Galerie dazu
         </p>
+        <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.04em] text-black">
+          Bilder zur Story
+        </h2>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
