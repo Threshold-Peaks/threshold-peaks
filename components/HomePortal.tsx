@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
@@ -90,8 +91,14 @@ type HomeEvent = {
   body?: PortableTextBlock;
 };
 
-type PortalTab = "about" | "journal" | "gallery" | "events" | "contact";
-type PortalContentTab = Exclude<PortalTab, "about" | "contact">;
+type PortalTab =
+  | "about"
+  | "journal"
+  | "gallery"
+  | "events"
+  | "live"
+  | "contact";
+type PortalContentTab = Exclude<PortalTab, "about" | "live" | "contact">;
 
 type ImageDisplayFormat =
   | "auto"
@@ -145,6 +152,11 @@ const tabs: Array<{
     text: "Termine, Läufe, Rides und Highlights.",
   },
   {
+    id: "live",
+    title: "Live Sets",
+    text: "Elektronische Musik live aus dem Studio.",
+  },
+  {
     id: "contact",
     title: "Kontakt",
     text: "Kanäle und Verbindungspunkte.",
@@ -182,9 +194,11 @@ const albumCoverRatioConfig = {
 function getDisplayFormatRatioConfig(displayFormat?: string | null) {
   if (!displayFormat || displayFormat === "auto") return null;
 
-  return imageDisplayFormatConfigs[
-    displayFormat as keyof typeof imageDisplayFormatConfigs
-  ] ?? null;
+  return (
+    imageDisplayFormatConfigs[
+      displayFormat as keyof typeof imageDisplayFormatConfigs
+    ] ?? null
+  );
 }
 
 function getGalleryAutoRatioConfig(index: number) {
@@ -192,7 +206,9 @@ function getGalleryAutoRatioConfig(index: number) {
 }
 
 function getGalleryCoverRatioConfig(displayFormat?: string | null) {
-  return getDisplayFormatRatioConfig(displayFormat) ?? galleryDefaultCoverRatioConfig;
+  return (
+    getDisplayFormatRatioConfig(displayFormat) ?? galleryDefaultCoverRatioConfig
+  );
 }
 
 function getGalleryDetailImageRatioConfig(
@@ -434,7 +450,10 @@ function getTagsFromSearchParam(value?: string | null) {
 }
 
 function createTagsParam(tags: string[]) {
-  return tags.map((tag) => tag.replace(/^#/, "").trim()).filter(Boolean).join(",");
+  return tags
+    .map((tag) => tag.replace(/^#/, "").trim())
+    .filter(Boolean)
+    .join(",");
 }
 
 function isSameTag(firstTag: string, secondTag: string) {
@@ -516,17 +535,30 @@ type StravaEmbedData = {
   style: string;
 };
 
-function readStravaEmbedAttribute(embedCode: string | undefined, attribute: string) {
+function readStravaEmbedAttribute(
+  embedCode: string | undefined,
+  attribute: string,
+) {
   if (!embedCode) return null;
 
-  const match = embedCode.match(new RegExp(`${attribute}=["']([^"']+)["']`, "i"));
+  const match = embedCode.match(
+    new RegExp(`${attribute}=["']([^"']+)["']`, "i"),
+  );
   return match?.[1] ?? null;
 }
 
-function getStravaEmbedData(stravaUrl?: string, stravaEmbedCode?: string): StravaEmbedData | null {
-  const idFromEmbed = readStravaEmbedAttribute(stravaEmbedCode, "data-embed-id");
-  const token = readStravaEmbedAttribute(stravaEmbedCode, "data-token") ?? undefined;
-  const style = readStravaEmbedAttribute(stravaEmbedCode, "data-style") ?? "standard";
+function getStravaEmbedData(
+  stravaUrl?: string,
+  stravaEmbedCode?: string,
+): StravaEmbedData | null {
+  const idFromEmbed = readStravaEmbedAttribute(
+    stravaEmbedCode,
+    "data-embed-id",
+  );
+  const token =
+    readStravaEmbedAttribute(stravaEmbedCode, "data-token") ?? undefined;
+  const style =
+    readStravaEmbedAttribute(stravaEmbedCode, "data-style") ?? "standard";
   const id = idFromEmbed ?? getStravaActivityId(stravaUrl);
 
   return id ? { id, token, style } : null;
@@ -739,7 +771,11 @@ export default function HomePortal({
 
     const params = new URLSearchParams(window.location.search);
     const tagKey =
-      tab === "gallery" ? "galleryTags" : tab === "events" ? "eventTags" : "tags";
+      tab === "gallery"
+        ? "galleryTags"
+        : tab === "events"
+          ? "eventTags"
+          : "tags";
     const legacyTagKey =
       tab === "gallery" ? "galleryTag" : tab === "events" ? "eventTag" : "tag";
     const nextTags = createTagsParam(tags);
@@ -817,6 +853,10 @@ export default function HomePortal({
         galerie: "gallery",
         gallery: "gallery",
         events: "events",
+        live: "live",
+        twitch: "live",
+        "live-sets": "live",
+        livesets: "live",
         kontakt: "contact",
         contact: "contact",
       };
@@ -887,7 +927,11 @@ export default function HomePortal({
       if (!url.hash.startsWith("#portal-")) return;
 
       event.preventDefault();
-      window.history.pushState(null, "", `${url.pathname}${url.search}${url.hash}`);
+      window.history.pushState(
+        null,
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
       updateFromHash();
     }
 
@@ -977,6 +1021,11 @@ export default function HomePortal({
         aria-hidden="true"
       />
       <span
+        id="portal-live"
+        className="absolute -top-28 h-px w-px overflow-hidden"
+        aria-hidden="true"
+      />
+      <span
         id="portal-contact"
         className="absolute -top-28 h-px w-px overflow-hidden"
         aria-hidden="true"
@@ -999,7 +1048,6 @@ export default function HomePortal({
               <div className="relative pl-6">
                 <span className="absolute left-0 top-1 h-full w-px bg-black/15" />
                 <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee]" />
-
 
                 <h3 className="text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
                   {activeTabMeta.title}
@@ -1092,6 +1140,8 @@ export default function HomePortal({
                   )
                 ) : null}
 
+                {activeTab === "live" ? <LiveSetsPanel /> : null}
+
                 {activeTab === "contact" ? <ContactPanel /> : null}
               </div>
             </div>
@@ -1111,7 +1161,11 @@ function PortalMainLink({
   showAllContent: Record<PortalContentTab, boolean>;
   onToggleShowAll: (tab: PortalContentTab) => void;
 }) {
-  if (activeTab === "about" || activeTab === "contact") {
+  if (
+    activeTab === "about" ||
+    activeTab === "live" ||
+    activeTab === "contact"
+  ) {
     return null;
   }
 
@@ -1366,7 +1420,8 @@ function JournalPanel({
     },
   ];
 
-  const items = posts.length > 0 ? posts : selectedTags.length > 0 ? [] : fallbackPosts;
+  const items =
+    posts.length > 0 ? posts : selectedTags.length > 0 ? [] : fallbackPosts;
 
   return (
     <div>
@@ -1663,8 +1718,6 @@ function JournalPortalDetail({
   );
 }
 
-
-
 function JournalMetaLinks({
   stravaUrl,
   soundcloudUrl,
@@ -1736,7 +1789,12 @@ function StoryConnectionsSection({
             : "grid gap-10"
         }
       >
-        {hasStrava ? <StravaStoryCard stravaUrl={stravaUrl} stravaEmbedCode={stravaEmbedCode} /> : null}
+        {hasStrava ? (
+          <StravaStoryCard
+            stravaUrl={stravaUrl}
+            stravaEmbedCode={stravaEmbedCode}
+          />
+        ) : null}
 
         {hasAlbums ? (
           <LinkedGalleryAlbumsCard
@@ -1814,8 +1872,8 @@ function StravaStoryCard({
       ) : (
         <div className="flex min-h-[190px] flex-col justify-center border-y border-dashed border-black/15 py-8 text-center">
           <p className="mx-auto max-w-sm text-sm font-semibold leading-7 text-black/50">
-            Für diese Story ist ein Strava-Link hinterlegt, aber ich konnte daraus
-            keine Aktivitäts-ID lesen.
+            Für diese Story ist ein Strava-Link hinterlegt, aber ich konnte
+            daraus keine Aktivitäts-ID lesen.
           </p>
         </div>
       )}
@@ -1876,7 +1934,9 @@ function LinkedGalleryAlbumsCard({
                   {imageCount > 0 ? (
                     <>
                       <span className="h-1 w-1 rounded-full bg-black/20" />
-                      <span>{imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}</span>
+                      <span>
+                        {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
+                      </span>
                     </>
                   ) : null}
                 </div>
@@ -1983,7 +2043,9 @@ function GalleryPanel({
                         <>
                           <span className="h-1 w-1 rounded-full bg-black/25" />
                           <span>
-                            {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
+                            {imageCount === 1
+                              ? "1 Bild"
+                              : `${imageCount} Bilder`}
                           </span>
                         </>
                       ) : null}
@@ -2125,17 +2187,17 @@ function GalleryAlbumPortalDetail({
               </dd>
             </div>
             <div>
-  <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
-    Gefällt mir
-  </dt>
-  <dd className="mt-1">
-    <LikeButton
-      targetType="galleryAlbum"
-      targetId={commentTargetSlug}
-      className="tracking-[0.16em]"
-    />
-  </dd>
-</div>
+              <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
+                Gefällt mir
+              </dt>
+              <dd className="mt-1">
+                <LikeButton
+                  targetType="galleryAlbum"
+                  targetId={commentTargetSlug}
+                  className="tracking-[0.16em]"
+                />
+              </dd>
+            </div>
           </dl>
 
           {tags.length > 0 ? (
@@ -2166,13 +2228,21 @@ function GalleryAlbumPortalDetail({
             <div className="relative overflow-hidden rounded-[1rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
                 src={urlFor(coverImage)
-                  .width(getGalleryCoverRatioConfig(coverImage.displayFormat).width)
-                  .height(getGalleryCoverRatioConfig(coverImage.displayFormat).height)
+                  .width(
+                    getGalleryCoverRatioConfig(coverImage.displayFormat).width,
+                  )
+                  .height(
+                    getGalleryCoverRatioConfig(coverImage.displayFormat).height,
+                  )
                   .fit("crop")
                   .url()}
                 alt={coverImage.alt || album.title}
-                width={getGalleryCoverRatioConfig(coverImage.displayFormat).width}
-                height={getGalleryCoverRatioConfig(coverImage.displayFormat).height}
+                width={
+                  getGalleryCoverRatioConfig(coverImage.displayFormat).width
+                }
+                height={
+                  getGalleryCoverRatioConfig(coverImage.displayFormat).height
+                }
                 priority
                 className={`${getGalleryCoverRatioConfig(coverImage.displayFormat).className} w-full object-cover`}
               />
@@ -2429,7 +2499,13 @@ function EventCardContent({
   );
 }
 
-function EventDetailFact({ label, value }: { label: string; value: ReactNode }) {
+function EventDetailFact({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
   return (
     <div className="py-5 md:px-6">
       <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
@@ -2535,18 +2611,18 @@ function EventPortalDetail({
               value={event.location ?? "Noch offen"}
             />
             <div className="py-5 md:px-6">
-  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
-    Gefällt mir
-  </p>
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+                Gefällt mir
+              </p>
 
-  <div className="mt-2 flex items-center">
-    <LikeButton
-      targetType="event"
-      targetId={commentTargetSlug}
-      className="tracking-[0.18em]"
-    />
-  </div>
-</div>
+              <div className="mt-2 flex items-center">
+                <LikeButton
+                  targetType="event"
+                  targetId={commentTargetSlug}
+                  className="tracking-[0.18em]"
+                />
+              </div>
+            </div>
           </div>
         </section>
 
@@ -2594,6 +2670,107 @@ function EventPortalDetail({
         />
       </div>
     </article>
+  );
+}
+
+function LiveSetsPanel() {
+  const twitchUrl = "https://www.twitch.tv/thresholdpeaks";
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-[0.95fr_1.25fr] lg:items-start">
+      <div className="border-l border-black/15 pl-6 text-[#111217]">
+        <p className="mb-5 text-xs font-black uppercase tracking-[0.35em] text-black/40">
+          Twitch
+        </p>
+
+        <h4 className="max-w-xl text-4xl font-black leading-[0.95] tracking-[-0.06em] md:text-6xl">
+          Live Sets
+        </h4>
+
+        <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-black/65 md:text-lg md:leading-9">
+          Live aus dem Studio: elektronische Musik, spontane Sets und Sessions
+          zwischen Peak-Time, Groove und langen Nächten.
+        </p>
+
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          <a
+            href={twitchUrl}
+            target="_blank"
+            rel="noreferrer"
+            className={lineButtonWideClass}
+          >
+            Twitch öffnen
+            <span>→</span>
+          </a>
+
+          <span className="text-[10px] font-black uppercase tracking-[0.26em] text-black/35">
+            @thresholdpeaks
+          </span>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-white/35 shadow-[0_1px_2px_rgba(17,18,23,0.05)] ring-1 ring-white/70 backdrop-blur-xl">
+        <div className="relative aspect-[16/10] overflow-hidden border-b border-black/10 bg-black/5">
+          <Image
+            src="/images/twitch-live-sets.png"
+            alt="Threshold Peaks Live Sets auf Twitch"
+            fill
+            sizes="(max-width: 1024px) 100vw, 560px"
+            className="object-cover"
+          />
+        </div>
+
+        <div className="p-5 md:p-6">
+          <div className="flex items-start justify-between gap-5 border-b border-black/10 pb-6">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.32em] text-black/35">
+                Streaming via Twitch
+              </p>
+              <h5 className="mt-3 text-2xl font-black leading-tight tracking-[-0.045em] text-[#111217] md:text-3xl">
+                Studio Sessions, wenn der Abend Bass bekommt.
+              </h5>
+            </div>
+
+            <div className="shrink-0 rounded-full border border-black/10 bg-[#f5f3ee]/70 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
+              Offline
+            </div>
+          </div>
+
+          <div className="grid gap-4 pt-6 sm:grid-cols-3">
+            {[
+              {
+                label: "Sound",
+                text: "Elektronische Musik und spontane Übergänge.",
+              },
+              {
+                label: "Mood",
+                text: "Peak-Time, Groove und lange Nachtlichter.",
+              },
+              { label: "Kanal", text: "thresholdpeaks direkt auf Twitch." },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="border-t border-black/10 pt-4 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0"
+              >
+                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                  {item.label}
+                </p>
+                <p className="mt-3 text-sm font-semibold leading-7 text-black/60">
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-7 border-t border-black/10 pt-5">
+            <p className="text-xs font-bold uppercase tracking-[0.22em] text-black/35">
+              Kein Autoplay, kein schwerer Player. Erstmal leicht, schnell und
+              sauber verlinkt.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
