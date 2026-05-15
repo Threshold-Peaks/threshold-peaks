@@ -1071,7 +1071,7 @@ export default function HomePortal({
               <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-black/10 lg:block" />
 
               <div
-                className={`lg:pl-8 transition-all duration-300 ease-out ${
+                className={`min-h-[560px] transition-all duration-300 ease-out [overflow-anchor:none] md:min-h-[600px] lg:min-h-[640px] lg:pl-8 ${
                   isPortalSwitching
                     ? "translate-y-2 opacity-0"
                     : "translate-y-0 opacity-100"
