@@ -1,6 +1,7 @@
 import LikeButton from "@/components/LikeButton";
 import BackHeader from "@/components/BackHeader";
 import Link from "next/link";
+import Script from "next/script";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
@@ -48,6 +49,7 @@ type JournalPost = {
   excerpt?: string;
   body?: any[];
   stravaUrl?: string;
+  stravaEmbedCode?: string;
   soundcloudUrl?: string;
   tags?: JournalTag[];
   mainImage?: SanityImageSource & {
@@ -65,6 +67,7 @@ const query = `*[_type == "journalPost" && slug.current == $slug][0]{
   excerpt,
   body,
   stravaUrl,
+  stravaEmbedCode,
   soundcloudUrl,
   tags,
   mainImage,
@@ -197,6 +200,7 @@ function formatCategory(category?: string) {
     music: "Music",
     lifestyle: "Lifestyle",
     event: "Event",
+    gear: "Gear",
 
     laufen: "Running",
     radfahren: "Cycling",
@@ -235,24 +239,165 @@ function formatGalleryCategory(category?: string) {
   return category ? (categories[category] ?? category) : "Galerie";
 }
 
-function LinkedGalleryAlbumsSection({ albums }: { albums?: LinkedGalleryAlbum[] }) {
-  const visibleAlbums = (albums ?? []).filter((album) => album?._id);
+function getStravaActivityId(url?: string) {
+  if (!url) return null;
 
-  if (visibleAlbums.length === 0) return null;
+  const directMatch = url.match(/strava\.com\/activities\/(\d+)/i);
+  if (directMatch?.[1]) return directMatch[1];
+
+  try {
+    const parsedUrl = new URL(url);
+    const pathMatch = parsedUrl.pathname.match(/\/activities\/(\d+)/i);
+
+    return pathMatch?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+type StravaEmbedData = {
+  id: string;
+  token?: string;
+  style: string;
+};
+
+function readStravaEmbedAttribute(embedCode: string | undefined, attribute: string) {
+  if (!embedCode) return null;
+
+  const match = embedCode.match(new RegExp(`${attribute}=["']([^"']+)["']`, "i"));
+  return match?.[1] ?? null;
+}
+
+function getStravaEmbedData(stravaUrl?: string, stravaEmbedCode?: string): StravaEmbedData | null {
+  const idFromEmbed = readStravaEmbedAttribute(stravaEmbedCode, "data-embed-id");
+  const token = readStravaEmbedAttribute(stravaEmbedCode, "data-token") ?? undefined;
+  const style = readStravaEmbedAttribute(stravaEmbedCode, "data-style") ?? "standard";
+  const id = idFromEmbed ?? getStravaActivityId(stravaUrl);
+
+  return id ? { id, token, style } : null;
+}
+
+function StoryConnectionsSection({
+  albums,
+  stravaUrl,
+  stravaEmbedCode,
+}: {
+  albums?: LinkedGalleryAlbum[];
+  stravaUrl?: string;
+  stravaEmbedCode?: string;
+}) {
+  const visibleAlbums = (albums ?? []).filter((album) => album?._id);
+  const hasAlbums = visibleAlbums.length > 0;
+  const hasStrava = Boolean(stravaUrl || stravaEmbedCode);
+
+  if (!hasAlbums && !hasStrava) return null;
 
   return (
-    <section className="mt-12 border-t border-black/10 pt-7">
-      <div className="mb-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-          Galerie dazu
+    <section className="mt-14 border-t border-black/10 pt-7">
+      <div className="mb-8">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/35">
+          Zur Story
         </p>
-        <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.04em] text-black">
-          Bilder zur Story
+        <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.04em] text-black md:text-[1.7rem]">
+          Aktivität & Bilder
         </h2>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {visibleAlbums.map((album, index) => {
+      <div
+        className={
+          hasAlbums && hasStrava
+            ? "grid gap-10 lg:grid-cols-2 lg:gap-12 lg:items-start"
+            : "grid gap-10"
+        }
+      >
+        {hasStrava ? (
+          <StravaStoryCard stravaUrl={stravaUrl} stravaEmbedCode={stravaEmbedCode} />
+        ) : null}
+
+        {hasAlbums ? <LinkedGalleryAlbumsCard albums={visibleAlbums} /> : null}
+      </div>
+    </section>
+  );
+}
+
+function StravaStoryCard({
+  stravaUrl,
+  stravaEmbedCode,
+}: {
+  stravaUrl?: string;
+  stravaEmbedCode?: string;
+}) {
+  const embedData = getStravaEmbedData(stravaUrl, stravaEmbedCode);
+  const activityId = embedData?.id;
+  const token = embedData?.token;
+  const style = embedData?.style ?? "standard";
+
+  return (
+    <aside className="border-y border-black/10 bg-white/55 px-4 py-5 sm:px-5">
+      <div className="mb-5 border-b border-black/10 pb-4">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/35">
+          Strava
+        </p>
+        <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] text-black md:text-xl">
+          Aktivität zur Story
+        </h3>
+      </div>
+
+      {activityId ? (
+        <>
+          <div
+            key={`${activityId}-${token ?? "public"}`}
+            className="strava-story-embed mx-auto max-w-[390px] overflow-hidden bg-transparent py-3 lg:mx-0"
+          >
+            <div
+              className="strava-embed-placeholder"
+              data-embed-type="activity"
+              data-embed-id={activityId}
+              data-style={style}
+              data-from-embed="false"
+              data-token={token}
+            />
+            <style>{`
+              .strava-story-embed {
+                background-color: transparent;
+              }
+
+              .strava-story-embed iframe {
+                background-color: transparent !important;
+              }
+            `}</style>
+          </div>
+          <Script
+            src="https://strava-embeds.com/embed.js"
+            strategy="afterInteractive"
+          />
+        </>
+      ) : (
+        <div className="flex min-h-[190px] flex-col justify-center border-y border-dashed border-black/15 py-8 text-center">
+          <p className="mx-auto max-w-sm text-sm font-semibold leading-7 text-black/50">
+            Für diese Story ist ein Strava-Link hinterlegt, aber ich konnte daraus
+            keine Aktivitäts-ID lesen.
+          </p>
+        </div>
+      )}
+    </aside>
+  );
+}
+
+function LinkedGalleryAlbumsCard({ albums }: { albums: LinkedGalleryAlbum[] }) {
+  return (
+    <aside className="border-y border-black/10 bg-white/55 px-4 py-5 sm:px-5">
+      <div className="mb-5 border-b border-black/10 pb-4">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/35">
+          Galerie dazu
+        </p>
+        <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] text-black md:text-xl">
+          Bilder zur Story
+        </h3>
+      </div>
+
+      <div className="divide-y divide-black/10">
+        {albums.map((album, index) => {
           const image = album.coverImage || album.images?.[0];
           const imageCount = album.images?.length ?? 0;
           const href = album.slug?.current
@@ -263,15 +408,15 @@ function LinkedGalleryAlbumsSection({ albums }: { albums?: LinkedGalleryAlbum[] 
             <Link
               key={album._id}
               href={href}
-              className="group grid gap-4 border-y border-black/10 py-4 transition hover:bg-white/35 sm:grid-cols-[112px_minmax(0,1fr)] sm:items-center sm:border-y-0 sm:border-t sm:pb-0"
+              className="group grid gap-4 py-4 transition hover:bg-black/[0.025] sm:grid-cols-[86px_minmax(0,1fr)] sm:items-center sm:px-2"
             >
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.1rem] bg-black/5 ring-1 ring-black/10">
+              <div className="relative aspect-square overflow-hidden rounded-[0.95rem] bg-black/5 ring-1 ring-black/10">
                 {image ? (
                   <Image
-                    src={urlFor(image).width(700).height(875).fit("crop").url()}
+                    src={urlFor(image).width(600).height(600).fit("crop").url()}
                     alt={image.alt || album.title}
-                    width={700}
-                    height={875}
+                    width={600}
+                    height={600}
                     className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                     priority={index === 0}
                   />
@@ -293,17 +438,17 @@ function LinkedGalleryAlbumsSection({ albums }: { albums?: LinkedGalleryAlbum[] 
                   ) : null}
                 </div>
 
-                <h3 className="text-xl font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600">
+                <h4 className="text-lg font-black leading-tight tracking-[-0.04em] transition group-hover:text-orange-600 md:text-xl">
                   {album.title}
-                </h3>
+                </h4>
 
                 {album.description ? (
-                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-black/55">
+                  <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-black/50">
                     {album.description}
                   </p>
                 ) : null}
 
-                <p className="mt-4 inline-flex items-center gap-2 border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition group-hover:border-orange-500 group-hover:text-orange-600">
+                <p className="mt-3 inline-flex items-center gap-2 border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition group-hover:border-orange-500 hover:text-orange-600">
                   Album öffnen <span>→</span>
                 </p>
               </div>
@@ -311,7 +456,7 @@ function LinkedGalleryAlbumsSection({ albums }: { albums?: LinkedGalleryAlbum[] 
           );
         })}
       </div>
-    </section>
+    </aside>
   );
 }
 
@@ -334,10 +479,7 @@ function getJournalImageRatioConfig(format?: string) {
   if (
     format &&
     format !== "auto" &&
-    Object.prototype.hasOwnProperty.call(
-      journalImageRatioConfigByFormat,
-      format,
-    )
+    Object.prototype.hasOwnProperty.call(journalImageRatioConfigByFormat, format)
   ) {
     return journalImageRatioConfigByFormat[
       format as keyof typeof journalImageRatioConfigByFormat
@@ -374,7 +516,7 @@ function DetailLinks({
       </p>
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
         {stravaUrl ? (
-          <Link
+          <a
             href={stravaUrl}
             target="_blank"
             rel="noreferrer"
@@ -382,11 +524,11 @@ function DetailLinks({
           >
             <span>Strava</span>
             <span>→</span>
-          </Link>
+          </a>
         ) : null}
 
         {soundcloudUrl ? (
-          <Link
+          <a
             href={soundcloudUrl}
             target="_blank"
             rel="noreferrer"
@@ -394,7 +536,7 @@ function DetailLinks({
           >
             <span>SoundCloud</span>
             <span>→</span>
-          </Link>
+          </a>
         ) : null}
       </div>
     </div>
@@ -546,65 +688,63 @@ export default async function JournalPostPage({
                   label="Kategorie"
                   value={formatCategory(post.category)}
                 />
-                <DetailFact
-                  label="Datum"
-                  value={formatDate(post.publishedAt)}
-                />
+                <DetailFact label="Datum" value={formatDate(post.publishedAt)} />
                 <DetailFact label="Bereich" value="Journal" />
                 <DetailLinks
                   stravaUrl={post.stravaUrl}
                   soundcloudUrl={post.soundcloudUrl}
                 />
                 <div className="py-4 md:px-5 md:first:pl-0">
-  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/30">
-    Gefällt mir
-  </p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/30">
+                    Gefällt mir
+                  </p>
 
-  <div className="mt-2 flex items-center">
-    <LikeButton
-      targetType="journal"
-      targetId={slug}
-      className="tracking-[0.18em]"
-    />
-  </div>
-</div>
+                  <div className="mt-2 flex items-center">
+                    <LikeButton
+                      targetType="journal"
+                      targetId={slug}
+                      className="tracking-[0.18em]"
+                    />
+                  </div>
+                </div>
               </div>
             </section>
 
             <div className="max-w-3xl">
               {post.body && post.body.length > 0 ? (
-                <PortableText
-                  value={post.body}
-                  components={portableTextComponents}
-                />
+                <PortableText value={post.body} components={portableTextComponents} />
               ) : (
                 <p className="text-base leading-8 text-neutral-600">
                   Für diesen Beitrag wurde noch kein Text hinterlegt.
                 </p>
               )}
-
-              <LinkedGalleryAlbumsSection albums={post.linkedGalleryAlbums} />
-
-              {tags.length > 0 ? (
-                <section className="mt-12 border-t border-black/10 pt-6">
-                  <p className="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-                    Hashtags
-                  </p>
-
-                  <div className="flex flex-wrap gap-x-3 gap-y-2">
-                    {tags.map((tag) => (
-                      <Link
-                        key={tag}
-                        href={getPortalTagHref(tag)}
-                        className="px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
-                      >
-                        #{tag}
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
             </div>
+
+            <StoryConnectionsSection
+              albums={post.linkedGalleryAlbums}
+              stravaUrl={post.stravaUrl}
+              stravaEmbedCode={post.stravaEmbedCode}
+            />
+
+            {tags.length > 0 ? (
+              <section className="mt-12 max-w-3xl border-t border-black/10 pt-6">
+                <p className="mb-4 text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                  Hashtags
+                </p>
+
+                <div className="flex flex-wrap gap-x-3 gap-y-2">
+                  {tags.map((tag) => (
+                    <Link
+                      key={tag}
+                      href={getPortalTagHref(tag)}
+                      className="px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                    >
+                      #{tag}
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ) : null}
           </article>
         </div>
       </section>

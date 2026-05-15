@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { SanityImageSource } from "@sanity/image-url";
-import StravaLatest from "@/components/StravaLatest";
 import BackToTopButton from "@/components/BackToTopButton";
 import HomePortal from "@/components/HomePortal";
 import { client } from "@/sanity/lib/client";
@@ -38,6 +37,7 @@ type HomeJournalPost = {
   excerpt?: string;
   body?: PortableTextBlock;
   stravaUrl?: string;
+  stravaEmbedCode?: string;
   soundcloudUrl?: string;
   location?: string;
   tags?: string | HomeJournalTag[];
@@ -94,6 +94,7 @@ const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
   excerpt,
   body,
   stravaUrl,
+  stravaEmbedCode,
   soundcloudUrl,
   location,
   "tags": coalesce(tags, tag, hashtags, hashtag, keywords, ""),
@@ -262,7 +263,7 @@ export default async function Home() {
               <HeroTopNav />
             </div>
 
-            {/* RIGHT: PORTAL + STRAVA */}
+            {/* RIGHT: PORTAL */}
             <div className="w-full space-y-6">
               <HomePortal
         latestPosts={latestPosts}
@@ -273,10 +274,6 @@ export default async function Home() {
         allEvents={upcomingEvents}
         embedded
               />
-
-              <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-white/55 p-6 shadow-[0_1px_2px_rgba(17,18,23,0.06)] ring-1 ring-white/70 backdrop-blur-2xl md:p-7">
-                <StravaLatest variant="footer" />
-              </div>
             </div>
           </div>
         </div>
@@ -383,17 +380,14 @@ function HeroTopNav() {
   ];
 
   return (
-    <nav
-      aria-label="Hauptnavigation"
-      className="relative z-50 mt-7 w-full"
-    >
-      <div className="mb-4 text-left">
+    <nav aria-label="Hauptnavigation" className="relative z-50 mt-7 w-full">
+      <div className="mb-5 text-left">
         <div className="text-[8px] font-black uppercase tracking-[0.34em] text-black/30 md:text-[10px] md:text-black/35">
           Navigation
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-7 gap-y-3">
+      <div className="grid max-w-[360px] grid-cols-2 gap-x-10 gap-y-5 text-left sm:max-w-[520px] sm:grid-cols-3 sm:gap-x-8 md:flex md:max-w-none md:flex-wrap md:items-center md:gap-x-7 md:gap-y-3">
         {navItems.map((item) => (
           <HeroTopNavLink key={item.href} href={item.href}>
             {item.label}
@@ -414,7 +408,7 @@ function HeroTopNavLink({
   return (
     <a
       href={href}
-      className="group relative inline-flex pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
+      className="group relative inline-flex w-max pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
     >
       {children}
       <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500" />

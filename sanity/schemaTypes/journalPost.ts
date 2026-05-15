@@ -175,8 +175,18 @@ export const journalPost = defineType({
       name: 'stravaUrl',
       title: 'Strava-Link',
       type: 'url',
-      description: 'Optionaler Link zu einer Strava-Aktivität.',
+      description: 'Optionaler normaler Link zu einer Strava-Aktivität. Die Website baut daraus automatisch die Einbettung/Karte.',
       validation: (Rule) => Rule.uri({scheme: ['http', 'https']}).warning(),
+    }),
+
+
+    defineField({
+      name: 'stravaEmbedCode',
+      title: 'Strava-Embed-Code',
+      type: 'text',
+      rows: 4,
+      description:
+        'Optional: Füge hier den kompletten Strava-Code aus „Teilen → Einbetten“ ein. Das ist hilfreich, wenn Strava für die Einbettung einen data-token benötigt.',
     }),
 
     defineField({
