@@ -1667,7 +1667,7 @@ function GalleryAlbumPortalDetail({
                 width={900}
                 height={900}
                 priority
-                className="aspect-square w-full object-cover object-top sm:aspect-[4/3] lg:aspect-[5/4]"
+                className="aspect-square w-full object-cover object-top"
               />
             </div>
 
@@ -1692,12 +1692,9 @@ function GalleryAlbumPortalDetail({
             {galleryImages.map((image, index) => {
               const imageDimensions = getSanityImageDimensions(image);
               const imageRatioClass =
-  index === 1 || index === 2
-    ? "aspect-[4/5]"
-    : ratioClasses[index % ratioClasses.length];
-
-const imagePositionClass =
-  index === 1 || index === 2 ? "object-center" : "object-top";
+                index === 1 || index === 2
+                  ? "aspect-[4/5]"
+                  : ratioClasses[index % ratioClasses.length];
 
               return (
                 <figure
@@ -1712,7 +1709,7 @@ const imagePositionClass =
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
                       width={imageDimensions.width}
                       height={imageDimensions.height}
-                      className="h-full w-full object-cover object-top transition duration-500"
+                      className="h-full w-full object-cover object-top transition duration-700 hover:scale-[1.025]"
                     />
                   </div>
 
