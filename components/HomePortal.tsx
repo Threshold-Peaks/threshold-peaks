@@ -2006,7 +2006,7 @@ function GalleryAlbumPortalDetail({
             </span>
           </div>
 
-          <h1 className="max-w-4xl text-[2rem] font-black leading-[0.96] tracking-tight sm:text-4xl md:text-5xl lg:text-7xl">
+          <h1 className="max-w-[58%] break-words text-[2.35rem] font-black leading-[0.95] tracking-tight text-[#111217] sm:max-w-4xl sm:text-4xl md:text-5xl lg:text-7xl">
             {album.title}
           </h1>
 
