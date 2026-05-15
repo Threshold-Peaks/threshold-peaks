@@ -45,18 +45,9 @@ type HomeJournalPost = {
   mainImage?: HomeJournalImage;
 };
 
-type GalleryImageFormat =
-  | "auto"
-  | "portrait"
-  | "tall"
-  | "square"
-  | "landscape"
-  | "wide";
-
 type HomeGalleryImage = SanityImageSource & {
   alt?: string;
   caption?: string;
-  displayFormat?: GalleryImageFormat;
 };
 
 type HomeGalleryAlbum = {
@@ -370,10 +361,7 @@ function getTagsFromSearchParam(value?: string | null) {
 }
 
 function createTagsParam(tags: string[]) {
-  return tags
-    .map((tag) => tag.replace(/^#/, "").trim())
-    .filter(Boolean)
-    .join(",");
+  return tags.map((tag) => tag.replace(/^#/, "").trim()).filter(Boolean).join(",");
 }
 
 function isSameTag(firstTag: string, secondTag: string) {
@@ -443,60 +431,25 @@ function formatGalleryDate(date?: string) {
   }).format(new Date(date));
 }
 
-const galleryImageRatioConfigByFormat = {
-  portrait: { className: "aspect-[4/5]", width: 1200, height: 1500 },
-  tall: { className: "aspect-[2/3]", width: 1200, height: 1800 },
-  square: { className: "aspect-square", width: 1200, height: 1200 },
-  landscape: { className: "aspect-[5/4]", width: 1400, height: 1120 },
-  wide: { className: "aspect-[4/3]", width: 1400, height: 1050 },
-} as const;
+function getSanityImageDimensions(image?: SanityImageSource | null) {
+  const asset = (
+    image as {
+      asset?: string | { _ref?: string; _id?: string };
+    } | null
+  )?.asset;
 
-const galleryAutoRatioConfigs = [
-  galleryImageRatioConfigByFormat.portrait,
-  galleryImageRatioConfigByFormat.tall,
-  galleryImageRatioConfigByFormat.landscape,
-  galleryImageRatioConfigByFormat.wide,
-  galleryImageRatioConfigByFormat.tall,
-] as const;
+  const ref =
+    typeof asset === "string" ? asset : asset?._ref || asset?._id || "";
+  const match = ref.match(/-(\d+)x(\d+)-[a-zA-Z0-9]+$/);
 
-function getManualGalleryImageRatioConfig(format?: GalleryImageFormat) {
-  if (!format || format === "auto") return undefined;
-
-  return galleryImageRatioConfigByFormat[format];
-}
-
-function getGalleryImageRatioConfig(
-  index: number,
-  format?: GalleryImageFormat,
-) {
-  return (
-    getManualGalleryImageRatioConfig(format) ??
-    galleryAutoRatioConfigs[index % galleryAutoRatioConfigs.length]
-  );
-}
-
-function getGalleryDetailImageRatioConfig(
-  index: number,
-  format?: GalleryImageFormat,
-) {
-  const manualRatioConfig = getManualGalleryImageRatioConfig(format);
-
-  if (manualRatioConfig) {
-    return manualRatioConfig;
+  if (!match) {
+    return { width: 1200, height: 1600 };
   }
 
-  if (index === 1 || index === 2 || index === 3) {
-    return galleryImageRatioConfigByFormat.portrait;
-  }
-
-  return getGalleryImageRatioConfig(index);
-}
-
-function getGalleryCoverImageRatioConfig(format?: GalleryImageFormat) {
-  return (
-    getManualGalleryImageRatioConfig(format) ??
-    galleryImageRatioConfigByFormat.portrait
-  );
+  return {
+    width: Number(match[1]),
+    height: Number(match[2]),
+  };
 }
 
 function formatEventType(type?: string) {
@@ -589,11 +542,7 @@ export default function HomePortal({
 
     const params = new URLSearchParams(window.location.search);
     const tagKey =
-      tab === "gallery"
-        ? "galleryTags"
-        : tab === "events"
-          ? "eventTags"
-          : "tags";
+      tab === "gallery" ? "galleryTags" : tab === "events" ? "eventTags" : "tags";
     const legacyTagKey =
       tab === "gallery" ? "galleryTag" : tab === "events" ? "eventTag" : "tag";
     const nextTags = createTagsParam(tags);
@@ -823,6 +772,7 @@ export default function HomePortal({
               <div className="relative pl-6">
                 <span className="absolute left-0 top-1 h-full w-px bg-black/15" />
                 <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee]" />
+
 
                 <h3 className="text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
                   {activeTabMeta.title}
@@ -1056,7 +1006,7 @@ function PortalTagFilter({
   const activeTags = tags.filter((tag) => isTagSelected(selectedTags, tag));
 
   return (
-    <section className="mt-7 rounded-[1.35rem] border border-black/10 bg-white/35 px-4 py-3 shadow-sm backdrop-blur">
+    <section className="mt-8 border-t border-black/10 pt-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
@@ -1064,41 +1014,51 @@ function PortalTagFilter({
           className="group flex items-center gap-3 text-left"
           aria-expanded={isOpen}
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-black/20 transition group-hover:bg-orange-500" />
+          <span className="h-px w-7 bg-black/20 transition group-hover:bg-orange-500" />
 
           <span>
-            <span className="block text-[10px] font-black uppercase tracking-[0.28em] text-black/35 transition group-hover:text-orange-600">
+            <span className="block text-[10px] font-black uppercase tracking-[0.32em] text-black/35 transition group-hover:text-orange-600">
               {label}-Hashtags
             </span>
-            <span className="mt-1 block text-xs font-bold text-black/45">
+            <span className="mt-1 block text-[11px] font-bold text-black/40">
               {hasActiveTags
-                ? `${selectedTags.length} aktiv · ${isOpen ? "Auswahl ausblenden" : "Auswahl anzeigen"}`
+                ? `${selectedTags.length} aktiv · ${isOpen ? "Auswahl schließen" : "Auswahl öffnen"}`
                 : isOpen
-                  ? "Auswahl ausblenden"
-                  : "Auswahl anzeigen"}
+                  ? "Auswahl schließen"
+                  : "Auswahl öffnen"}
             </span>
           </span>
         </button>
 
-        {hasActiveTags ? (
+        <div className="flex items-center gap-5">
+          {hasActiveTags ? (
+            <button
+              type="button"
+              onClick={onResetTags}
+              className="border-b border-transparent pb-1 text-left text-[10px] font-black uppercase tracking-[0.24em] text-black/35 transition hover:border-orange-500/50 hover:text-orange-600 sm:text-right"
+            >
+              Zurücksetzen
+            </button>
+          ) : null}
+
           <button
             type="button"
-            onClick={onResetTags}
-            className="text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:text-orange-600 sm:text-right"
+            onClick={() => setIsOpen((current) => !current)}
+            className="border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.24em] text-black/40 transition hover:border-orange-500/60 hover:text-orange-600"
           >
-            Filter zurücksetzen
+            {isOpen ? "Weniger" : "Alle anzeigen"}
           </button>
-        ) : null}
+        </div>
       </div>
 
-      {hasActiveTags && !isOpen ? (
-        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1.5 border-t border-black/5 pt-3">
+      {hasActiveTags ? (
+        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
           {activeTags.map((tag) => (
             <button
               key={tag}
               type="button"
               onClick={() => onToggleTag(tag)}
-              className="px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600 transition hover:text-orange-700"
+              className="border-b border-orange-500/60 pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-600 transition hover:border-orange-600 hover:text-orange-700"
               title="Tag entfernen"
             >
               #{tag}
@@ -1108,7 +1068,7 @@ function PortalTagFilter({
       ) : null}
 
       {isOpen ? (
-        <div className="mt-4 flex flex-wrap gap-x-3 gap-y-2 border-t border-black/5 pt-4">
+        <div className="mt-5 flex flex-wrap gap-x-4 gap-y-3 border-t border-black/5 pt-5">
           {tags.map((tag) => {
             const active = isTagSelected(selectedTags, tag);
 
@@ -1119,8 +1079,8 @@ function PortalTagFilter({
                 onClick={() => onToggleTag(tag)}
                 className={
                   active
-                    ? "rounded-full border border-orange-500 bg-orange-500 px-4 py-2 text-xs font-black text-white shadow-sm shadow-orange-500/20 transition hover:border-orange-600 hover:bg-orange-600"
-                    : "rounded-full border border-black/10 bg-white/55 px-4 py-2 text-xs font-black text-black/50 transition hover:border-orange-500/40 hover:text-orange-600"
+                    ? "border-b border-orange-500 pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-orange-600 transition hover:border-orange-600 hover:text-orange-700"
+                    : "border-b border-transparent pb-1 text-[10px] font-black uppercase tracking-[0.18em] text-black/35 transition hover:border-orange-500/50 hover:text-orange-600"
                 }
               >
                 #{tag}
@@ -1172,8 +1132,7 @@ function JournalPanel({
     },
   ];
 
-  const items =
-    posts.length > 0 ? posts : selectedTags.length > 0 ? [] : fallbackPosts;
+  const items = posts.length > 0 ? posts : selectedTags.length > 0 ? [] : fallbackPosts;
 
   return (
     <div>
@@ -1400,6 +1359,7 @@ function JournalPortalDetail({
               />
             ))}
           </div>
+
         </section>
 
         <div className="max-w-3xl">
@@ -1462,6 +1422,14 @@ function GalleryPanel({
   onResetTags: () => void;
   onOpenAlbum: (album: HomeGalleryAlbum) => void;
 }) {
+  const ratioClasses = [
+    "aspect-[4/5]",
+    "aspect-[3/4]",
+    "aspect-[5/4]",
+    "aspect-[4/3]",
+    "aspect-[2/3]",
+  ];
+
   return (
     <div>
       {albums.length === 0 ? (
@@ -1483,10 +1451,7 @@ function GalleryPanel({
           {albums.map((album, index) => {
             const image = album.coverImage || album.images?.[0];
             const imageCount = album.images?.length ?? 0;
-            const imageRatioConfig = getGalleryImageRatioConfig(
-              index,
-              image?.displayFormat,
-            );
+            const imageRatioClass = ratioClasses[index % ratioClasses.length];
             const tags = getGalleryTags(album.tags);
 
             return (
@@ -1500,18 +1465,18 @@ function GalleryPanel({
                   className="block w-full text-left"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
+                    className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioClass}`}
                   >
                     {image ? (
                       <SanityImage
                         src={urlFor(image)
-                          .width(imageRatioConfig.width)
-                          .height(imageRatioConfig.height)
+                          .width(900)
+                          .height(1200)
                           .fit("crop")
                           .url()}
                         alt={image.alt || album.title}
-                        width={imageRatioConfig.width}
-                        height={imageRatioConfig.height}
+                        width={900}
+                        height={1200}
                         priority={index === 0}
                         className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                       />
@@ -1530,9 +1495,7 @@ function GalleryPanel({
                         <>
                           <span className="h-1 w-1 rounded-full bg-black/25" />
                           <span>
-                            {imageCount === 1
-                              ? "1 Bild"
-                              : `${imageCount} Bilder`}
+                            {imageCount === 1 ? "1 Bild" : `${imageCount} Bilder`}
                           </span>
                         </>
                       ) : null}
@@ -1611,9 +1574,14 @@ function GalleryAlbumPortalDetail({
   const tags = getGalleryTags(album.tags);
   const categoryLabel = formatGalleryCategory(album.category);
   const formattedDate = formatGalleryDate(album.date);
-  const coverRatioConfig = coverImage
-    ? getGalleryCoverImageRatioConfig(coverImage.displayFormat)
-    : null;
+
+  const ratioClasses = [
+    "aspect-[4/5]",
+    "aspect-[3/4]",
+    "aspect-[5/4]",
+    "aspect-[4/3]",
+    "aspect-[2/3]",
+  ];
 
   return (
     <article className="text-neutral-950">
@@ -1704,16 +1672,12 @@ function GalleryAlbumPortalDetail({
           <figure className="w-full justify-self-end lg:mx-0 lg:max-w-none lg:justify-self-end">
             <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
-                src={urlFor(coverImage)
-                  .width(coverRatioConfig?.width ?? 1200)
-                  .height(coverRatioConfig?.height ?? 1500)
-                  .fit("crop")
-                  .url()}
+                src={urlFor(coverImage).width(900).url()}
                 alt={coverImage.alt || album.title}
-                width={coverRatioConfig?.width ?? 1200}
-                height={coverRatioConfig?.height ?? 1500}
+                width={900}
+                height={900}
                 priority
-                className={`${coverRatioConfig?.className ?? "aspect-[4/5]"} w-full object-cover`}
+                className="aspect-square w-full object-cover object-top sm:aspect-[4/3] lg:aspect-[5/4]"
               />
             </div>
 
@@ -1736,10 +1700,14 @@ function GalleryAlbumPortalDetail({
         ) : (
           <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
             {galleryImages.map((image, index) => {
-              const imageRatioConfig = getGalleryDetailImageRatioConfig(
-                index,
-                image.displayFormat,
-              );
+              const imageDimensions = getSanityImageDimensions(image);
+              const imageRatioClass =
+  index === 1 || index === 2
+    ? "aspect-[4/5]"
+    : ratioClasses[index % ratioClasses.length];
+
+const imagePositionClass =
+  index === 1 || index === 2 ? "object-center" : "object-top";
 
               return (
                 <figure
@@ -1747,18 +1715,14 @@ function GalleryAlbumPortalDetail({
                   className="mb-6 break-inside-avoid"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioConfig.className}`}
+                    className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioClass}`}
                   >
                     <SanityImage
-                      src={urlFor(image)
-                        .width(imageRatioConfig.width)
-                        .height(imageRatioConfig.height)
-                        .fit("crop")
-                        .url()}
+                      src={urlFor(image).width(1400).url()}
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
-                      width={imageRatioConfig.width}
-                      height={imageRatioConfig.height}
-                      className="h-full w-full object-cover transition duration-700 hover:scale-[1.025]"
+                      width={imageDimensions.width}
+                      height={imageDimensions.height}
+                      className="h-full w-full object-cover object-top transition duration-500"
                     />
                   </div>
 
