@@ -211,7 +211,7 @@ export default async function Home() {
 <div className="relative z-10 px-6 pb-4 pt-6 md:px-10 md:pt-8 lg:px-20">
   <div className="relative mx-auto w-full max-w-[1280px]">
     {/* LEFT: LOGO + NAV */}
-    <div className="relative z-50 mb-8 lg:absolute lg:left-[-320px] lg:top-0 lg:w-[220px]">
+    <div className="relative z-50 mb-8 xl:absolute xl:left-[-300px] xl:top-0 xl:w-[220px]">
       <a
   href="#top"
   className="inline-flex w-max items-center gap-3 transition hover:text-orange-600"
@@ -233,7 +233,7 @@ export default async function Home() {
     </div>
 
     {/* RIGHT: PORTAL + STRAVA */}
-    <div className="w-full space-y-6 lg:pt-[74px]">
+    <div className="w-full space-y-6 xl:pt-[74px]">
       <HomePortal
         latestPosts={latestPosts}
         allPosts={allPosts}
@@ -355,15 +355,15 @@ function HeroTopNav() {
   return (
     <nav
       aria-label="Hauptnavigation"
-      className="relative z-50 mx-auto mt-6 w-full max-w-[360px] md:mx-0 md:mt-8 md:max-w-none"
+      className="relative z-50 mx-auto mt-6 w-full max-w-[520px] md:mx-0 md:mt-8 md:max-w-none xl:max-w-[220px]"
     >
-      <div className="mb-3 text-center md:mb-5 md:text-left">
+      <div className="mb-3 text-center md:text-left xl:mb-5">
         <div className="text-[8px] font-black uppercase tracking-[0.34em] text-black/30 md:text-[10px] md:text-black/35">
           Navigation
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-x-5 gap-y-3 md:block md:space-y-1 md:border-l md:border-black/15 md:pl-5">
+      <div className="grid grid-cols-3 gap-x-5 gap-y-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3 xl:block xl:space-y-1 xl:border-l xl:border-black/15 xl:pl-5">
         {navItems.map((item) => (
           <HeroTopNavLink key={item.href} href={item.href}>
             {item.label}
@@ -384,16 +384,16 @@ function HeroTopNavLink({
   return (
     <a
       href={href}
-      className="group relative inline-flex justify-center py-1 text-center text-[10px] font-black uppercase tracking-[0.2em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 md:flex md:items-center md:justify-between md:py-2.5 md:text-left md:text-sm md:normal-case md:tracking-normal md:text-black/55"
+      className="group relative inline-flex justify-center py-1 text-center text-[10px] font-black uppercase tracking-[0.2em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 md:text-sm xl:flex xl:items-center xl:justify-between xl:py-2.5 xl:text-left xl:normal-case xl:tracking-normal xl:text-black/55"
     >
-      <span className="hidden md:absolute md:-left-[25px] md:block md:h-2.5 md:w-2.5 md:rounded-full md:border md:border-black/20 md:bg-[#f5f3ee] md:transition md:group-hover:border-orange-600 md:group-hover:bg-orange-600" />
+      <span className="hidden xl:absolute xl:-left-[25px] xl:block xl:h-2.5 xl:w-2.5 xl:rounded-full xl:border xl:border-black/20 xl:bg-[#f5f3ee] xl:transition xl:group-hover:border-orange-600 xl:group-hover:bg-orange-600" />
 
-      <span className="relative inline-flex pb-1 transition md:pb-0 md:group-hover:translate-x-1">
+      <span className="relative inline-flex pb-1 transition xl:pb-0 xl:group-hover:translate-x-1">
         {children}
-        <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 md:hidden" />
+        <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 xl:hidden" />
       </span>
 
-      <span className="hidden text-xs text-black/25 opacity-0 transition group-hover:translate-x-1 group-hover:text-orange-600 group-hover:opacity-100 md:block">
+      <span className="hidden text-xs text-black/25 opacity-0 transition group-hover:translate-x-1 group-hover:text-orange-600 group-hover:opacity-100 xl:block">
         →
       </span>
     </a>
