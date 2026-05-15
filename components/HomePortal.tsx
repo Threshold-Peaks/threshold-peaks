@@ -1834,7 +1834,7 @@ function GalleryAlbumPortalDetail({
             </p>
           ) : null}
 
-          <dl className="mt-6 grid max-w-2xl grid-cols-1 gap-3 border-y border-black/10 py-4 text-xs sm:grid-cols-3">
+          <dl className="mt-6 grid max-w-2xl grid-cols-1 gap-3 border-y border-black/10 py-4 text-xs sm:grid-cols-4">
             <div>
               <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
                 Kategorie
@@ -1859,6 +1859,18 @@ function GalleryAlbumPortalDetail({
                 {album.location || "Nicht hinterlegt"}
               </dd>
             </div>
+            <div>
+  <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
+    Gefällt mir
+  </dt>
+  <dd className="mt-1">
+    <LikeButton
+      targetType="galleryAlbum"
+      targetId={commentTargetSlug}
+      className="tracking-[0.16em]"
+    />
+  </dd>
+</div>
           </dl>
 
           {tags.length > 0 ? (
@@ -2240,7 +2252,7 @@ function EventPortalDetail({
         </header>
 
         <section className="mb-12 border-b border-black/10">
-          <div className="divide-y divide-black/10 md:grid md:grid-cols-3 md:divide-x md:divide-y-0">
+          <div className="divide-y divide-black/10 md:grid md:grid-cols-4 md:divide-x md:divide-y-0">
             <EventDetailFact
               label="Datum"
               value={formattedDate ?? "Noch offen"}
@@ -2257,6 +2269,19 @@ function EventPortalDetail({
               label="Ort"
               value={event.location ?? "Noch offen"}
             />
+            <div className="py-5 md:px-6">
+  <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+    Gefällt mir
+  </p>
+
+  <div className="mt-2 flex items-center">
+    <LikeButton
+      targetType="event"
+      targetId={commentTargetSlug}
+      className="tracking-[0.18em]"
+    />
+  </div>
+</div>
           </div>
         </section>
 
