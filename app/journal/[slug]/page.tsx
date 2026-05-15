@@ -1,3 +1,4 @@
+import LikeButton from "@/components/LikeButton";
 import BackHeader from "@/components/BackHeader";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -554,6 +555,19 @@ export default async function JournalPostPage({
                   stravaUrl={post.stravaUrl}
                   soundcloudUrl={post.soundcloudUrl}
                 />
+                <div className="py-4 md:px-5 md:first:pl-0">
+  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/30">
+    Gefällt mir
+  </p>
+
+  <div className="mt-2 flex items-center">
+    <LikeButton
+      targetType="journal"
+      targetId={slug}
+      className="tracking-[0.18em]"
+    />
+  </div>
+</div>
               </div>
             </section>
 

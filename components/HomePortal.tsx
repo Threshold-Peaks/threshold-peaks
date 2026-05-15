@@ -7,6 +7,7 @@ import { Image as SanityImage } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { urlFor } from "@/sanity/lib/image";
 import Comments from "@/components/Comments";
+import LikeButton from "@/components/LikeButton";
 
 type PortableTextBlock = any[];
 
@@ -1472,8 +1473,21 @@ function JournalPortalDetail({
                 value={fact.value}
               />
             ))}
-          </div>
 
+            <div className="py-4 md:px-5 md:first:pl-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/30">
+                Gefällt mir
+              </p>
+
+              <div className="mt-2 flex items-center">
+                <LikeButton
+                  targetType="journal"
+                  targetId={commentTargetSlug}
+                  className="tracking-[0.18em]"
+                />
+              </div>
+            </div>
+          </div>
         </section>
 
         <div className="max-w-3xl">
@@ -1546,13 +1560,20 @@ function LinkedGalleryAlbumsSection({
 
   return (
     <section className="mt-12 border-t border-black/10 pt-7">
-      <div className="mb-6">
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
-          Galerie dazu
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+            Galerie dazu
+          </p>
+          <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.04em] text-black">
+            Bilder zur Story
+          </h2>
+        </div>
+
+        <p className="max-w-sm text-sm font-semibold leading-6 text-black/45 sm:text-right">
+          Bilder bleiben zentral in der Galerie gepflegt und sind hier mit dem
+          Journal verknüpft.
         </p>
-        <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.04em] text-black">
-          Bilder zur Story
-        </h2>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
