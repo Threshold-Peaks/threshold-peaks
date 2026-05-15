@@ -1992,7 +1992,7 @@ function GalleryAlbumPortalDetail({
         <span className="hidden sm:inline">← Zurück zur Galerie</span>
       </button>
 
-      <header className="grid grid-cols-[minmax(0,1fr)_128px] items-start gap-x-4 gap-y-6 border-b border-black/10 pb-8 sm:grid-cols-[minmax(0,1fr)_160px] sm:gap-x-6 sm:gap-y-7 sm:pb-10 md:grid-cols-[minmax(0,1fr)_210px] lg:grid-cols-[minmax(0,1fr)_minmax(260px,380px)] lg:items-end lg:gap-8">
+      <header className="grid grid-cols-1 items-start gap-7 border-b border-black/10 pb-8 sm:grid-cols-[minmax(0,1fr)_170px] sm:gap-x-6 sm:gap-y-7 sm:pb-10 md:grid-cols-[minmax(0,1fr)_220px] lg:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] lg:items-end lg:gap-8">
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-[8px] font-black uppercase tracking-[0.22em] text-black/35 sm:mb-4 sm:text-[10px] sm:tracking-[0.28em]">
             <span>{categoryLabel}</span>
@@ -2006,7 +2006,7 @@ function GalleryAlbumPortalDetail({
             </span>
           </div>
 
-          <h1 className="max-w-[58%] break-words text-[2.35rem] font-black leading-[0.95] tracking-tight text-[#111217] sm:max-w-4xl sm:text-4xl md:text-5xl lg:text-7xl">
+          <h1 className="max-w-full hyphens-none text-[2.35rem] font-black leading-[0.95] tracking-[-0.055em] text-[#111217] [overflow-wrap:normal] [word-break:normal] sm:text-4xl md:text-5xl lg:text-7xl">
             {album.title}
           </h1>
 
@@ -2079,7 +2079,7 @@ function GalleryAlbumPortalDetail({
         </div>
 
         {coverImage ? (
-          <figure className="w-full justify-self-end lg:mx-0 lg:max-w-none lg:justify-self-end">
+          <figure className="w-full max-w-[230px] justify-self-start sm:max-w-none sm:justify-self-end lg:mx-0 lg:justify-self-end">
             <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
                 src={urlFor(coverImage)
