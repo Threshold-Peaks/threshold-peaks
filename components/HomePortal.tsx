@@ -713,14 +713,10 @@ export default function HomePortal({
       if (!topElement) return;
 
       window.setTimeout(() => {
-        const rect = topElement.getBoundingClientRect();
-
-        if (Math.abs(rect.top) > 120) {
-          topElement.scrollIntoView({
-            behavior: "auto",
-            block: "start",
-          });
-        }
+        topElement.scrollIntoView({
+          behavior: "auto",
+          block: "start",
+        });
       }, 50);
     }
 
