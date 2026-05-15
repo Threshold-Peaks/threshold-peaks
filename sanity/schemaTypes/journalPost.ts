@@ -112,10 +112,10 @@ export const journalPost = defineType({
           title: "Bildformat",
           type: "string",
           description:
-            "Steuert, wie das Hauptbild auf der Website zugeschnitten wird.",
+            "Steuert, in welchem Format das Hauptbild auf der Website dargestellt wird.",
           options: {
             list: imageFormatOptions,
-            layout: "dropdown",
+            layout: "radio",
           },
           initialValue: "auto",
         }),
