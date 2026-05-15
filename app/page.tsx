@@ -211,7 +211,7 @@ export default async function Home() {
 <div className="relative z-10 px-6 pb-4 pt-6 md:px-10 md:pt-8 lg:px-20">
   <div className="relative mx-auto w-full max-w-[1280px]">
     {/* LEFT: LOGO + NAV */}
-    <div className="relative z-50 mb-8 xl:absolute xl:left-[-300px] xl:top-0 xl:w-[220px]">
+    <div className="relative z-50 mb-8 min-[1900px]:absolute min-[1900px]:left-[-300px] min-[1900px]:top-0 min-[1900px]:w-[220px]">
       <a
   href="#top"
   className="inline-flex w-max items-center gap-3 transition hover:text-orange-600"
@@ -233,7 +233,7 @@ export default async function Home() {
     </div>
 
     {/* RIGHT: PORTAL + STRAVA */}
-    <div className="w-full space-y-6 xl:pt-[74px]">
+    <div className="w-full space-y-6 min-[1900px]:pt-[74px]">
       <HomePortal
         latestPosts={latestPosts}
         allPosts={allPosts}
@@ -355,15 +355,15 @@ function HeroTopNav() {
   return (
     <nav
       aria-label="Hauptnavigation"
-      className="relative z-50 mx-auto mt-6 w-full max-w-[520px] md:mx-0 md:mt-8 md:max-w-none xl:max-w-[220px]"
+      className="relative z-50 mt-6 w-full max-w-[560px] md:mt-7 min-[1900px]:mt-8 min-[1900px]:max-w-none"
     >
-      <div className="mb-3 text-center md:text-left xl:mb-5">
+      <div className="mb-3 text-left min-[1900px]:mb-5">
         <div className="text-[8px] font-black uppercase tracking-[0.34em] text-black/30 md:text-[10px] md:text-black/35">
           Navigation
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-x-5 gap-y-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3 xl:block xl:space-y-1 xl:border-l xl:border-black/15 xl:pl-5">
+      <div className="grid grid-cols-3 gap-x-5 gap-y-3 sm:flex sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-2 min-[1900px]:block min-[1900px]:space-y-1 min-[1900px]:border-l min-[1900px]:border-black/15 min-[1900px]:pl-5">
         {navItems.map((item) => (
           <HeroTopNavLink key={item.href} href={item.href}>
             {item.label}
@@ -384,16 +384,16 @@ function HeroTopNavLink({
   return (
     <a
       href={href}
-      className="group relative inline-flex justify-center py-1 text-center text-[10px] font-black uppercase tracking-[0.2em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 md:text-sm xl:flex xl:items-center xl:justify-between xl:py-2.5 xl:text-left xl:normal-case xl:tracking-normal xl:text-black/55"
+      className="group relative inline-flex justify-center py-1 text-center text-[10px] font-black uppercase tracking-[0.2em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 min-[1900px]:flex min-[1900px]:items-center min-[1900px]:justify-between min-[1900px]:py-2.5 min-[1900px]:text-left min-[1900px]:text-sm min-[1900px]:normal-case min-[1900px]:tracking-normal min-[1900px]:text-black/55"
     >
-      <span className="hidden xl:absolute xl:-left-[25px] xl:block xl:h-2.5 xl:w-2.5 xl:rounded-full xl:border xl:border-black/20 xl:bg-[#f5f3ee] xl:transition xl:group-hover:border-orange-600 xl:group-hover:bg-orange-600" />
+      <span className="hidden min-[1900px]:absolute min-[1900px]:-left-[25px] min-[1900px]:block min-[1900px]:h-2.5 min-[1900px]:w-2.5 min-[1900px]:rounded-full min-[1900px]:border min-[1900px]:border-black/20 min-[1900px]:bg-[#f5f3ee] min-[1900px]:transition min-[1900px]:group-hover:border-orange-600 min-[1900px]:group-hover:bg-orange-600" />
 
-      <span className="relative inline-flex pb-1 transition xl:pb-0 xl:group-hover:translate-x-1">
+      <span className="relative inline-flex pb-1 transition min-[1900px]:pb-0 min-[1900px]:group-hover:translate-x-1">
         {children}
-        <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 xl:hidden" />
+        <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 min-[1900px]:hidden" />
       </span>
 
-      <span className="hidden text-xs text-black/25 opacity-0 transition group-hover:translate-x-1 group-hover:text-orange-600 group-hover:opacity-100 xl:block">
+      <span className="hidden text-xs text-black/25 opacity-0 transition group-hover:translate-x-1 group-hover:text-orange-600 group-hover:opacity-100 min-[1900px]:block">
         →
       </span>
     </a>
