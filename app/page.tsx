@@ -266,13 +266,13 @@ export default async function Home() {
             {/* RIGHT: PORTAL */}
             <div className="w-full space-y-6">
               <HomePortal
-        latestPosts={latestPosts}
-        allPosts={allPosts}
-        latestAlbums={latestAlbums}
-        allAlbums={allAlbums}
-        latestEvents={latestEvents}
-        allEvents={upcomingEvents}
-        embedded
+                latestPosts={latestPosts}
+                allPosts={allPosts}
+                latestAlbums={latestAlbums}
+                allAlbums={allAlbums}
+                latestEvents={latestEvents}
+                allEvents={upcomingEvents}
+                embedded
               />
             </div>
           </div>
@@ -380,14 +380,17 @@ function HeroTopNav() {
   ];
 
   return (
-    <nav aria-label="Hauptnavigation" className="relative z-50 mt-7 w-full">
-      <div className="mb-5 text-left">
-        <div className="text-[8px] font-black uppercase tracking-[0.34em] text-black/30 md:text-[10px] md:text-black/35">
+    <nav
+      aria-label="Hauptnavigation"
+      className="relative z-50 mt-8 w-full md:mt-7"
+    >
+      <div className="mb-7 text-center md:mb-5 md:text-left">
+        <div className="text-[8px] font-black uppercase tracking-[0.38em] text-black/30 md:text-[10px] md:tracking-[0.34em] md:text-black/35">
           Navigation
         </div>
       </div>
 
-      <div className="grid max-w-[360px] grid-cols-2 gap-x-10 gap-y-5 text-left sm:max-w-[520px] sm:grid-cols-3 sm:gap-x-8 md:flex md:max-w-none md:flex-wrap md:items-center md:gap-x-7 md:gap-y-3">
+      <div className="mx-auto grid w-full max-w-[420px] grid-cols-2 gap-x-8 gap-y-7 px-1 sm:max-w-[520px] sm:grid-cols-3 sm:gap-x-8 md:mx-0 md:flex md:max-w-none md:flex-wrap md:items-center md:gap-x-7 md:gap-y-3 md:px-0">
         {navItems.map((item) => (
           <HeroTopNavLink key={item.href} href={item.href}>
             {item.label}
@@ -408,10 +411,12 @@ function HeroTopNavLink({
   return (
     <a
       href={href}
-      className="group relative inline-flex w-max pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600"
+      className="group relative flex w-full justify-center pb-2 text-center text-[11px] font-black uppercase tracking-[0.34em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 md:inline-flex md:w-max md:justify-start md:pb-1 md:text-left md:text-[10px] md:tracking-[0.22em] md:text-black/50"
     >
-      {children}
-      <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500" />
+      <span className="block translate-x-[0.17em] md:translate-x-0">
+        {children}
+      </span>
+      <span className="absolute bottom-0 left-1/2 h-px w-9 -translate-x-1/2 bg-black/20 transition group-hover:w-11 group-hover:bg-orange-500 md:w-5 md:group-hover:w-full" />
     </a>
   );
 }
