@@ -219,8 +219,8 @@ export default function Comments({
           aria-hidden="true"
         />
 
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
-          <label className="grid gap-2">
+        <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
+          <label className="grid content-start gap-2">
             <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
               Name
             </span>
@@ -233,7 +233,7 @@ export default function Comments({
             />
           </label>
 
-          <label className="grid gap-2">
+          <label className="grid content-start gap-2">
             <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
               Kommentar
             </span>
