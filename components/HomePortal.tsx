@@ -45,9 +45,18 @@ type HomeJournalPost = {
   mainImage?: HomeJournalImage;
 };
 
+type GalleryImageFormat =
+  | "auto"
+  | "portrait"
+  | "tall"
+  | "square"
+  | "landscape"
+  | "wide";
+
 type HomeGalleryImage = SanityImageSource & {
   alt?: string;
   caption?: string;
+  displayFormat?: GalleryImageFormat;
 };
 
 type HomeGalleryAlbum = {
@@ -434,24 +443,60 @@ function formatGalleryDate(date?: string) {
   }).format(new Date(date));
 }
 
-const galleryImageRatioConfigs = [
-  { className: "aspect-[4/5]", width: 1200, height: 1500 },
-  { className: "aspect-[3/4]", width: 1200, height: 1600 },
-  { className: "aspect-[5/4]", width: 1400, height: 1120 },
-  { className: "aspect-[4/3]", width: 1400, height: 1050 },
-  { className: "aspect-[2/3]", width: 1200, height: 1800 },
+const galleryImageRatioConfigByFormat = {
+  portrait: { className: "aspect-[4/5]", width: 1200, height: 1500 },
+  tall: { className: "aspect-[2/3]", width: 1200, height: 1800 },
+  square: { className: "aspect-square", width: 1200, height: 1200 },
+  landscape: { className: "aspect-[5/4]", width: 1400, height: 1120 },
+  wide: { className: "aspect-[4/3]", width: 1400, height: 1050 },
+} as const;
+
+const galleryAutoRatioConfigs = [
+  galleryImageRatioConfigByFormat.portrait,
+  galleryImageRatioConfigByFormat.tall,
+  galleryImageRatioConfigByFormat.landscape,
+  galleryImageRatioConfigByFormat.wide,
+  galleryImageRatioConfigByFormat.tall,
 ] as const;
 
-function getGalleryImageRatioConfig(index: number) {
-  return galleryImageRatioConfigs[index % galleryImageRatioConfigs.length];
+function getManualGalleryImageRatioConfig(format?: GalleryImageFormat) {
+  if (!format || format === "auto") return undefined;
+
+  return galleryImageRatioConfigByFormat[format];
 }
 
-function getGalleryDetailImageRatioConfig(index: number) {
+function getGalleryImageRatioConfig(
+  index: number,
+  format?: GalleryImageFormat,
+) {
+  return (
+    getManualGalleryImageRatioConfig(format) ??
+    galleryAutoRatioConfigs[index % galleryAutoRatioConfigs.length]
+  );
+}
+
+function getGalleryDetailImageRatioConfig(
+  index: number,
+  format?: GalleryImageFormat,
+) {
+  const manualRatioConfig = getManualGalleryImageRatioConfig(format);
+
+  if (manualRatioConfig) {
+    return manualRatioConfig;
+  }
+
   if (index === 1 || index === 2 || index === 3) {
-    return galleryImageRatioConfigs[0];
+    return galleryImageRatioConfigByFormat.portrait;
   }
 
   return getGalleryImageRatioConfig(index);
+}
+
+function getGalleryCoverImageRatioConfig(format?: GalleryImageFormat) {
+  return (
+    getManualGalleryImageRatioConfig(format) ??
+    galleryImageRatioConfigByFormat.portrait
+  );
 }
 
 function formatEventType(type?: string) {
@@ -1438,7 +1483,10 @@ function GalleryPanel({
           {albums.map((album, index) => {
             const image = album.coverImage || album.images?.[0];
             const imageCount = album.images?.length ?? 0;
-            const imageRatioConfig = getGalleryImageRatioConfig(index);
+            const imageRatioConfig = getGalleryImageRatioConfig(
+              index,
+              image?.displayFormat,
+            );
             const tags = getGalleryTags(album.tags);
 
             return (
@@ -1563,6 +1611,9 @@ function GalleryAlbumPortalDetail({
   const tags = getGalleryTags(album.tags);
   const categoryLabel = formatGalleryCategory(album.category);
   const formattedDate = formatGalleryDate(album.date);
+  const coverRatioConfig = coverImage
+    ? getGalleryCoverImageRatioConfig(coverImage.displayFormat)
+    : null;
 
   return (
     <article className="text-neutral-950">
@@ -1653,17 +1704,17 @@ function GalleryAlbumPortalDetail({
           <figure className="w-full justify-self-end lg:mx-0 lg:max-w-none lg:justify-self-end">
             <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
-  src={urlFor(coverImage)
-    .width(900)
-    .height(1125)
-    .fit("crop")
-    .url()}
-  alt={coverImage.alt || album.title}
-  width={900}
-  height={1125}
-  priority
-  className="aspect-[4/5] w-full object-cover"
-/>
+                src={urlFor(coverImage)
+                  .width(coverRatioConfig?.width ?? 1200)
+                  .height(coverRatioConfig?.height ?? 1500)
+                  .fit("crop")
+                  .url()}
+                alt={coverImage.alt || album.title}
+                width={coverRatioConfig?.width ?? 1200}
+                height={coverRatioConfig?.height ?? 1500}
+                priority
+                className={`${coverRatioConfig?.className ?? "aspect-[4/5]"} w-full object-cover`}
+              />
             </div>
 
             {coverImage.caption ? (
@@ -1685,7 +1736,10 @@ function GalleryAlbumPortalDetail({
         ) : (
           <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
             {galleryImages.map((image, index) => {
-              const imageRatioConfig = getGalleryDetailImageRatioConfig(index);
+              const imageRatioConfig = getGalleryDetailImageRatioConfig(
+                index,
+                image.displayFormat,
+              );
 
               return (
                 <figure
@@ -1704,7 +1758,7 @@ function GalleryAlbumPortalDetail({
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
                       width={imageRatioConfig.width}
                       height={imageRatioConfig.height}
-                      className="h-full w-full object-cover object-top transition duration-700 hover:scale-[1.025]"
+                      className="h-full w-full object-cover transition duration-700 hover:scale-[1.025]"
                     />
                   </div>
 

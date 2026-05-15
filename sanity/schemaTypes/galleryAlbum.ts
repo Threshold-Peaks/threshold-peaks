@@ -87,6 +87,24 @@ export const galleryAlbum = defineType({
           type: 'string',
           description: 'Kurze Bildbeschreibung für SEO und Barrierefreiheit.',
         }),
+        defineField({
+          name: 'displayFormat',
+          title: 'Bildformat',
+          type: 'string',
+          options: {
+            list: [
+              {title: 'Automatisch', value: 'auto'},
+              {title: 'Hochkant 4:5', value: 'portrait'},
+              {title: 'Extra hoch 2:3', value: 'tall'},
+              {title: 'Quadrat', value: 'square'},
+              {title: 'Querformat 5:4', value: 'landscape'},
+              {title: 'Breit 4:3', value: 'wide'},
+            ],
+            layout: 'radio',
+          },
+          initialValue: 'auto',
+          description: 'Steuert, in welchem Format das Titelbild auf der Website dargestellt wird.',
+        }),
       ],
     }),
 
@@ -115,17 +133,47 @@ export const galleryAlbum = defineType({
               type: 'string',
               description: 'Kurze sachliche Bildbeschreibung für SEO und Barrierefreiheit.',
             }),
+            defineField({
+              name: 'displayFormat',
+              title: 'Bildformat',
+              type: 'string',
+              options: {
+                list: [
+                  {title: 'Automatisch', value: 'auto'},
+                  {title: 'Hochkant 4:5', value: 'portrait'},
+                  {title: 'Extra hoch 2:3', value: 'tall'},
+                  {title: 'Quadrat', value: 'square'},
+                  {title: 'Querformat 5:4', value: 'landscape'},
+                  {title: 'Breit 4:3', value: 'wide'},
+                ],
+                layout: 'radio',
+              },
+              initialValue: 'auto',
+              description: 'Steuert, in welchem Format das Bild auf der Website dargestellt wird.',
+            }),
           ],
           preview: {
             select: {
               title: 'caption',
               subtitle: 'alt',
+              displayFormat: 'displayFormat',
               media: 'asset',
             },
-            prepare({title, subtitle, media}) {
+            prepare({title, subtitle, displayFormat, media}) {
+              const formatLabels: Record<string, string> = {
+                auto: 'Automatisch',
+                portrait: 'Hochkant 4:5',
+                tall: 'Extra hoch 2:3',
+                square: 'Quadrat',
+                landscape: 'Querformat 5:4',
+                wide: 'Breit 4:3',
+              }
+
+              const formatLabel = formatLabels[displayFormat] || 'Automatisch'
+
               return {
                 title: title || 'Galeriebild',
-                subtitle: subtitle || 'Noch kein Alternativtext hinterlegt',
+                subtitle: `${formatLabel} · ${subtitle || 'Noch kein Alternativtext hinterlegt'}`,
                 media,
               }
             },
