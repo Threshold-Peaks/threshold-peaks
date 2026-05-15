@@ -1653,17 +1653,17 @@ function GalleryAlbumPortalDetail({
           <figure className="w-full justify-self-end lg:mx-0 lg:max-w-none lg:justify-self-end">
             <div className="relative overflow-hidden rounded-[1.2rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
-                src={urlFor(coverImage)
-                  .width(900)
-                  .height(900)
-                  .fit("crop")
-                  .url()}
-                alt={coverImage.alt || album.title}
-                width={900}
-                height={900}
-                priority
-                className="aspect-square w-full object-cover object-top"
-              />
+  src={urlFor(coverImage)
+    .width(900)
+    .height(1125)
+    .fit("crop")
+    .url()}
+  alt={coverImage.alt || album.title}
+  width={900}
+  height={1125}
+  priority
+  className="aspect-[4/5] w-full object-cover"
+/>
             </div>
 
             {coverImage.caption ? (
