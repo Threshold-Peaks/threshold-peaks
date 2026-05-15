@@ -600,7 +600,9 @@ export default function HomePortal({
     gallery: false,
     events: false,
   });
+  const [isPortalSwitching, setIsPortalSwitching] = useState(false);
   const portalNavigationDelayRef = useRef<number | null>(null);
+  const portalTransitionRef = useRef<number | null>(null);
 
   function clearPortalDetails() {
     setSelectedPost(null);
@@ -616,30 +618,117 @@ export default function HomePortal({
     });
   }
 
-  function toggleShowAllContent(tab: PortalContentTab) {
-    clearPortalDetails();
+  function clearPortalTransitionTimers() {
+    if (typeof window === "undefined") return;
 
-    setShowAllContent((current) => ({
-      ...current,
-      [tab]: !current[tab],
-    }));
+    if (portalNavigationDelayRef.current) {
+      window.clearTimeout(portalNavigationDelayRef.current);
+      portalNavigationDelayRef.current = null;
+    }
+
+    if (portalTransitionRef.current) {
+      window.clearTimeout(portalTransitionRef.current);
+      portalTransitionRef.current = null;
+    }
+  }
+
+  function scrollToPageTop() {
+    if (typeof window === "undefined") return;
+
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "auto",
+    });
+  }
+
+  function runPortalFadeTransition(
+    action: () => void,
+    options: { scrollTop?: boolean } = {},
+  ) {
+    const { scrollTop = true } = options;
+
+    if (typeof window === "undefined") {
+      action();
+      return;
+    }
+
+    clearPortalTransitionTimers();
+
+    if (scrollTop) {
+      scrollToPageTop();
+    }
+
+    setIsPortalSwitching(true);
+
+    portalNavigationDelayRef.current = window.setTimeout(() => {
+      action();
+
+      portalTransitionRef.current = window.setTimeout(() => {
+        setIsPortalSwitching(false);
+      }, 40);
+    }, 110);
+  }
+
+  function toggleShowAllContent(tab: PortalContentTab) {
+    runPortalFadeTransition(() => {
+      clearPortalDetails();
+
+      setShowAllContent((current) => ({
+        ...current,
+        [tab]: !current[tab],
+      }));
+    });
+  }
+
+  function openJournalPost(post: HomeJournalPost) {
+    runPortalFadeTransition(() => {
+      setSelectedPost(post);
+    });
+  }
+
+  function closeJournalPost() {
+    runPortalFadeTransition(() => {
+      setSelectedPost(null);
+    });
+  }
+
+  function openGalleryAlbum(album: HomeGalleryAlbum) {
+    runPortalFadeTransition(() => {
+      setSelectedAlbum(album);
+    });
+  }
+
+  function closeGalleryAlbum() {
+    runPortalFadeTransition(() => {
+      setSelectedAlbum(null);
+    });
+  }
+
+  function openEvent(event: HomeEvent) {
+    runPortalFadeTransition(() => {
+      setSelectedEvent(event);
+    });
+  }
+
+  function closeEvent() {
+    runPortalFadeTransition(() => {
+      setSelectedEvent(null);
+    });
   }
 
   function openLinkedGalleryAlbum(album: HomeGalleryAlbum) {
-    setActiveTab("gallery");
-    setSelectedPost(null);
-    setSelectedEvent(null);
-    setSelectedAlbum(album);
-    setShowAllContent((current) => ({ ...current, gallery: true }));
+    runPortalFadeTransition(() => {
+      setActiveTab("gallery");
+      setSelectedPost(null);
+      setSelectedEvent(null);
+      setSelectedAlbum(album);
+      setShowAllContent((current) => ({ ...current, gallery: true }));
 
-    if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", "/#portal-gallery");
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "auto",
-      });
-    }
+      if (typeof window !== "undefined") {
+        window.history.replaceState(null, "", "/#portal-gallery");
+      }
+    });
   }
 
   function syncPortalTagsToUrl(
@@ -769,28 +858,14 @@ export default function HomePortal({
       }
     }
 
-    function scrollToPageTop() {
-      window.scrollTo({
-        top: 0,
-        left: 0,
-        behavior: "auto",
-      });
-    }
-
     function updateFromHash() {
       const nextTab = getTabIdFromHash();
 
       if (!nextTab) return;
 
-      if (portalNavigationDelayRef.current) {
-        window.clearTimeout(portalNavigationDelayRef.current);
-      }
-
-      scrollToPageTop();
-
-      portalNavigationDelayRef.current = window.setTimeout(() => {
+      runPortalFadeTransition(() => {
         applyPortalTabFromHash();
-      }, 120);
+      });
     }
 
     function handlePortalNavigationClick(event: MouseEvent) {
@@ -822,9 +897,7 @@ export default function HomePortal({
     window.addEventListener("hashchange", updateFromHash);
 
     return () => {
-      if (portalNavigationDelayRef.current) {
-        window.clearTimeout(portalNavigationDelayRef.current);
-      }
+      clearPortalTransitionTimers();
 
       document.removeEventListener("click", handlePortalNavigationClick);
       window.removeEventListener("hashchange", updateFromHash);
@@ -918,7 +991,11 @@ export default function HomePortal({
                 : "flex min-h-[720px] flex-col p-6 md:min-h-[760px] md:p-8 lg:min-h-[780px] lg:p-10"
             }
           >
-            <div className="mb-8 flex flex-col gap-5 border-b border-black/10 pb-7 md:flex-row md:items-end md:justify-between">
+            <div
+              className={`mb-8 flex flex-col gap-5 border-b border-black/10 pb-7 transition-opacity duration-300 ease-out md:flex-row md:items-end md:justify-between ${
+                isPortalSwitching ? "opacity-60" : "opacity-100"
+              }`}
+            >
               <div className="relative pl-6">
                 <span className="absolute left-0 top-1 h-full w-px bg-black/15" />
                 <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee]" />
@@ -945,7 +1022,13 @@ export default function HomePortal({
             <div className="relative flex-1">
               <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-black/10 lg:block" />
 
-              <div className="lg:pl-8">
+              <div
+                className={`lg:pl-8 transition-all duration-300 ease-out ${
+                  isPortalSwitching
+                    ? "translate-y-2 opacity-0"
+                    : "translate-y-0 opacity-100"
+                }`}
+              >
                 {activeTab === "about" ? <AboutPanel /> : null}
 
                 {activeTab === "journal" ? (
@@ -954,7 +1037,7 @@ export default function HomePortal({
                       post={selectedPost}
                       selectedTags={selectedJournalTags}
                       onToggleTag={toggleJournalTagFilter}
-                      onBack={() => setSelectedPost(null)}
+                      onBack={closeJournalPost}
                       onOpenLinkedGalleryAlbum={openLinkedGalleryAlbum}
                     />
                   ) : (
@@ -964,7 +1047,7 @@ export default function HomePortal({
                       selectedTags={selectedJournalTags}
                       onToggleTag={toggleJournalTagFilter}
                       onResetTags={resetJournalTagFilter}
-                      onOpenPost={setSelectedPost}
+                      onOpenPost={openJournalPost}
                     />
                   )
                 ) : null}
@@ -975,7 +1058,7 @@ export default function HomePortal({
                       album={selectedAlbum}
                       selectedTags={selectedGalleryTags}
                       onToggleTag={toggleGalleryTagFilter}
-                      onBack={() => setSelectedAlbum(null)}
+                      onBack={closeGalleryAlbum}
                     />
                   ) : (
                     <GalleryPanel
@@ -984,7 +1067,7 @@ export default function HomePortal({
                       selectedTags={selectedGalleryTags}
                       onToggleTag={toggleGalleryTagFilter}
                       onResetTags={resetGalleryTagFilter}
-                      onOpenAlbum={setSelectedAlbum}
+                      onOpenAlbum={openGalleryAlbum}
                     />
                   )
                 ) : null}
@@ -995,7 +1078,7 @@ export default function HomePortal({
                       event={selectedEvent}
                       selectedTags={selectedEventTags}
                       onToggleTag={toggleEventTagFilter}
-                      onBack={() => setSelectedEvent(null)}
+                      onBack={closeEvent}
                     />
                   ) : (
                     <EventsPanel
@@ -1004,7 +1087,7 @@ export default function HomePortal({
                       selectedTags={selectedEventTags}
                       onToggleTag={toggleEventTagFilter}
                       onResetTags={resetEventTagFilter}
-                      onOpenEvent={setSelectedEvent}
+                      onOpenEvent={openEvent}
                     />
                   )
                 ) : null}
