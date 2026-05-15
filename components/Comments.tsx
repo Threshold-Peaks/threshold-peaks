@@ -220,13 +220,15 @@ export default function Comments({
             <span className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
               Name
             </span>
-            <input
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={80}
-              className="rounded-none border-0 border-b border-black/15 bg-transparent px-0 py-3 text-sm font-semibold text-black outline-none transition placeholder:text-black/25 focus:border-orange-500"
-              placeholder="Dein Name"
-            />
+            <div className="flex min-h-[108px] items-start border-b border-black/15 transition focus-within:border-orange-500">
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={80}
+                className="w-full rounded-none border-0 bg-transparent px-0 py-3 text-sm font-semibold text-black outline-none placeholder:text-black/25"
+                placeholder="Dein Name"
+              />
+            </div>
           </label>
 
           <label className="grid content-start gap-2">
@@ -238,7 +240,7 @@ export default function Comments({
               onChange={(event) => setBody(event.target.value)}
               maxLength={1200}
               rows={3}
-              className="resize-none rounded-none border-0 border-b border-black/15 bg-transparent px-0 py-3 text-sm font-semibold leading-7 text-black outline-none transition placeholder:text-black/25 focus:border-orange-500"
+              className="min-h-[108px] resize-none rounded-none border-0 border-b border-black/15 bg-transparent px-0 py-3 text-sm font-semibold leading-7 text-black outline-none transition placeholder:text-black/25 focus:border-orange-500"
               placeholder="Dein Gedanke dazu …"
             />
           </label>
