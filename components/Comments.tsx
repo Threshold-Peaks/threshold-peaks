@@ -158,12 +158,8 @@ export default function Comments({
     <section className="mt-14 border-t border-black/10 pt-7">
       <div className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.32em] text-black/35">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.32em] text-black/35">
             Kommentare
-          </p>
-
-          <h2 className="mt-2 text-2xl font-black leading-tight tracking-[-0.04em] text-black">
-            Gedanken dazu
           </h2>
         </div>
 
