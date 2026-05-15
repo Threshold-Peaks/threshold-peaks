@@ -1,3 +1,4 @@
+import TwitchSection from "@/components/TwitchSection";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -376,6 +377,7 @@ function HeroTopNav() {
     { href: "#portal-journal", label: "Journal" },
     { href: "#portal-gallery", label: "Galerie" },
     { href: "#portal-events", label: "Events" },
+    { href: "#portal-live", label: "Live Sets",  },
     { href: "#portal-contact", label: "Kontakt" },
   ];
 
