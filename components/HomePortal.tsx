@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Image as SanityImage } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { urlFor } from "@/sanity/lib/image";
+import Comments from "@/components/Comments";
 
 type PortableTextBlock = any[];
 
@@ -1287,6 +1288,7 @@ function JournalPortalDetail({
       .filter(Boolean)
       .join(" / ") || "Keine externen Links";
   const tags = getJournalTags(post.tags);
+  const commentTargetSlug = post.slug?.current || post._id;
   const journalFacts = [
     {
       label: "Kategorie",
@@ -1449,6 +1451,12 @@ function JournalPortalDetail({
             </section>
           ) : null}
         </div>
+
+        <Comments
+          targetType="journal"
+          targetSlug={commentTargetSlug}
+          targetTitle={post.title}
+        />
       </div>
     </article>
   );
@@ -1613,6 +1621,7 @@ function GalleryAlbumPortalDetail({
   const tags = getGalleryTags(album.tags);
   const categoryLabel = formatGalleryCategory(album.category);
   const formattedDate = formatGalleryDate(album.date);
+  const commentTargetSlug = album.slug?.current || album._id;
 
   return (
     <article className="text-neutral-950">
@@ -1774,6 +1783,12 @@ function GalleryAlbumPortalDetail({
           </div>
         )}
       </div>
+
+      <Comments
+        targetType="gallery"
+        targetSlug={commentTargetSlug}
+        targetTitle={album.title}
+      />
 
       <button
         type="button"
@@ -1988,6 +2003,7 @@ function EventPortalDetail({
   const formattedDate = formatEventDetailDate(event.startDate);
   const image = event.image;
   const tags = getEventTags(event.tags);
+  const commentTargetSlug = event.slug?.current || event._id;
 
   return (
     <article className="text-neutral-950">
@@ -2104,6 +2120,12 @@ function EventPortalDetail({
             />
           </div>
         ) : null}
+
+        <Comments
+          targetType="event"
+          targetSlug={commentTargetSlug}
+          targetTitle={event.title}
+        />
       </div>
     </article>
   );
