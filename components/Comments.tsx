@@ -258,9 +258,9 @@ export default function Comments({
           </label>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex min-h-6 flex-col items-start gap-2">
-            {footerAction ? <div>{footerAction}</div> : null}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-h-6 min-w-0 flex-col items-start gap-2">
+            {footerAction ? <div className="shrink-0">{footerAction}</div> : null}
 
             {message ? (
               <p className="text-xs font-bold text-orange-600">{message}</p>
@@ -273,9 +273,19 @@ export default function Comments({
           <button
             type="submit"
             disabled={isSending}
-            className="inline-flex items-center justify-between gap-4 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45"
+            className="inline-flex shrink-0 items-center justify-between gap-3 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-45 sm:gap-4"
           >
-            {isSending ? "Wird gesendet …" : "Kommentar senden"}
+            {isSending ? (
+              <>
+                <span className="hidden sm:inline">Wird gesendet …</span>
+                <span className="sm:hidden">Sendet …</span>
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline">Kommentar senden</span>
+                <span className="sm:hidden">Senden</span>
+              </>
+            )}
             <span>→</span>
           </button>
         </div>

@@ -1,4 +1,5 @@
 import BackHeader from "@/components/BackHeader";
+import Comments from "@/components/Comments";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -335,6 +336,21 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
             })}
           </div>
         )}
+
+        <Comments
+          targetType="gallery"
+          targetSlug={slug}
+          targetTitle={album.title}
+          footerAction={
+            <Link
+              href="/#portal-gallery"
+              className="inline-flex items-center gap-2 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600"
+            >
+              <span className="hidden sm:inline">Zurück zur Galerie</span>
+              <span className="sm:hidden">← Galerie</span>
+            </Link>
+          }
+        />
       </article>
     </main>
   );

@@ -1,4 +1,5 @@
 import BackHeader from "@/components/BackHeader";
+import Comments from "@/components/Comments";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -237,10 +238,7 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-[#f5f3ee] text-neutral-950">
-      <BackHeader
-  href="/#portal-events"
-  label="Zurück zu den Events"
-/>
+      <BackHeader href="/#portal-events" label="Zurück zu Events" />
 
       <article className="mx-auto w-full max-w-5xl px-6 pb-20 pt-10">
         <header className="mb-8">
@@ -334,6 +332,21 @@ export default async function EventDetailPage({ params }: PageProps) {
             </Link>
           </div>
         )}
+
+        <Comments
+          targetType="event"
+          targetSlug={slug}
+          targetTitle={event.title ?? "Event"}
+          footerAction={
+            <Link
+              href="/#portal-events"
+              className="inline-flex items-center gap-2 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600"
+            >
+              <span className="hidden sm:inline">Zurück zu Events</span>
+              <span className="sm:hidden">← Events</span>
+            </Link>
+          }
+        />
       </article>
     </main>
   );

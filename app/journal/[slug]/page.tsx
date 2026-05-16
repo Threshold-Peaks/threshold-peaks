@@ -1,4 +1,5 @@
 import LikeButton from "@/components/LikeButton";
+import Comments from "@/components/Comments";
 import BackHeader from "@/components/BackHeader";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -666,6 +667,21 @@ export default async function JournalPostPage({
                 </div>
               </section>
             ) : null}
+
+            <Comments
+              targetType="journal"
+              targetSlug={slug}
+              targetTitle={post.title}
+              footerAction={
+                <Link
+                  href="/#portal-journal"
+                  className="inline-flex items-center gap-2 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600"
+                >
+                  <span className="hidden sm:inline">Zurück zum Journal</span>
+                  <span className="sm:hidden">← Journal</span>
+                </Link>
+              }
+            />
           </article>
         </div>
       </section>
