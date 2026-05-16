@@ -202,7 +202,13 @@ const allEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(start
   "image": coalesce(image, mainImage, coverImage),
   body
 }`;
+const siteSettingsQuery = `*[_type == "siteSettings"][0] {
+  liveSetsIsOnline
+}`;
 
+type SiteSettings = {
+  liveSetsIsOnline?: boolean;
+};
 function getTodayKey() {
   return new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Europe/Berlin",
@@ -224,11 +230,14 @@ function isUpcomingHomeEvent(event: HomeEvent) {
 }
 
 export default async function Home() {
-  const [allPosts, allAlbums, fetchedEvents] = await Promise.all([
-    client.fetch<HomeJournalPost[]>(allJournalQuery),
-    client.fetch<HomeGalleryAlbum[]>(allGalleryQuery),
-    client.fetch<HomeEvent[]>(allEventsQuery),
-  ]);
+  const [allPosts, allAlbums, fetchedEvents, siteSettings] = await Promise.all([
+  client.fetch<HomeJournalPost[]>(allJournalQuery),
+  client.fetch<HomeGalleryAlbum[]>(allGalleryQuery),
+  client.fetch<HomeEvent[]>(allEventsQuery),
+  client.fetch<SiteSettings | null>(siteSettingsQuery),
+]);
+
+const liveSetsIsOnline = Boolean(siteSettings?.liveSetsIsOnline);
 
   const latestPosts = allPosts.slice(0, 3);
   const latestAlbums = allAlbums.slice(0, 4);
@@ -285,7 +294,7 @@ export default async function Home() {
                 </div>
               </a>
 
-              <HeroTopNav />
+              <HeroTopNav liveSetsIsOnline={liveSetsIsOnline} />
             </div>
 
             {/* RIGHT: PORTAL + FOOTER */}
@@ -297,6 +306,7 @@ export default async function Home() {
                 allAlbums={allAlbums}
                 latestEvents={latestEvents}
                 allEvents={upcomingEvents}
+                liveSetsIsOnline={liveSetsIsOnline}
                 embedded
               />
 
@@ -392,9 +402,9 @@ function ThresholdPeaksIcon() {
   );
 }
 
-const liveSetsIsOnline = false;
 
-function HeroTopNav() {
+
+function HeroTopNav({ liveSetsIsOnline }: { liveSetsIsOnline: boolean }) {
   const navItems = [
     { href: "#top", label: "Home" },
     { href: "#portal-about", label: "About" },
@@ -425,6 +435,7 @@ function HeroTopNav() {
                 href={item.href}
                 mobile
                 showLiveStatus={item.href === "#portal-live"}
+                liveSetsIsOnline={liveSetsIsOnline}
               >
                 {item.label}
               </HeroTopNavLink>
@@ -439,6 +450,7 @@ function HeroTopNav() {
             key={item.href}
             href={item.href}
             showLiveStatus={item.href === "#portal-live"}
+            liveSetsIsOnline={liveSetsIsOnline}
           >
             {item.label}
           </HeroTopNavLink>
@@ -453,11 +465,13 @@ function HeroTopNavLink({
   children,
   mobile = false,
   showLiveStatus = false,
+  liveSetsIsOnline,
 }: {
   href: string;
   children: ReactNode;
   mobile?: boolean;
   showLiveStatus?: boolean;
+  liveSetsIsOnline: boolean;
 }) {
   const className = mobile
     ? "group relative inline-flex shrink-0 justify-center pb-2 text-center text-[10px] font-black uppercase tracking-[0.28em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 sm:text-[11px]"

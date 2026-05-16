@@ -118,6 +118,7 @@ type HomePortalProps = {
   allAlbums: HomeGalleryAlbum[];
   latestEvents: HomeEvent[];
   allEvents: HomeEvent[];
+  liveSetsIsOnline?: boolean;
   embedded?: boolean;
 };
 
