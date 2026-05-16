@@ -1119,7 +1119,9 @@ export default function HomePortal({
                   )
                 ) : null}
 
-                {activeTab === "live" ? <LiveSetsPanel /> : null}
+                {activeTab === "live" ? (
+                  <LiveSetsPanel isOnline={liveSetsIsOnline} />
+                ) : null}
 
                 {activeTab === "contact" ? <ContactPanel /> : null}
               </div>
@@ -2657,9 +2659,9 @@ function EventPortalDetail({
   );
 }
 
-function LiveSetsPanel() {
+function LiveSetsPanel({ isOnline }: { isOnline: boolean }) {
   const twitchUrl = "https://www.twitch.tv/thresholdpeaks";
-  const statusLabel = liveSetsIsOnline ? "Online" : "Offline";
+  const statusLabel = isOnline ? "Online" : "Offline";
 
   return (
     <div className="grid gap-8 lg:grid-cols-[0.95fr_1.25fr] lg:items-start">
@@ -2670,7 +2672,7 @@ function LiveSetsPanel() {
 
         <h4 className="inline-flex max-w-xl items-center gap-3 text-4xl font-black leading-[0.95] tracking-[-0.06em] md:text-6xl">
           <span>Live Sets</span>
-          <LiveStatusDot isOnline={liveSetsIsOnline} className="mt-2" />
+          <LiveStatusDot isOnline={isOnline} className="mt-2" />
         </h4>
 
         <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-black/65 md:text-lg md:leading-9">
@@ -2718,7 +2720,7 @@ function LiveSetsPanel() {
             </div>
 
             <div className="inline-flex shrink-0 items-center gap-2 rounded-sm border border-black/10 bg-[#f5f3ee]/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
-              <LiveStatusDot isOnline={liveSetsIsOnline} className="h-1.5 w-1.5" />
+              <LiveStatusDot isOnline={isOnline} className="h-1.5 w-1.5" />
               {statusLabel}
             </div>
           </div>
