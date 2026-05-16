@@ -258,12 +258,12 @@ export default async function Home() {
         <div className="absolute inset-x-0 top-0 z-0 h-[620px] overflow-hidden md:h-[720px]">
           <div className="absolute inset-0 h-full overflow-hidden md:left-auto md:right-0 md:w-[64vw] md:min-w-[780px]">
             <Image
-              src="/images/runner-hero-clean.webp"
+              src="/images/runner-hero-wide.webp"
               alt="Matthias läuft im Stadion"
               fill
               priority
               sizes="(max-width: 768px) 100vw, 64vw"
-              className="object-cover object-[52%_8%] opacity-35 contrast-105 saturate-105 brightness-105 md:object-[62%_-4%] md:origin-center md:scale-110 md:translate-x-20 md:opacity-100 md:contrast-110 md:saturate-110"
+              className="object-cover object-[70%_center] opacity-35 contrast-105 saturate-105 brightness-105 md:object-[75%_center] md:opacity-100 md:contrast-110 md:saturate-110"
             />
 
             <div className="pointer-events-none absolute inset-0 bg-[#f5f3ee]/55 md:hidden" />
