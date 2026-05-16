@@ -118,6 +118,7 @@ type HomePortalProps = {
   allAlbums: HomeGalleryAlbum[];
   latestEvents: HomeEvent[];
   allEvents: HomeEvent[];
+  liveSetsIsOnline?: boolean;
   embedded?: boolean;
 };
 
@@ -125,8 +126,6 @@ const lineButtonClass =
   "inline-flex items-center gap-2 whitespace-nowrap border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
 
 const detailActionButtonClass = `${lineButtonClass} text-xs sm:text-sm`;
-
-const liveSetsIsOnline = false;
 
 function LiveStatusDot({
   isOnline,
@@ -588,6 +587,7 @@ export default function HomePortal({
   allAlbums,
   latestEvents,
   allEvents,
+  liveSetsIsOnline = false,
   embedded = false,
 }: HomePortalProps) {
   const [activeTab, setActiveTab] = useState<PortalTab>("about");
