@@ -2,7 +2,7 @@ import BackHeader from "@/components/BackHeader";
 
 export default function DatenschutzPage() {
   return (
-    <main className="min-h-screen bg-[#f4efe6] text-[#111217]">
+    <main className="min-h-screen bg-[#f5f3ee] text-[#111217]">
       <BackHeader />
 
       <section className="mx-auto max-w-3xl px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">

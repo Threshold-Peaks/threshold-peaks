@@ -984,7 +984,7 @@ export default function HomePortal({
       />
 
       <div className={embedded ? "w-full" : "mx-auto max-w-[1280px]"}>
-        <div className="portal-card-in overflow-hidden rounded-t-md border-x border-t border-black/15 bg-[#f4efe6] shadow-none">
+        <div className="portal-card-in overflow-hidden rounded-t-md border-x border-t border-black/15 bg-[#f5f3ee] shadow-none">
           <div
             className={
               embedded
@@ -999,7 +999,7 @@ export default function HomePortal({
             >
               <div className="relative pl-6">
                 <span className="absolute left-0 top-1 h-full w-px bg-black/20" />
-                <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 border border-black/25 bg-[#f4efe6]" />
+                <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 border border-black/25 bg-[#f5f3ee]" />
 
                 <h3 className="text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
                   {activeTabMeta.title}
@@ -2662,7 +2662,7 @@ function LiveSetsPanel() {
               </h5>
             </div>
 
-            <div className="shrink-0 rounded-sm border border-black/10 bg-[#f4efe6]/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
+            <div className="shrink-0 rounded-sm border border-black/10 bg-[#f5f3ee]/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
               Offline
             </div>
           </div>

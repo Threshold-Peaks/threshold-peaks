@@ -482,7 +482,7 @@ const portableTextComponents: PortableTextComponents = {
       </p>
     ),
     blockquote: ({ children }) => (
-      <blockquote className="mt-8 rounded-3xl border-l-4 border-orange-500 bg-[#f4efe6] px-6 py-5 text-lg font-semibold leading-8 text-black/75">
+      <blockquote className="mt-8 rounded-3xl border-l-4 border-orange-500 bg-[#f5f3ee] px-6 py-5 text-lg font-semibold leading-8 text-black/75">
         {children}
       </blockquote>
     ),
@@ -550,7 +550,7 @@ export default async function JournalPostPage({
     : null;
 
   return (
-    <main className="min-h-screen bg-[#f4efe6] text-black">
+    <main className="min-h-screen bg-[#f5f3ee] text-black">
       <BackHeader href="/#portal-journal" label="Zurück zum Journal" />
 
       <section className="px-6 pb-14 pt-8 md:px-10 md:pb-16 lg:px-20">
