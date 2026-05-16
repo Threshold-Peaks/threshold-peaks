@@ -984,7 +984,7 @@ export default function HomePortal({
       />
 
       <div className={embedded ? "w-full" : "mx-auto max-w-[1280px]"}>
-        <div className="portal-card-in overflow-hidden rounded-t-md border-x border-t border-black/15 bg-[#f4efe6]/90 shadow-none">
+        <div className="portal-card-in overflow-hidden rounded-t-md border-x border-t border-black/15 bg-[#f4efe6] shadow-none">
           <div
             className={
               embedded
