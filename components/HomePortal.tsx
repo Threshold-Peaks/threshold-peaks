@@ -127,7 +127,6 @@ const lineButtonClass =
 
 const detailActionButtonClass = `${lineButtonClass} text-xs sm:text-sm`;
 
-const liveSetsIsOnline = false;
 
 function LiveStatusDot({
   isOnline,
@@ -1122,8 +1121,8 @@ export default function HomePortal({
                 ) : null}
 
                 {activeTab === "live" ? (
-  <LiveSetsPanel isOnline={liveSetsIsOnline} />
-) : null}
+                  <LiveSetsPanel isOnline={liveSetsIsOnline} />
+                ) : null}
 
                 {activeTab === "contact" ? <ContactPanel /> : null}
               </div>
@@ -2672,12 +2671,7 @@ function LiveSetsPanel({ isOnline }: { isOnline: boolean }) {
           Twitch
         </p>
 
-        <h4 className="inline-flex max-w-xl items-center gap-3 text-4xl font-black leading-[0.95] tracking-[-0.06em] md:text-6xl">
-          <span>Live Sets</span>
-          <LiveStatusDot isOnline={isOnline} className="mt-2" />
-        </h4>
-
-        <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-black/65 md:text-lg md:leading-9">
+        <p className="mt-5 max-w-xl text-base font-semibold leading-8 text-black/65 md:text-lg md:leading-9">
           Live aus dem Studio: elektronische Musik, spontane Sets und Sessions
           zwischen Peak-Time, Groove und langen Nächten.
         </p>
@@ -2722,7 +2716,7 @@ function LiveSetsPanel({ isOnline }: { isOnline: boolean }) {
             </div>
 
             <div className="inline-flex shrink-0 items-center gap-2 rounded-sm border border-black/10 bg-[#f5f3ee]/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
-              <LiveStatusDot isOnline={liveSetsIsOnline} className="h-1.5 w-1.5" />
+              <LiveStatusDot isOnline={isOnline} className="h-1.5 w-1.5" />
               {statusLabel}
             </div>
           </div>
