@@ -126,6 +126,30 @@ const lineButtonClass =
 
 const detailActionButtonClass = `${lineButtonClass} text-xs sm:text-sm`;
 
+const liveSetsIsOnline = false;
+
+function LiveStatusDot({
+  isOnline,
+  className = "",
+}: {
+  isOnline: boolean;
+  className?: string;
+}) {
+  return (
+    <span
+      className={[
+        "inline-flex h-2 w-2 shrink-0 rounded-full ring-1 ring-black/10",
+        isOnline
+          ? "bg-emerald-500/85 shadow-[0_0_8px_rgba(16,185,129,0.42)]"
+          : "bg-red-500/75 shadow-[0_0_8px_rgba(239,68,68,0.32)]",
+        className,
+      ].join(" ")}
+      aria-label={isOnline ? "Live Sets online" : "Live Sets offline"}
+      title={isOnline ? "Online" : "Offline"}
+    />
+  );
+}
+
 const lineButtonWideClass =
   "inline-flex min-w-[220px] items-center justify-between gap-4 border-b border-black/20 pb-2 text-sm font-black text-black/55 transition hover:border-orange-500 hover:text-orange-600";
 
@@ -1001,8 +1025,11 @@ export default function HomePortal({
                 <span className="absolute left-0 top-1 h-full w-px bg-black/20" />
                 <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 border border-black/25 bg-[#f5f3ee]" />
 
-                <h3 className="text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
-                  {activeTabMeta.title}
+                <h3 className="inline-flex items-center gap-3 text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
+                  <span>{activeTabMeta.title}</span>
+                  {activeTab === "live" ? (
+                    <LiveStatusDot isOnline={liveSetsIsOnline} className="mt-1" />
+                  ) : null}
                 </h3>
 
                 <p className="mt-3 max-w-xl text-sm font-semibold leading-7 text-black/55">
@@ -2632,6 +2659,7 @@ function EventPortalDetail({
 
 function LiveSetsPanel() {
   const twitchUrl = "https://www.twitch.tv/thresholdpeaks";
+  const statusLabel = liveSetsIsOnline ? "Online" : "Offline";
 
   return (
     <div className="grid gap-8 lg:grid-cols-[0.95fr_1.25fr] lg:items-start">
@@ -2640,8 +2668,9 @@ function LiveSetsPanel() {
           Twitch
         </p>
 
-        <h4 className="max-w-xl text-4xl font-black leading-[0.95] tracking-[-0.06em] md:text-6xl">
-          Live Sets
+        <h4 className="inline-flex max-w-xl items-center gap-3 text-4xl font-black leading-[0.95] tracking-[-0.06em] md:text-6xl">
+          <span>Live Sets</span>
+          <LiveStatusDot isOnline={liveSetsIsOnline} className="mt-2" />
         </h4>
 
         <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-black/65 md:text-lg md:leading-9">
@@ -2688,8 +2717,9 @@ function LiveSetsPanel() {
               </h5>
             </div>
 
-            <div className="shrink-0 rounded-sm border border-black/10 bg-[#f5f3ee]/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
-              Offline
+            <div className="inline-flex shrink-0 items-center gap-2 rounded-sm border border-black/10 bg-[#f5f3ee]/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
+              <LiveStatusDot isOnline={liveSetsIsOnline} className="h-1.5 w-1.5" />
+              {statusLabel}
             </div>
           </div>
 
