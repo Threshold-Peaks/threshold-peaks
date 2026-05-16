@@ -202,7 +202,6 @@ const allEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(start
   "image": coalesce(image, mainImage, coverImage),
   body
 }`;
-
 const siteSettingsQuery = `*[_type == "siteSettings"][0] {
   liveSetsIsOnline
 }`;
@@ -210,7 +209,6 @@ const siteSettingsQuery = `*[_type == "siteSettings"][0] {
 type SiteSettings = {
   liveSetsIsOnline?: boolean;
 };
-
 function getTodayKey() {
   return new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Europe/Berlin",
@@ -233,13 +231,13 @@ function isUpcomingHomeEvent(event: HomeEvent) {
 
 export default async function Home() {
   const [allPosts, allAlbums, fetchedEvents, siteSettings] = await Promise.all([
-    client.fetch<HomeJournalPost[]>(allJournalQuery),
-    client.fetch<HomeGalleryAlbum[]>(allGalleryQuery),
-    client.fetch<HomeEvent[]>(allEventsQuery),
-    client.fetch<SiteSettings | null>(siteSettingsQuery),
-  ]);
+  client.fetch<HomeJournalPost[]>(allJournalQuery),
+  client.fetch<HomeGalleryAlbum[]>(allGalleryQuery),
+  client.fetch<HomeEvent[]>(allEventsQuery),
+  client.fetch<SiteSettings | null>(siteSettingsQuery),
+]);
 
-  const liveSetsIsOnline = Boolean(siteSettings?.liveSetsIsOnline);
+const liveSetsIsOnline = Boolean(siteSettings?.liveSetsIsOnline);
 
   const latestPosts = allPosts.slice(0, 3);
   const latestAlbums = allAlbums.slice(0, 4);
@@ -259,17 +257,18 @@ export default async function Home() {
           <div className="absolute inset-0 h-full overflow-hidden md:left-auto md:right-0 md:w-[64vw] md:min-w-[780px]">
             <Image
               src="/images/runner-hero-clean.webp"
-              alt="Matthias läuft im Stadion"
+              alt="Neues Hero Bild"
               fill
               priority
               sizes="(max-width: 768px) 100vw, 64vw"
-              className="object-cover object-[52%_8%] opacity-35 contrast-105 saturate-105 brightness-105 md:object-[62%_-4%] md:origin-center md:scale-110 md:translate-x-20 md:opacity-100 md:contrast-110 md:saturate-110"
+              className="object-cover object-[72%_14%] opacity-35 contrast-105 saturate-105 brightness-105 md:object-[82%_14%] md:opacity-100 md:contrast-110 md:saturate-110"
             />
 
             <div className="pointer-events-none absolute inset-0 bg-[#f5f3ee]/55 md:hidden" />
 
-            <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-[760px] bg-gradient-to-r from-[#f5f3ee] via-[#f5f3ee]/60 to-transparent md:block" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-[#f5f3ee] via-[#f5f3ee]/80 to-transparent md:h-64" />
+            <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-[520px] bg-gradient-to-r from-[#f5f3ee] via-[#f5f3ee]/55 to-transparent md:block" />
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#f5f3ee]/80 via-[#f5f3ee]/25 to-transparent md:h-24" />
           </div>
         </div>
 
@@ -371,6 +370,7 @@ export default async function Home() {
         </div>
       </section>
 
+
       <BackToTopButton />
     </main>
   );
@@ -401,6 +401,8 @@ function ThresholdPeaksIcon() {
     </svg>
   );
 }
+
+
 
 function HeroTopNav({ liveSetsIsOnline }: { liveSetsIsOnline: boolean }) {
   const navItems = [
