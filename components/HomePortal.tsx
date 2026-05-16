@@ -1953,7 +1953,7 @@ function GalleryPanel({
           </p>
         </div>
       ) : (
-        <div className="columns-1 gap-6 space-y-7 sm:columns-2 lg:columns-4">
+        <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
           {albums.map((album, index) => {
             const image = album.coverImage || album.images?.[0];
             const imageCount = album.images?.length ?? 0;
@@ -1963,7 +1963,7 @@ function GalleryPanel({
             return (
               <article
                 key={album._id}
-                className="group mb-7 block w-full break-inside-avoid text-left outline-none"
+                className="group block w-full text-left outline-none"
               >
                 <button
                   type="button"
