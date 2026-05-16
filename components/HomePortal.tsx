@@ -1786,7 +1786,7 @@ function StoryConnectionsSection({
         }
       >
         {hasStrava ? (
-          <div className={hasAlbums ? "w-full" : "w-full max-w-[520px]"}>
+          <div className="w-full max-w-[380px]">
             <StravaStoryActivityCard
               stravaUrl={stravaUrl}
               fallbackActivity={stravaActivity}
