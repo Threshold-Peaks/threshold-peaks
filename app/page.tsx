@@ -255,7 +255,7 @@ export default async function Home() {
       {/* HERO */}
       <section className="relative min-h-[620px] overflow-hidden pb-10 md:min-h-[720px] md:pb-14">
         {/* HERO BACKGROUND */}
-        <div className="absolute inset-x-0 top-0 z-0 h-[620px] overflow-hidden md:h-[720px]">
+        <div className="absolute inset-x-0 top-0 z-0 h-[430px] overflow-hidden md:h-[720px]">
           <div className="absolute inset-0 h-full overflow-hidden md:left-auto md:right-0 md:w-[64vw] md:min-w-[780px]">
             <Image
               src="/images/runner-hero-wide.webp"
@@ -269,7 +269,7 @@ export default async function Home() {
             <div className="pointer-events-none absolute inset-0 bg-[#f5f3ee]/55 md:hidden" />
 
             <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-[760px] bg-gradient-to-r from-[#f5f3ee] via-[#f5f3ee]/60 to-transparent md:block" />
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-[#f5f3ee] via-[#f5f3ee]/80 to-transparent md:h-64" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#f5f3ee] via-[#f5f3ee]/80 to-transparent md:h-64" />
           </div>
         </div>
 
