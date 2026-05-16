@@ -124,16 +124,7 @@ export default function StravaStoryActivity({
             </h4>
           </div>
 
-          {url ? (
-            <Link
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/35 transition hover:border-orange-500 hover:text-orange-600"
-            >
-              Strava öffnen →
-            </Link>
-          ) : null}
+
         </div>
 
         {loadState === "loading" ? (
