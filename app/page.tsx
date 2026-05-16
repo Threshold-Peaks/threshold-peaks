@@ -406,7 +406,7 @@ function ThresholdPeaksIcon() {
 
 function HeroTopNav({ liveSetsIsOnline }: { liveSetsIsOnline: boolean }) {
   const navItems = [
-    { href: "#portal-about", label: "About" },
+    { href: "#portal-about", label: "Projekt" },
     { href: "#portal-journal", label: "Journal" },
     { href: "#portal-gallery", label: "Galerie" },
     { href: "#portal-events", label: "Events" },

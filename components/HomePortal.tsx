@@ -159,10 +159,10 @@ const tabs: Array<{
   text: string;
 }> = [
   {
-    id: "about",
-    title: "Über mich",
-    text: "Wer hinter Threshold Peaks steckt.",
-  },
+  id: "about",
+  title: "Threshold Peaks",
+  text: "Ausdauer, elektronische Musik und aktiver Lifestyle.",
+},
   {
     id: "journal",
     title: "Journal",
