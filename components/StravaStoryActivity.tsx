@@ -11,6 +11,7 @@ export type StravaStoryActivityManual = {
   elevation?: string;
   duration?: string;
   kudos?: number;
+  mapImage?: unknown;
 };
 
 type ApiStravaActivity = {
@@ -104,7 +105,7 @@ export default function StravaStoryActivity({
         </h3>
       </div>
 
-      <div className="border-y border-black/10 bg-[#f4efe6] py-5">
+      <div className="border-y border-black/10 bg-[#f5f3ee] py-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-black uppercase tracking-[0.2em] text-black/35">
@@ -154,7 +155,7 @@ export default function StravaStoryActivity({
         {activity?.summaryPolyline ? (
           <StravaRouteSketch polyline={activity.summaryPolyline} />
         ) : (
-          <div className="mt-5 flex min-h-[190px] items-center justify-center border-y border-dashed border-black/15 bg-[#f4efe6] px-6 py-10 text-center">
+          <div className="mt-5 flex min-h-[190px] items-center justify-center border-y border-dashed border-black/15 bg-black/[0.02] px-6 py-10 text-center">
             <p className="max-w-sm text-sm font-semibold leading-7 text-black/45">
               {loadState === "error"
                 ? "Die Strava-Daten konnten gerade nicht geladen werden. Die manuell gepflegten Werte bleiben als Fallback sichtbar."
@@ -175,7 +176,7 @@ export default function StravaStoryActivity({
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center border border-black/10 bg-[#f4efe6] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black/55 transition hover:-translate-y-0.5 hover:border-orange-500 hover:text-orange-600"
+              className="inline-flex items-center justify-center border border-black/10 bg-[#ebe7dc] px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-black/55 transition hover:-translate-y-0.5 hover:border-orange-500 hover:text-orange-600"
             >
               Auf Strava ansehen →
             </Link>
@@ -204,7 +205,7 @@ function StravaRouteSketch({ polyline }: { polyline: string }) {
 
   if (!pathData) {
     return (
-      <div className="mt-5 flex min-h-[190px] items-center justify-center border-y border-dashed border-black/15 bg-[#f4efe6] px-6 py-10 text-center">
+      <div className="mt-5 flex min-h-[190px] items-center justify-center border-y border-dashed border-black/15 bg-black/[0.02] px-6 py-10 text-center">
         <p className="max-w-sm text-sm font-semibold leading-7 text-black/45">
           Die Route konnte nicht gezeichnet werden.
         </p>
@@ -213,7 +214,7 @@ function StravaRouteSketch({ polyline }: { polyline: string }) {
   }
 
   return (
-    <figure className="mt-5 overflow-hidden border-y border-black/10 bg-[#f4efe6]">
+    <figure className="mt-5 overflow-hidden border-y border-black/10 bg-[#f1ece2]">
       <svg
         viewBox="0 0 100 64"
         role="img"
