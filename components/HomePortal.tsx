@@ -1310,33 +1310,23 @@ function PortalTagFilter({
             </span>
             <span className="mt-1 block text-[11px] font-bold text-black/40">
               {hasActiveTags
-                ? `${selectedTags.length} aktiv · ${isOpen ? "Auswahl schließen" : "Auswahl öffnen"}`
+                ? `${selectedTags.length} aktiv · ${isOpen ? "Auswahl schließen" : "Alle Hashtags anzeigen"}`
                 : isOpen
                   ? "Auswahl schließen"
-                  : "Auswahl öffnen"}
+                  : "Alle Hashtags anzeigen"}
             </span>
           </span>
         </button>
 
-        <div className="flex items-center gap-5">
-          {hasActiveTags ? (
-            <button
-              type="button"
-              onClick={onResetTags}
-              className="border-b border-transparent pb-1 text-left text-[10px] font-black uppercase tracking-[0.24em] text-black/35 transition hover:border-orange-500/50 hover:text-orange-600 sm:text-right"
-            >
-              Zurücksetzen
-            </button>
-          ) : null}
-
+        {hasActiveTags ? (
           <button
             type="button"
-            onClick={() => setIsOpen((current) => !current)}
-            className="border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.24em] text-black/40 transition hover:border-orange-500/60 hover:text-orange-600"
+            onClick={onResetTags}
+            className="border-b border-transparent pb-1 text-left text-[10px] font-black uppercase tracking-[0.24em] text-black/35 transition hover:border-orange-500/50 hover:text-orange-600 sm:text-right"
           >
-            {isOpen ? "Weniger" : "Alle anzeigen"}
+            Zurücksetzen
           </button>
-        </div>
+        ) : null}
       </div>
 
       {hasActiveTags ? (
