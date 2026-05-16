@@ -1058,13 +1058,7 @@ export default function HomePortal({
                 </p>
               </div>
 
-              {!selectedPost && !selectedAlbum && !selectedEvent ? (
-                <PortalMainLink
-                  activeTab={activeTab}
-                  showAllContent={showAllContent}
-                  onToggleShowAll={toggleShowAllContent}
-                />
-              ) : null}
+
             </div>
 
             <div className="relative flex-1">
@@ -1093,6 +1087,8 @@ export default function HomePortal({
                       posts={visiblePosts}
                       allTags={allJournalTags}
                       selectedTags={selectedJournalTags}
+                      showAll={showAllContent.journal}
+                      onToggleShowAll={() => toggleShowAllContent("journal")}
                       onToggleTag={toggleJournalTagFilter}
                       onResetTags={resetJournalTagFilter}
                       onOpenPost={openJournalPost}
@@ -1113,6 +1109,8 @@ export default function HomePortal({
                       albums={visibleAlbums}
                       allTags={allGalleryTags}
                       selectedTags={selectedGalleryTags}
+                      showAll={showAllContent.gallery}
+                      onToggleShowAll={() => toggleShowAllContent("gallery")}
                       onToggleTag={toggleGalleryTagFilter}
                       onResetTags={resetGalleryTagFilter}
                       onOpenAlbum={openGalleryAlbum}
@@ -1133,6 +1131,8 @@ export default function HomePortal({
                       events={visibleEvents}
                       allTags={allEventTags}
                       selectedTags={selectedEventTags}
+                      showAll={showAllContent.events}
+                      onToggleShowAll={() => toggleShowAllContent("events")}
                       onToggleTag={toggleEventTagFilter}
                       onResetTags={resetEventTagFilter}
                       onOpenEvent={openEvent}
@@ -1194,6 +1194,32 @@ function PortalMainLink({
       {isShowingAll ? showLessLabels[key] : showAllLabels[key]}
       <span>{isShowingAll ? "↑" : "→"}</span>
     </button>
+  );
+}
+
+
+function PortalBottomAction({
+  showAll,
+  showAllLabel,
+  showLessLabel,
+  onToggle,
+}: {
+  showAll: boolean;
+  showAllLabel: string;
+  showLessLabel: string;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="mt-7 flex justify-start border-t border-black/10 pt-5">
+      <button
+        type="button"
+        onClick={onToggle}
+        className={lineButtonWideClass}
+      >
+        {showAll ? showLessLabel : showAllLabel}
+        <span>{showAll ? "↑" : "→"}</span>
+      </button>
+    </div>
   );
 }
 
@@ -1375,6 +1401,8 @@ function JournalPanel({
   posts,
   allTags,
   selectedTags,
+  showAll,
+  onToggleShowAll,
   onToggleTag,
   onResetTags,
   onOpenPost,
@@ -1382,6 +1410,8 @@ function JournalPanel({
   posts: HomeJournalPost[];
   allTags: string[];
   selectedTags: string[];
+  showAll: boolean;
+  onToggleShowAll: () => void;
   onToggleTag: (tag: string) => void;
   onResetTags: () => void;
   onOpenPost: (post: HomeJournalPost) => void;
@@ -1490,6 +1520,13 @@ function JournalPanel({
           })}
         </div>
       )}
+
+      <PortalBottomAction
+        showAll={showAll}
+        showAllLabel="Weitere Beiträge anzeigen"
+        showLessLabel="Weniger Beiträge anzeigen"
+        onToggle={onToggleShowAll}
+      />
 
       <PortalTagFilter
         label="Journal"
@@ -1957,6 +1994,8 @@ function GalleryPanel({
   albums,
   allTags,
   selectedTags,
+  showAll,
+  onToggleShowAll,
   onToggleTag,
   onResetTags,
   onOpenAlbum,
@@ -1964,6 +2003,8 @@ function GalleryPanel({
   albums: HomeGalleryAlbum[];
   allTags: string[];
   selectedTags: string[];
+  showAll: boolean;
+  onToggleShowAll: () => void;
   onToggleTag: (tag: string) => void;
   onResetTags: () => void;
   onOpenAlbum: (album: HomeGalleryAlbum) => void;
@@ -2084,6 +2125,13 @@ function GalleryPanel({
           })}
         </div>
       )}
+
+      <PortalBottomAction
+        showAll={showAll}
+        showAllLabel="Weitere Alben anzeigen"
+        showLessLabel="Weniger Alben anzeigen"
+        onToggle={onToggleShowAll}
+      />
 
       <PortalTagFilter
         label="Galerie"
@@ -2319,6 +2367,8 @@ function EventsPanel({
   events,
   allTags,
   selectedTags,
+  showAll,
+  onToggleShowAll,
   onToggleTag,
   onResetTags,
   onOpenEvent,
@@ -2326,6 +2376,8 @@ function EventsPanel({
   events: HomeEvent[];
   allTags: string[];
   selectedTags: string[];
+  showAll: boolean;
+  onToggleShowAll: () => void;
   onToggleTag: (tag: string) => void;
   onResetTags: () => void;
   onOpenEvent: (event: HomeEvent) => void;
@@ -2421,6 +2473,13 @@ function EventsPanel({
           })}
         </div>
       )}
+
+      <PortalBottomAction
+        showAll={showAll}
+        showAllLabel="Weitere Termine anzeigen"
+        showLessLabel="Weniger Termine anzeigen"
+        onToggle={onToggleShowAll}
+      />
 
       <PortalTagFilter
         label="Event"
