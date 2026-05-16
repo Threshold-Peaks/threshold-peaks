@@ -263,7 +263,7 @@ export default async function Home() {
               fill
               priority
               sizes="(max-width: 768px) 100vw, 64vw"
-              className="object-cover object-[70%_34%] -translate-y-14 scale-[1.08] opacity-35 contrast-105 saturate-105 brightness-105 md:translate-y-0 md:scale-100 md:object-[75%_center] md:opacity-100 md:contrast-110 md:saturate-110"
+              className="object-cover object-[70%_34%] -translate-y-18 scale-[1.08] opacity-35 contrast-105 saturate-105 brightness-105 md:translate-y-0 md:scale-100 md:object-[75%_center] md:opacity-100 md:contrast-110 md:saturate-110"
             />
 
             <div className="pointer-events-none absolute inset-0 bg-[#f5f3ee]/55 md:hidden" />
