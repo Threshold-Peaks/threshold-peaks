@@ -2257,15 +2257,6 @@ function GalleryAlbumPortalDetail({
           </button>
         }
       />
-
-      <button
-        type="button"
-        onClick={onBack}
-        className={`${detailActionButtonClass} mt-8`}
-      >
-        <span className="sm:hidden">← Galerie</span>
-        <span className="hidden sm:inline">← Zurück zur Galerie</span>
-      </button>
     </article>
   );
 }
