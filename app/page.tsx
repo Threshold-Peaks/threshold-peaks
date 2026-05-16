@@ -423,7 +423,7 @@ function HeroTopNav({ liveSetsIsOnline }: { liveSetsIsOnline: boolean }) {
         </div>
       </div>
 
-      <div className="relative md:hidden">
+      <div className="md:hidden">
   <div className="-mx-6 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
     <div className="flex min-w-max items-center gap-8">
       {navItems.map((item) => (
@@ -439,9 +439,6 @@ function HeroTopNav({ liveSetsIsOnline }: { liveSetsIsOnline: boolean }) {
       ))}
     </div>
   </div>
-
-  <div className="pointer-events-none absolute left-0 top-0 h-full w-6 bg-gradient-to-r from-[#f5f3ee] to-transparent" />
-  <div className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-[#f5f3ee] to-transparent" />
 </div>
 
       <div className="hidden md:flex md:max-w-none md:flex-wrap md:items-center md:gap-x-7 md:gap-y-3 md:px-0">
