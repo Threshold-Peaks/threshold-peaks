@@ -392,6 +392,8 @@ function ThresholdPeaksIcon() {
   );
 }
 
+const liveSetsIsOnline = false;
+
 function HeroTopNav() {
   const navItems = [
     { href: "#top", label: "Home" },
@@ -418,7 +420,12 @@ function HeroTopNav() {
         <div className="-mx-6 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="flex min-w-max items-center gap-8">
             {navItems.map((item) => (
-              <HeroTopNavLink key={item.href} href={item.href} mobile>
+              <HeroTopNavLink
+                key={item.href}
+                href={item.href}
+                mobile
+                showLiveStatus={item.href === "#portal-live"}
+              >
                 {item.label}
               </HeroTopNavLink>
             ))}
@@ -428,7 +435,11 @@ function HeroTopNav() {
 
       <div className="hidden md:flex md:max-w-none md:flex-wrap md:items-center md:gap-x-7 md:gap-y-3 md:px-0">
         {navItems.map((item) => (
-          <HeroTopNavLink key={item.href} href={item.href}>
+          <HeroTopNavLink
+            key={item.href}
+            href={item.href}
+            showLiveStatus={item.href === "#portal-live"}
+          >
             {item.label}
           </HeroTopNavLink>
         ))}
@@ -441,10 +452,12 @@ function HeroTopNavLink({
   href,
   children,
   mobile = false,
+  showLiveStatus = false,
 }: {
   href: string;
   children: ReactNode;
   mobile?: boolean;
+  showLiveStatus?: boolean;
 }) {
   const className = mobile
     ? "group relative inline-flex shrink-0 justify-center pb-2 text-center text-[10px] font-black uppercase tracking-[0.28em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 sm:text-[11px]"
@@ -452,10 +465,28 @@ function HeroTopNavLink({
 
   return (
     <a href={href} className={className}>
-      <span className="block translate-x-[0.14em] md:translate-x-0">
-        {children}
+      <span className="inline-flex translate-x-[0.14em] items-center gap-2 md:translate-x-0">
+        <span>{children}</span>
+
+        {showLiveStatus ? <LiveSetsStatusDot isOnline={liveSetsIsOnline} /> : null}
       </span>
+
       <span className="absolute bottom-0 left-1/2 h-px w-9 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 md:left-0 md:w-5 md:translate-x-0" />
     </a>
+  );
+}
+
+function LiveSetsStatusDot({ isOnline }: { isOnline: boolean }) {
+  return (
+    <span
+      className={[
+        "h-1.5 w-1.5 rounded-full ring-1",
+        isOnline
+          ? "bg-emerald-500/80 ring-emerald-500/25 shadow-[0_0_8px_rgba(16,185,129,0.45)]"
+          : "bg-red-500/75 ring-red-500/25 shadow-[0_0_8px_rgba(239,68,68,0.35)]",
+      ].join(" ")}
+      aria-label={isOnline ? "Live Sets online" : "Live Sets offline"}
+      title={isOnline ? "Online" : "Offline"}
+    />
   );
 }
