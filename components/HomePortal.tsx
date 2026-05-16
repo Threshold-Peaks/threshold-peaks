@@ -589,6 +589,7 @@ export default function HomePortal({
   allAlbums,
   latestEvents,
   allEvents,
+  liveSetsIsOnline = false,
   embedded = false,
 }: HomePortalProps) {
   const [activeTab, setActiveTab] = useState<PortalTab>("about");
