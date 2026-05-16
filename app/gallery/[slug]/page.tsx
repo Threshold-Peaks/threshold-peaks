@@ -214,7 +214,7 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
   const categoryLabel = formatCategory(album.category);
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee] text-black">
+    <main className="min-h-screen bg-[#f4efe6] text-black">
       <BackHeader href="/#portal-gallery" label="Zurück zur Galerie" />
 
       <article className="mx-auto max-w-6xl px-6 py-16 sm:py-20">

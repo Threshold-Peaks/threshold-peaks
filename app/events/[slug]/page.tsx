@@ -236,7 +236,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   const tags = getEventTags(event.tags);
 
   return (
-    <main className="min-h-screen bg-[#f5f3ee] text-neutral-950">
+    <main className="min-h-screen bg-[#f4efe6] text-neutral-950">
       <BackHeader
   href="/#portal-events"
   label="Zurück zu den Events"
