@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import LikeButton from "@/components/LikeButton";
 
 type CommentTargetType = "journal" | "gallery" | "event";
@@ -16,6 +17,7 @@ type CommentsProps = {
   targetType: CommentTargetType;
   targetSlug: string;
   targetTitle: string;
+  footerAction?: ReactNode;
 };
 
 function formatCommentDate(date?: string) {
@@ -32,6 +34,7 @@ export default function Comments({
   targetType,
   targetSlug,
   targetTitle,
+  footerAction,
 }: CommentsProps) {
   const [comments, setComments] = useState<PublicComment[]>([]);
   const [name, setName] = useState("");
@@ -256,7 +259,9 @@ export default function Comments({
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-h-6">
+          <div className="flex min-h-6 flex-col items-start gap-2">
+            {footerAction ? <div>{footerAction}</div> : null}
+
             {message ? (
               <p className="text-xs font-bold text-orange-600">{message}</p>
             ) : null}

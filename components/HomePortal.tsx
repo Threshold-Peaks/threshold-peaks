@@ -1691,6 +1691,16 @@ function JournalPortalDetail({
           targetType="journal"
           targetSlug={commentTargetSlug}
           targetTitle={post.title}
+          footerAction={
+            <button
+              type="button"
+              onClick={onBack}
+              className={detailActionButtonClass}
+            >
+              <span className="sm:hidden">← Journal</span>
+              <span className="hidden sm:inline">← Zurück zum Journal</span>
+            </button>
+          }
         />
       </div>
     </article>
@@ -1776,7 +1786,12 @@ function StoryConnectionsSection({
         }
       >
         {hasStrava ? (
-          <StravaStoryActivityCard stravaUrl={stravaUrl} fallbackActivity={stravaActivity} />
+          <div className={hasAlbums ? "w-full" : "w-full max-w-[520px]"}>
+            <StravaStoryActivityCard
+              stravaUrl={stravaUrl}
+              fallbackActivity={stravaActivity}
+            />
+          </div>
         ) : null}
 
         {hasAlbums ? (
@@ -2231,6 +2246,16 @@ function GalleryAlbumPortalDetail({
         targetType="gallery"
         targetSlug={commentTargetSlug}
         targetTitle={album.title}
+        footerAction={
+          <button
+            type="button"
+            onClick={onBack}
+            className={detailActionButtonClass}
+          >
+            <span className="sm:hidden">← Galerie</span>
+            <span className="hidden sm:inline">← Zurück zur Galerie</span>
+          </button>
+        }
       />
 
       <button
@@ -2598,6 +2623,16 @@ function EventPortalDetail({
           targetType="event"
           targetSlug={commentTargetSlug}
           targetTitle={event.title}
+          footerAction={
+            <button
+              type="button"
+              onClick={onBack}
+              className={detailActionButtonClass}
+            >
+              <span className="sm:hidden">← Events</span>
+              <span className="hidden sm:inline">← Zurück zu Events</span>
+            </button>
+          }
         />
       </div>
     </article>
