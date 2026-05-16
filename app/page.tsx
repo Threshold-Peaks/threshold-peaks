@@ -26,6 +26,19 @@ type HomeJournalTag =
       slug?: { current?: string };
     };
 
+type StravaActivity = {
+  title?: string;
+  sportType?: string;
+  dateLabel?: string;
+  distance?: string;
+  elevation?: string;
+  duration?: string;
+  kudos?: number;
+  mapImage?: SanityImageSource & {
+    alt?: string;
+  };
+};
+
 type HomeJournalPost = {
   _id: string;
   title: string;
@@ -37,7 +50,7 @@ type HomeJournalPost = {
   excerpt?: string;
   body?: PortableTextBlock;
   stravaUrl?: string;
-  stravaEmbedCode?: string;
+  stravaActivity?: StravaActivity;
   soundcloudUrl?: string;
   location?: string;
   tags?: string | HomeJournalTag[];
@@ -94,7 +107,19 @@ const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
   excerpt,
   body,
   stravaUrl,
-  stravaEmbedCode,
+  stravaActivity{
+    title,
+    sportType,
+    dateLabel,
+    distance,
+    elevation,
+    duration,
+    kudos,
+    mapImage{
+      ...,
+      alt
+    }
+  },
   soundcloudUrl,
   location,
   "tags": coalesce(tags, tag, hashtags, hashtag, keywords, ""),

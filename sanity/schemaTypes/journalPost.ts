@@ -179,14 +179,88 @@ export const journalPost = defineType({
       validation: (Rule) => Rule.uri({scheme: ['http', 'https']}).warning(),
     }),
 
-
     defineField({
-      name: 'stravaEmbedCode',
-      title: 'Strava-Embed-Code',
-      type: 'text',
-      rows: 4,
+      name: 'stravaActivity',
+      title: 'Strava-Aktivität zur Story',
+      type: 'object',
       description:
-        'Optional: Füge hier den kompletten Strava-Code aus „Teilen → Einbetten“ ein. Das ist hilfreich, wenn Strava für die Einbettung einen data-token benötigt.',
+        'Eigene Darstellung der Strava-Aktivität im Threshold-Peaks-Look. Wenn gepflegt, wird diese Ansicht statt des offiziellen Strava-Embeds verwendet.',
+      fields: [
+        defineField({
+          name: 'title',
+          title: 'Aktivitätstitel',
+          type: 'string',
+          description: 'Zum Beispiel: Fahrt am Nachmittag, Long Run, Bahntraining.',
+          validation: (Rule) => Rule.max(100),
+        }),
+        defineField({
+          name: 'sportType',
+          title: 'Sportart',
+          type: 'string',
+          options: {
+            list: [
+              {title: 'Running', value: 'running'},
+              {title: 'Cycling', value: 'cycling'},
+              {title: 'Gravel', value: 'gravel'},
+              {title: 'Workout', value: 'workout'},
+              {title: 'Other', value: 'other'},
+            ],
+            layout: 'radio',
+          },
+        }),
+        defineField({
+          name: 'dateLabel',
+          title: 'Datumsanzeige',
+          type: 'string',
+          description: 'Zum Beispiel: Gestern, Heute oder 15. Mai 2026.',
+          validation: (Rule) => Rule.max(40),
+        }),
+        defineField({
+          name: 'distance',
+          title: 'Distanz',
+          type: 'string',
+          description: 'Zum Beispiel: 61,5 km.',
+          validation: (Rule) => Rule.max(30),
+        }),
+        defineField({
+          name: 'elevation',
+          title: 'Höhenmeter',
+          type: 'string',
+          description: 'Zum Beispiel: 55 m.',
+          validation: (Rule) => Rule.max(30),
+        }),
+        defineField({
+          name: 'duration',
+          title: 'Zeit',
+          type: 'string',
+          description: 'Zum Beispiel: 2 Std. 8 Min.',
+          validation: (Rule) => Rule.max(40),
+        }),
+        defineField({
+          name: 'kudos',
+          title: 'Kudos',
+          type: 'number',
+          validation: (Rule) => Rule.min(0),
+        }),
+        defineField({
+          name: 'mapImage',
+          title: 'Kartenbild / Route',
+          type: 'image',
+          description:
+            'Optionaler Screenshot der Strava-Karte oder eine selbst gestaltete Route.',
+          options: {
+            hotspot: true,
+          },
+          fields: [
+            defineField({
+              name: 'alt',
+              title: 'Alternativtext',
+              type: 'string',
+              validation: (Rule) => Rule.max(160),
+            }),
+          ],
+        }),
+      ],
     }),
 
     defineField({

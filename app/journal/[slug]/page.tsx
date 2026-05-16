@@ -1,7 +1,6 @@
 import LikeButton from "@/components/LikeButton";
 import BackHeader from "@/components/BackHeader";
 import Link from "next/link";
-import Script from "next/script";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
@@ -9,6 +8,7 @@ import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
+import StravaStoryActivityCard, { type StravaStoryActivityManual } from "@/components/StravaStoryActivity";
 
 export const revalidate = 10;
 
@@ -42,6 +42,8 @@ type LinkedGalleryAlbum = {
   images?: LinkedGalleryImage[];
 };
 
+type StravaActivity = StravaStoryActivityManual;
+
 type JournalPost = {
   title: string;
   publishedAt?: string;
@@ -49,7 +51,7 @@ type JournalPost = {
   excerpt?: string;
   body?: any[];
   stravaUrl?: string;
-  stravaEmbedCode?: string;
+  stravaActivity?: StravaActivity;
   soundcloudUrl?: string;
   tags?: JournalTag[];
   mainImage?: SanityImageSource & {
@@ -67,7 +69,19 @@ const query = `*[_type == "journalPost" && slug.current == $slug][0]{
   excerpt,
   body,
   stravaUrl,
-  stravaEmbedCode,
+  stravaActivity{
+    title,
+    sportType,
+    dateLabel,
+    distance,
+    elevation,
+    duration,
+    kudos,
+    mapImage{
+      ...,
+      alt
+    }
+  },
   soundcloudUrl,
   tags,
   mainImage,
@@ -239,56 +253,24 @@ function formatGalleryCategory(category?: string) {
   return category ? (categories[category] ?? category) : "Galerie";
 }
 
-function getStravaActivityId(url?: string) {
-  if (!url) return null;
-
-  const directMatch = url.match(/strava\.com\/activities\/(\d+)/i);
-  if (directMatch?.[1]) return directMatch[1];
-
-  try {
-    const parsedUrl = new URL(url);
-    const pathMatch = parsedUrl.pathname.match(/\/activities\/(\d+)/i);
-
-    return pathMatch?.[1] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-type StravaEmbedData = {
-  id: string;
-  token?: string;
-  style: string;
-};
-
-function readStravaEmbedAttribute(embedCode: string | undefined, attribute: string) {
-  if (!embedCode) return null;
-
-  const match = embedCode.match(new RegExp(`${attribute}=["']([^"']+)["']`, "i"));
-  return match?.[1] ?? null;
-}
-
-function getStravaEmbedData(stravaUrl?: string, stravaEmbedCode?: string): StravaEmbedData | null {
-  const idFromEmbed = readStravaEmbedAttribute(stravaEmbedCode, "data-embed-id");
-  const token = readStravaEmbedAttribute(stravaEmbedCode, "data-token") ?? undefined;
-  const style = readStravaEmbedAttribute(stravaEmbedCode, "data-style") ?? "standard";
-  const id = idFromEmbed ?? getStravaActivityId(stravaUrl);
-
-  return id ? { id, token, style } : null;
-}
-
 function StoryConnectionsSection({
   albums,
   stravaUrl,
-  stravaEmbedCode,
+  stravaActivity,
 }: {
   albums?: LinkedGalleryAlbum[];
   stravaUrl?: string;
-  stravaEmbedCode?: string;
+  stravaActivity?: StravaActivity;
 }) {
   const visibleAlbums = (albums ?? []).filter((album) => album?._id);
   const hasAlbums = visibleAlbums.length > 0;
-  const hasStrava = Boolean(stravaUrl || stravaEmbedCode);
+  const hasStrava = Boolean(
+    stravaActivity?.title ||
+      stravaActivity?.distance ||
+      stravaActivity?.duration ||
+      stravaActivity?.mapImage ||
+      stravaUrl,
+  );
 
   if (!hasAlbums && !hasStrava) return null;
 
@@ -311,76 +293,15 @@ function StoryConnectionsSection({
         }
       >
         {hasStrava ? (
-          <StravaStoryCard stravaUrl={stravaUrl} stravaEmbedCode={stravaEmbedCode} />
+          <StravaStoryActivityCard
+            stravaUrl={stravaUrl}
+            fallbackActivity={stravaActivity}
+          />
         ) : null}
 
         {hasAlbums ? <LinkedGalleryAlbumsCard albums={visibleAlbums} /> : null}
       </div>
     </section>
-  );
-}
-
-function StravaStoryCard({
-  stravaUrl,
-  stravaEmbedCode,
-}: {
-  stravaUrl?: string;
-  stravaEmbedCode?: string;
-}) {
-  const embedData = getStravaEmbedData(stravaUrl, stravaEmbedCode);
-  const activityId = embedData?.id;
-  const token = embedData?.token;
-  const style = embedData?.style ?? "standard";
-
-  return (
-    <aside className="border-y border-black/10 bg-white/55 px-4 py-5 sm:px-5">
-      <div className="mb-5 border-b border-black/10 pb-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/35">
-          Strava
-        </p>
-        <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] text-black md:text-xl">
-          Aktivität zur Story
-        </h3>
-      </div>
-
-      {activityId ? (
-        <>
-          <div
-            key={`${activityId}-${token ?? "public"}`}
-            className="strava-story-embed mx-auto max-w-[390px] overflow-hidden bg-transparent py-3 lg:mx-0"
-          >
-            <div
-              className="strava-embed-placeholder"
-              data-embed-type="activity"
-              data-embed-id={activityId}
-              data-style={style}
-              data-from-embed="false"
-              data-token={token}
-            />
-            <style>{`
-              .strava-story-embed {
-                background-color: transparent;
-              }
-
-              .strava-story-embed iframe {
-                background-color: transparent !important;
-              }
-            `}</style>
-          </div>
-          <Script
-            src="https://strava-embeds.com/embed.js"
-            strategy="afterInteractive"
-          />
-        </>
-      ) : (
-        <div className="flex min-h-[190px] flex-col justify-center border-y border-dashed border-black/15 py-8 text-center">
-          <p className="mx-auto max-w-sm text-sm font-semibold leading-7 text-black/50">
-            Für diese Story ist ein Strava-Link hinterlegt, aber ich konnte daraus
-            keine Aktivitäts-ID lesen.
-          </p>
-        </div>
-      )}
-    </aside>
   );
 }
 
@@ -723,7 +644,7 @@ export default async function JournalPostPage({
             <StoryConnectionsSection
               albums={post.linkedGalleryAlbums}
               stravaUrl={post.stravaUrl}
-              stravaEmbedCode={post.stravaEmbedCode}
+              stravaActivity={post.stravaActivity}
             />
 
             {tags.length > 0 ? (

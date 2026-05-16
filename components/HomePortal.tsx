@@ -10,6 +10,7 @@ import type { SanityImageSource } from "@sanity/image-url";
 import { urlFor } from "@/sanity/lib/image";
 import Comments from "@/components/Comments";
 import LikeButton from "@/components/LikeButton";
+import StravaStoryActivityCard, { type StravaStoryActivityManual } from "@/components/StravaStoryActivity";
 
 type PortableTextBlock = any[];
 
@@ -29,6 +30,8 @@ type HomeJournalTag =
       slug?: { current?: string };
     };
 
+type StravaActivity = StravaStoryActivityManual;
+
 type HomeGalleryTag = HomeJournalTag;
 type HomeEventTag = HomeJournalTag;
 
@@ -43,7 +46,7 @@ type HomeJournalPost = {
   excerpt?: string;
   body?: PortableTextBlock;
   stravaUrl?: string;
-  stravaEmbedCode?: string;
+  stravaActivity?: StravaActivity;
   soundcloudUrl?: string;
   location?: string;
   tags?: string | HomeJournalTag[];
@@ -511,57 +514,6 @@ function formatGalleryCategory(category?: string) {
   };
 
   return category ? (categories[category] ?? category) : "Galerie";
-}
-
-function getStravaActivityId(url?: string) {
-  if (!url) return null;
-
-  const directMatch = url.match(/strava\.com\/activities\/(\d+)/i);
-  if (directMatch?.[1]) return directMatch[1];
-
-  try {
-    const parsedUrl = new URL(url);
-    const pathMatch = parsedUrl.pathname.match(/\/activities\/(\d+)/i);
-
-    return pathMatch?.[1] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-type StravaEmbedData = {
-  id: string;
-  token?: string;
-  style: string;
-};
-
-function readStravaEmbedAttribute(
-  embedCode: string | undefined,
-  attribute: string,
-) {
-  if (!embedCode) return null;
-
-  const match = embedCode.match(
-    new RegExp(`${attribute}=["']([^"']+)["']`, "i"),
-  );
-  return match?.[1] ?? null;
-}
-
-function getStravaEmbedData(
-  stravaUrl?: string,
-  stravaEmbedCode?: string,
-): StravaEmbedData | null {
-  const idFromEmbed = readStravaEmbedAttribute(
-    stravaEmbedCode,
-    "data-embed-id",
-  );
-  const token =
-    readStravaEmbedAttribute(stravaEmbedCode, "data-token") ?? undefined;
-  const style =
-    readStravaEmbedAttribute(stravaEmbedCode, "data-style") ?? "standard";
-  const id = idFromEmbed ?? getStravaActivityId(stravaUrl);
-
-  return id ? { id, token, style } : null;
 }
 
 function formatGalleryDate(date?: string) {
@@ -1702,7 +1654,7 @@ function JournalPortalDetail({
           <StoryConnectionsSection
             albums={linkedGalleryAlbums}
             stravaUrl={post.stravaUrl}
-            stravaEmbedCode={post.stravaEmbedCode}
+            stravaActivity={post.stravaActivity}
             onOpenAlbum={onOpenLinkedGalleryAlbum}
           />
 
@@ -1784,17 +1736,24 @@ function JournalMetaLinks({
 function StoryConnectionsSection({
   albums,
   stravaUrl,
-  stravaEmbedCode,
+  stravaActivity,
   onOpenAlbum,
 }: {
   albums?: HomeGalleryAlbum[];
   stravaUrl?: string;
-  stravaEmbedCode?: string;
+  stravaActivity?: StravaActivity;
   onOpenAlbum: (album: HomeGalleryAlbum) => void;
 }) {
   const visibleAlbums = (albums ?? []).filter((album) => album?._id);
   const hasAlbums = visibleAlbums.length > 0;
-  const hasStrava = Boolean(stravaUrl || stravaEmbedCode);
+  const hasStrava = Boolean(
+    stravaActivity?.title ||
+      stravaActivity?.distance ||
+      stravaActivity?.duration ||
+      stravaActivity?.elevation ||
+      stravaActivity?.mapImage ||
+      stravaUrl,
+  );
 
   if (!hasAlbums && !hasStrava) return null;
 
@@ -1817,10 +1776,7 @@ function StoryConnectionsSection({
         }
       >
         {hasStrava ? (
-          <StravaStoryCard
-            stravaUrl={stravaUrl}
-            stravaEmbedCode={stravaEmbedCode}
-          />
+          <StravaStoryActivityCard stravaUrl={stravaUrl} fallbackActivity={stravaActivity} />
         ) : null}
 
         {hasAlbums ? (
@@ -1831,80 +1787,6 @@ function StoryConnectionsSection({
         ) : null}
       </div>
     </section>
-  );
-}
-
-function StravaStoryCard({
-  stravaUrl,
-  stravaEmbedCode,
-}: {
-  stravaUrl?: string;
-  stravaEmbedCode?: string;
-}) {
-  const embedData = getStravaEmbedData(stravaUrl, stravaEmbedCode);
-  const activityId = embedData?.id ?? "";
-  const token = embedData?.token ?? "";
-  const style = embedData?.style ?? "standard";
-  const embedKey = `${activityId}:${token}:${style}`;
-
-  useEffect(() => {
-    if (!activityId) return;
-
-    const script = document.createElement("script");
-    script.src = "https://strava-embeds.com/embed.js";
-    script.async = true;
-    script.dataset.stravaStoryLoader = embedKey;
-
-    document.body.appendChild(script);
-
-    return () => {
-      script.remove();
-    };
-  }, [activityId, embedKey]);
-
-  return (
-    <aside className="border-t border-black/10 pt-5">
-      <div className="mb-5 border-b border-black/10 pb-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/35">
-          Strava
-        </p>
-        <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] text-black md:text-xl">
-          Aktivität zur Story
-        </h3>
-      </div>
-
-      {activityId ? (
-        <div
-          key={embedKey}
-          className="strava-story-embed mx-auto max-w-[390px] overflow-hidden border-y border-black/10 bg-[#efe8dc] py-3 lg:mx-0"
-        >
-          <div
-            className="strava-embed-placeholder"
-            data-embed-type="activity"
-            data-embed-id={activityId}
-            data-style={style}
-            data-from-embed="false"
-            data-token={token || undefined}
-          />
-          <style>{`
-            .strava-story-embed {
-              background-color: rgba(255, 255, 255, 0.35);
-            }
-
-            .strava-story-embed iframe {
-              background-color: transparent !important;
-            }
-          `}</style>
-        </div>
-      ) : (
-        <div className="flex min-h-[190px] flex-col justify-center border-y border-dashed border-black/15 py-8 text-center">
-          <p className="mx-auto max-w-sm text-sm font-semibold leading-7 text-black/50">
-            Für diese Story ist ein Strava-Link hinterlegt, aber ich konnte
-            daraus keine Aktivitäts-ID lesen.
-          </p>
-        </div>
-      )}
-    </aside>
   );
 }
 
