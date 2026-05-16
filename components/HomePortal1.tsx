@@ -244,7 +244,7 @@ const journalPortableTextComponents: PortableTextComponents = {
       </p>
     ),
     blockquote: ({ children }) => (
-      <blockquote className="mt-8 rounded-sm border-l-4 border-orange-500 bg-[#efe8dc] px-6 py-5 text-lg font-semibold leading-8 text-black/75">
+      <blockquote className="mt-8 rounded-3xl border-l-4 border-orange-500 bg-[#f5f3ee] px-6 py-5 text-lg font-semibold leading-8 text-black/75">
         {children}
       </blockquote>
     ),
@@ -1032,22 +1032,22 @@ export default function HomePortal({
       />
 
       <div className={embedded ? "w-full" : "mx-auto max-w-[1280px]"}>
-        <div className="portal-card-in overflow-hidden rounded-t-md border-x border-t border-black/15 bg-[#f4efe6]/90 shadow-none">
+        <div className="portal-card-in overflow-hidden rounded-[2rem] border border-black/10 bg-white/55 shadow-[0_1px_2px_rgba(17,18,23,0.06)] ring-1 ring-white/70 backdrop-blur-2xl">
           <div
             className={
               embedded
-                ? "flex min-h-[460px] flex-col p-5 md:p-7 lg:min-h-[500px] lg:p-9"
+                ? "flex min-h-[460px] flex-col p-5 md:p-7 lg:min-h-[500px] lg:p-8"
                 : "flex min-h-[720px] flex-col p-6 md:min-h-[760px] md:p-8 lg:min-h-[780px] lg:p-10"
             }
           >
             <div
-              className={`mb-8 flex flex-col gap-5 border-b border-black/15 pb-7 transition-opacity duration-300 ease-out md:flex-row md:items-end md:justify-between ${
+              className={`mb-8 flex flex-col gap-5 border-b border-black/10 pb-7 transition-opacity duration-300 ease-out md:flex-row md:items-end md:justify-between ${
                 isPortalSwitching ? "opacity-60" : "opacity-100"
               }`}
             >
               <div className="relative pl-6">
-                <span className="absolute left-0 top-1 h-full w-px bg-black/20" />
-                <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 border border-black/25 bg-[#f4efe6]" />
+                <span className="absolute left-0 top-1 h-full w-px bg-black/15" />
+                <span className="absolute -left-[4px] top-1 h-2.5 w-2.5 rounded-full border border-black/20 bg-[#f5f3ee]" />
 
                 <h3 className="text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
                   {activeTabMeta.title}
@@ -1068,7 +1068,7 @@ export default function HomePortal({
             </div>
 
             <div className="relative flex-1">
-              <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-black/15 lg:block" />
+              <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-black/10 lg:block" />
 
               <div
                 className={`min-h-[560px] transition-all duration-300 ease-out [overflow-anchor:none] md:min-h-[600px] lg:min-h-[640px] lg:pl-8 ${
@@ -1444,7 +1444,7 @@ function JournalPanel({
             return (
               <article
                 key={post._id}
-                className="group grid w-full gap-4 py-5 text-left text-[#111217] transition hover:bg-black/[0.025] md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center md:px-3"
+                className="group grid w-full gap-4 py-5 text-left text-[#111217] transition hover:bg-white/50 md:grid-cols-[170px_minmax(0,1fr)_auto] md:items-center md:px-3"
               >
                 <button
                   type="button"
@@ -1613,7 +1613,7 @@ function JournalPortalDetail({
 
           {post.mainImage ? (
             <figure className="w-full lg:justify-self-end">
-              <div className="relative mx-auto aspect-[1.28/1] w-full max-w-[380px] overflow-hidden rounded-md bg-transparent ring-1 ring-black/10 lg:mx-0">
+              <div className="relative mx-auto aspect-[1.28/1] w-full max-w-[380px] overflow-hidden rounded-[1.7rem] bg-transparent lg:mx-0">
                 <SanityImage
                   src={urlFor(post.mainImage).width(900).fit("max").url()}
                   alt={post.mainImage.alt || post.title || "Journal Bild"}
@@ -1849,7 +1849,7 @@ function StravaStoryCard({
       {activityId ? (
         <div
           key={embedKey}
-          className="strava-story-embed mx-auto max-w-[390px] overflow-hidden border-y border-black/10 bg-[#efe8dc] py-3 lg:mx-0"
+          className="strava-story-embed mx-auto max-w-[390px] overflow-hidden border-y border-black/10 bg-white/35 py-3 lg:mx-0"
         >
           <div
             className="strava-embed-placeholder"
@@ -1911,7 +1911,7 @@ function LinkedGalleryAlbumsCard({
               onClick={() => onOpenAlbum(album)}
               className="group grid w-full gap-4 py-4 text-left transition hover:bg-black/[0.025] sm:grid-cols-[86px_minmax(0,1fr)] sm:items-center sm:px-2"
             >
-              <div className="relative aspect-square overflow-hidden rounded-md bg-black/5 ring-1 ring-black/10">
+              <div className="relative aspect-square overflow-hidden rounded-[0.95rem] bg-black/5 ring-1 ring-black/10">
                 {image ? (
                   <SanityImage
                     src={urlFor(image).width(600).height(600).fit("crop").url()}
@@ -2013,7 +2013,7 @@ function GalleryPanel({
                   className="block w-full text-left"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-md bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
+                    className={`relative overflow-hidden rounded-[1.45rem] bg-[#d7d5ce] ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
                   >
                     {image ? (
                       <SanityImage
@@ -2225,7 +2225,7 @@ function GalleryAlbumPortalDetail({
 
         {coverImage ? (
           <figure className="absolute right-0 top-0 w-[92px] justify-self-end sm:static sm:w-full sm:max-w-none sm:justify-self-end lg:mx-0 lg:justify-self-end">
-            <div className="relative overflow-hidden rounded-md bg-[#ded9cf] ring-1 ring-black/10">
+            <div className="relative overflow-hidden rounded-[1rem] bg-[#ded9cf] ring-1 ring-black/10 sm:rounded-[1.5rem]">
               <SanityImage
                 src={urlFor(coverImage)
                   .width(
@@ -2278,7 +2278,7 @@ function GalleryAlbumPortalDetail({
                   className="mb-6 break-inside-avoid"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-md bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioConfig.className}`}
+                    className={`relative overflow-hidden rounded-[1.35rem] bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioConfig.className}`}
                   >
                     <SanityImage
                       src={urlFor(image)
@@ -2386,7 +2386,7 @@ function EventsPanel({
             return (
               <article
                 key={event._id}
-                className="group py-5 text-left transition hover:bg-black/[0.025] md:px-3"
+                className="group py-5 text-left transition hover:bg-white/50 md:px-3"
               >
                 <button
                   type="button"
@@ -2580,13 +2580,13 @@ function EventPortalDetail({
           </div>
 
           {image ? (
-            <figure className="w-full overflow-hidden rounded-md border border-black/10 bg-[#efe8dc] p-1 lg:justify-self-end">
+            <figure className="w-full overflow-hidden rounded-[1.5rem] border border-black/10 bg-white/35 p-1 lg:justify-self-end">
               <SanityImage
                 src={urlFor(image).width(900).height(900).fit("crop").url()}
                 alt={image.alt || event.title || "Event Bild"}
                 width={900}
                 height={900}
-                className="aspect-[4/3] w-full rounded-sm object-cover lg:aspect-[5/4]"
+                className="aspect-[4/3] w-full rounded-[1.2rem] object-cover lg:aspect-[5/4]"
               />
             </figure>
           ) : null}
@@ -2709,7 +2709,7 @@ function LiveSetsPanel() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-black/12 bg-[#efe8dc]/70 shadow-none">
+      <div className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-white/35 shadow-[0_1px_2px_rgba(17,18,23,0.05)] ring-1 ring-white/70 backdrop-blur-xl">
         <div className="relative aspect-[16/10] overflow-hidden border-b border-black/10 bg-black/5">
           <Image
             src="/images/twitch-live-sets.png"
@@ -2731,7 +2731,7 @@ function LiveSetsPanel() {
               </h5>
             </div>
 
-            <div className="shrink-0 rounded-sm border border-black/10 bg-[#f4efe6]/80 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
+            <div className="shrink-0 rounded-full border border-black/10 bg-[#f5f3ee]/70 px-3 py-2 text-[10px] font-black uppercase tracking-[0.22em] text-black/45">
               Offline
             </div>
           </div>
@@ -2876,7 +2876,7 @@ function ContactPanel() {
               href={item.href}
               target={isExternal ? "_blank" : undefined}
               rel={isExternal ? "noreferrer" : undefined}
-              className="group flex flex-col gap-4 py-5 transition hover:bg-black/[0.025] md:flex-row md:items-center md:px-3"
+              className="group flex flex-col gap-4 py-5 transition hover:bg-white/50 md:flex-row md:items-center md:px-3"
             >
               {content}
             </a>

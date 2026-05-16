@@ -263,8 +263,8 @@ export default async function Home() {
               <HeroTopNav />
             </div>
 
-            {/* RIGHT: PORTAL */}
-            <div className="w-full space-y-6">
+            {/* RIGHT: PORTAL + FOOTER */}
+            <div className="w-full overflow-hidden rounded-md shadow-[0_18px_55px_rgba(17,18,23,0.07)]">
               <HomePortal
                 latestPosts={latestPosts}
                 allPosts={allPosts}
@@ -274,69 +274,67 @@ export default async function Home() {
                 allEvents={upcomingEvents}
                 embedded
               />
+
+              <footer className="border-x border-b border-t border-black/15 bg-[#f4efe6]/90 p-7 text-sm text-black/65 md:p-8">
+                <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                  <a
+                    href="#top"
+                    className="inline-flex items-center gap-3 text-black transition hover:text-orange-600"
+                    aria-label="Zurück nach oben"
+                  >
+                    <ThresholdPeaksIcon />
+
+                    <div className="leading-none">
+                      <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
+                        Threshold Peaks
+                      </div>
+                      <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
+                        Beat the extra mile
+                      </div>
+                    </div>
+                  </a>
+
+                  <div className="flex w-full items-center justify-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.1em] text-black/55 md:w-auto md:justify-end md:gap-3 md:text-sm md:normal-case md:tracking-normal md:text-black/65">
+                    <Link
+                      href="/impressum"
+                      className="whitespace-nowrap transition hover:text-orange-600"
+                    >
+                      Impressum
+                    </Link>
+
+                    <span className="select-none text-black/30" aria-hidden="true">
+                      ·
+                    </span>
+
+                    <Link
+                      href="/datenschutz"
+                      className="whitespace-nowrap transition hover:text-orange-600"
+                    >
+                      Datenschutz
+                    </Link>
+
+                    <span className="select-none text-black/30" aria-hidden="true">
+                      ·
+                    </span>
+
+                    <Link
+                      href="/studio"
+                      className="whitespace-nowrap transition hover:text-orange-600"
+                    >
+                      Admin
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="mt-8 border-t border-black/15 pt-6 text-xs text-black/50">
+                  © 2026 Threshold Peaks. Alle Rechte vorbehalten.
+                </div>
+              </footer>
             </div>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="px-6 pb-10 pt-4 md:px-10 lg:px-20">
-        <div className="mx-auto max-w-[1280px] overflow-hidden rounded-[2rem] border border-black/10 bg-white/60 p-7 text-sm text-black/65 shadow-sm backdrop-blur-xl md:p-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <a
-              href="#top"
-              className="inline-flex items-center gap-3 text-black transition hover:text-orange-600"
-              aria-label="Zurück nach oben"
-            >
-              <ThresholdPeaksIcon />
-
-              <div className="leading-none">
-                <div className="text-sm font-black uppercase tracking-[0.22em] md:text-lg">
-                  Threshold Peaks
-                </div>
-                <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.28em] text-black/55 md:text-[10px]">
-                  Beat the extra mile
-                </div>
-              </div>
-            </a>
-
-            <div className="flex w-full items-center justify-center gap-2 text-center text-[10px] font-bold uppercase tracking-[0.1em] text-black/55 md:w-auto md:justify-end md:gap-3 md:text-sm md:normal-case md:tracking-normal md:text-black/65">
-              <Link
-                href="/impressum"
-                className="whitespace-nowrap transition hover:text-orange-600"
-              >
-                Impressum
-              </Link>
-
-              <span className="select-none text-black/30" aria-hidden="true">
-                ·
-              </span>
-
-              <Link
-                href="/datenschutz"
-                className="whitespace-nowrap transition hover:text-orange-600"
-              >
-                Datenschutz
-              </Link>
-
-              <span className="select-none text-black/30" aria-hidden="true">
-                ·
-              </span>
-
-              <Link
-                href="/studio"
-                className="whitespace-nowrap transition hover:text-orange-600"
-              >
-                Admin
-              </Link>
-            </div>
-          </div>
-
-          <div className="mt-8 border-t border-black/10 pt-6 text-xs text-black/50">
-            © 2026 Threshold Peaks. Alle Rechte vorbehalten.
-          </div>
-        </div>
-      </footer>
 
       <BackToTopButton />
     </main>
