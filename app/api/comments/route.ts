@@ -33,6 +33,53 @@ function normalizeText(value: unknown, maxLength: number) {
   return value.trim().slice(0, maxLength)
 }
 
+function getTargetTypeLabel(targetType: unknown) {
+  switch (targetType) {
+    case 'journal':
+      return 'Journal'
+    case 'gallery':
+      return 'Galerie'
+    case 'event':
+      return 'Event'
+    default:
+      return 'Unbekannt'
+  }
+}
+
+async function sendNotificationEmail({
+  subject,
+  text,
+}: {
+  subject: string
+  text: string
+}) {
+  const apiKey = process.env.RESEND_API_KEY
+  const to = process.env.NOTIFICATION_EMAIL
+  const from = process.env.NOTIFICATION_FROM || 'Threshold Peaks <onboarding@resend.dev>'
+
+  if (!apiKey || !to) {
+    return
+  }
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to,
+        subject,
+        text,
+      }),
+    })
+  } catch (error) {
+    console.error('Notification email could not be sent.', error)
+  }
+}
+
 export async function GET(request: Request) {
   const {searchParams} = new URL(request.url)
   const targetType = searchParams.get('targetType')
@@ -102,6 +149,8 @@ export async function POST(request: Request) {
     )
   }
 
+  const createdAt = new Date().toISOString()
+
   await writeClient.create({
     _type: 'comment',
     approved: false,
@@ -110,7 +159,25 @@ export async function POST(request: Request) {
     targetTitle,
     name,
     body,
-    createdAt: new Date().toISOString(),
+    createdAt,
+  })
+
+  await sendNotificationEmail({
+    subject: `Neuer Kommentar auf Threshold Peaks`,
+    text: [
+      'Neuer Kommentar auf Threshold Peaks',
+      '',
+      `Bereich: ${getTargetTypeLabel(targetType)}`,
+      `Titel: ${targetTitle || 'Ohne Titel'}`,
+      `Slug: ${targetSlug}`,
+      `Name: ${name}`,
+      `Zeitpunkt: ${createdAt}`,
+      '',
+      'Kommentar:',
+      body,
+      '',
+      'Hinweis: Der Kommentar ist noch nicht freigegeben.',
+    ].join('\n'),
   })
 
   return NextResponse.json({ok: true})

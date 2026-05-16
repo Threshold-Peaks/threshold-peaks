@@ -41,8 +41,60 @@ function getLikeDocumentId(targetType: LikeTargetType, targetId: string) {
   return `likeCounter.${targetType}.${hash}`;
 }
 
+function getTargetTypeLabel(targetType: LikeTargetType) {
+  switch (targetType) {
+    case "journal":
+      return "Journal";
+    case "galleryAlbum":
+      return "Galerie-Album";
+    case "galleryImage":
+      return "Galerie-Bild";
+    case "event":
+      return "Event";
+    case "comment":
+      return "Kommentar";
+    default:
+      return targetType;
+  }
+}
+
 function createError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
+}
+
+async function sendNotificationEmail({
+  subject,
+  text,
+}: {
+  subject: string;
+  text: string;
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const to = process.env.NOTIFICATION_EMAIL;
+  const from =
+    process.env.NOTIFICATION_FROM || "Threshold Peaks <onboarding@resend.dev>";
+
+  if (!apiKey || !to) {
+    return;
+  }
+
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to,
+        subject,
+        text,
+      }),
+    });
+  } catch (error) {
+    console.error("Notification email could not be sent.", error);
+  }
 }
 
 export async function GET(request: Request) {
@@ -115,6 +167,20 @@ export async function POST(request: Request) {
 
   if ((updated.count ?? 0) < 0) {
     await sanityWriteClient.patch(documentId).set({ count: 0 }).commit();
+  }
+
+  if (action === "like") {
+    await sendNotificationEmail({
+      subject: "Neuer Like auf Threshold Peaks",
+      text: [
+        "Neuer Like auf Threshold Peaks",
+        "",
+        `Bereich: ${getTargetTypeLabel(targetType)}`,
+        `ID: ${targetId}`,
+        `Aktueller Zähler: ${safeCount}`,
+        `Zeitpunkt: ${new Date().toISOString()}`,
+      ].join("\n"),
+    });
   }
 
   return NextResponse.json({
