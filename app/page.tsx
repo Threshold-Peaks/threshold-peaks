@@ -376,7 +376,7 @@ function HeroTopNav() {
     { href: "#portal-journal", label: "Journal" },
     { href: "#portal-gallery", label: "Galerie" },
     { href: "#portal-events", label: "Events" },
-    { href: "#portal-live", label: "Live Sets",  },
+    { href: "#portal-live", label: "Live Sets" },
     { href: "#portal-contact", label: "Kontakt" },
   ];
 
@@ -391,7 +391,19 @@ function HeroTopNav() {
         </div>
       </div>
 
-      <div className="mx-auto grid w-full max-w-[420px] grid-cols-2 gap-x-8 gap-y-7 px-1 sm:max-w-[520px] sm:grid-cols-3 sm:gap-x-8 md:mx-0 md:flex md:max-w-none md:flex-wrap md:items-center md:gap-x-7 md:gap-y-3 md:px-0">
+      <div className="md:hidden">
+        <div className="-mx-6 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-max items-center gap-8">
+            {navItems.map((item) => (
+              <HeroTopNavLink key={item.href} href={item.href} mobile>
+                {item.label}
+              </HeroTopNavLink>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden md:flex md:max-w-none md:flex-wrap md:items-center md:gap-x-7 md:gap-y-3 md:px-0">
         {navItems.map((item) => (
           <HeroTopNavLink key={item.href} href={item.href}>
             {item.label}
@@ -405,19 +417,22 @@ function HeroTopNav() {
 function HeroTopNavLink({
   href,
   children,
+  mobile = false,
 }: {
   href: string;
   children: ReactNode;
+  mobile?: boolean;
 }) {
+  const className = mobile
+    ? "group relative inline-flex shrink-0 justify-center pb-2 text-center text-[10px] font-black uppercase tracking-[0.28em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 sm:text-[11px]"
+    : "group relative inline-flex w-max justify-start pb-1 text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600";
+
   return (
-    <a
-      href={href}
-      className="group relative flex w-full justify-center pb-2 text-center text-[11px] font-black uppercase tracking-[0.34em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 md:inline-flex md:w-max md:justify-start md:pb-1 md:text-left md:text-[10px] md:tracking-[0.22em] md:text-black/50"
-    >
-      <span className="block translate-x-[0.17em] md:translate-x-0">
+    <a href={href} className={className}>
+      <span className="block translate-x-[0.14em] md:translate-x-0">
         {children}
       </span>
-      <span className="absolute bottom-0 left-1/2 h-px w-9 -translate-x-1/2 bg-black/20 transition group-hover:w-11 group-hover:bg-orange-500 md:w-5 md:group-hover:w-full" />
+      <span className="absolute bottom-0 left-1/2 h-px w-9 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 md:left-0 md:w-5 md:translate-x-0" />
     </a>
   );
 }
