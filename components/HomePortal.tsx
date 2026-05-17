@@ -670,6 +670,13 @@ export default function HomePortal({
     });
   }
 
+  function replacePortalHash(tab: PortalContentTab) {
+    if (typeof window === "undefined") return;
+
+    const query = window.location.search;
+    window.history.replaceState(null, "", `${query || "/"}#portal-${tab}`);
+  }
+
   function runPortalFadeTransition(
     action: () => void,
     options: { scrollTop?: boolean } = {},
@@ -718,6 +725,7 @@ export default function HomePortal({
   function closeJournalPost() {
     runPortalFadeTransition(() => {
       setSelectedPost(null);
+      replacePortalHash("journal");
     });
   }
 
@@ -730,6 +738,7 @@ export default function HomePortal({
   function closeGalleryAlbum() {
     runPortalFadeTransition(() => {
       setSelectedAlbum(null);
+      replacePortalHash("gallery");
     });
   }
 
@@ -742,6 +751,7 @@ export default function HomePortal({
   function closeEvent() {
     runPortalFadeTransition(() => {
       setSelectedEvent(null);
+      replacePortalHash("events");
     });
   }
 
