@@ -10,7 +10,9 @@ import type { SanityImageSource } from "@sanity/image-url";
 import { urlFor } from "@/sanity/lib/image";
 import Comments from "@/components/Comments";
 import LikeButton from "@/components/LikeButton";
-import StravaStoryActivityCard, { type StravaStoryActivityManual } from "@/components/StravaStoryActivity";
+import StravaStoryActivityCard, {
+  type StravaStoryActivityManual,
+} from "@/components/StravaStoryActivity";
 
 type PortableTextBlock = any[];
 
@@ -127,7 +129,6 @@ const lineButtonClass =
 
 const detailActionButtonClass = `${lineButtonClass} text-xs sm:text-sm`;
 
-
 function LiveStatusDot({
   isOnline,
   className = "",
@@ -159,10 +160,10 @@ const tabs: Array<{
   text: string;
 }> = [
   {
-  id: "about",
-  title: "Threshold Peaks",
-  text: "Ausdauer, elektronische Musik und aktiver Lifestyle.",
-},
+    id: "about",
+    title: "Threshold Peaks",
+    text: "Ausdauer, elektronische Musik und aktiver Lifestyle.",
+  },
   {
     id: "journal",
     title: "Journal",
@@ -616,7 +617,9 @@ export default function HomePortal({
   useEffect(() => {
     if (typeof document === "undefined") return;
 
-    const links = document.querySelectorAll<HTMLElement>("[data-portal-nav-link]");
+    const links = document.querySelectorAll<HTMLElement>(
+      "[data-portal-nav-link]",
+    );
 
     links.forEach((link) => {
       const linkTab = link.dataset.portalNavLink;
@@ -1058,7 +1061,10 @@ export default function HomePortal({
                 <h3 className="inline-flex items-center gap-3 text-3xl font-black leading-tight tracking-[-0.045em] md:text-5xl">
                   <span>{activeTabMeta.title}</span>
                   {activeTab === "live" ? (
-                    <LiveStatusDot isOnline={liveSetsIsOnline} className="mt-1" />
+                    <LiveStatusDot
+                      isOnline={liveSetsIsOnline}
+                      className="mt-1"
+                    />
                   ) : null}
                 </h3>
 
@@ -1066,8 +1072,6 @@ export default function HomePortal({
                   {activeTabMeta.text}
                 </p>
               </div>
-
-
             </div>
 
             <div className="relative flex-1">
@@ -1208,7 +1212,6 @@ function PortalMainLink({
   );
 }
 
-
 function PortalBottomAction({
   showAll,
   showAllLabel,
@@ -1222,11 +1225,7 @@ function PortalBottomAction({
 }) {
   return (
     <div className="mt-7 flex justify-start border-t border-black/10 pt-5">
-      <button
-        type="button"
-        onClick={onToggle}
-        className={lineButtonWideClass}
-      >
+      <button type="button" onClick={onToggle} className={lineButtonWideClass}>
         {showAll ? showLessLabel : showAllLabel}
         <span>{showAll ? "↑" : "→"}</span>
       </button>
@@ -1597,6 +1596,17 @@ function JournalPortalDetail({
       label: "Links",
       value: externalLinksValue,
     },
+    {
+      label: "Teilen",
+      value: (
+        <PortalShareButton
+          title={post.title}
+          slug={post.slug?.current}
+          basePath="journal"
+          fallbackHash="portal-journal"
+        />
+      ),
+    },
   ];
 
   return (
@@ -1766,6 +1776,96 @@ function JournalPortalDetail({
   );
 }
 
+function PortalShareButton({
+  title,
+  slug,
+  basePath,
+  fallbackHash,
+}: {
+  title: string;
+  slug?: string;
+  basePath: "journal" | "gallery" | "events";
+  fallbackHash: "portal-journal" | "portal-gallery" | "portal-events";
+}) {
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "error">(
+    "idle",
+  );
+  const shareStatusTimeoutRef = useRef<number | null>(null);
+
+  function getShareUrl() {
+    if (typeof window === "undefined") return "";
+
+    if (slug) {
+      return `${window.location.origin}/${basePath}/${slug}`;
+    }
+
+    return `${window.location.origin}/#${fallbackHash}`;
+  }
+
+  function updateShareStatus(status: "copied" | "error") {
+    if (typeof window === "undefined") return;
+
+    if (shareStatusTimeoutRef.current) {
+      window.clearTimeout(shareStatusTimeoutRef.current);
+    }
+
+    setShareStatus(status);
+
+    shareStatusTimeoutRef.current = window.setTimeout(() => {
+      setShareStatus("idle");
+      shareStatusTimeoutRef.current = null;
+    }, 1800);
+  }
+
+  async function handleShare() {
+    const shareUrl = getShareUrl();
+
+    if (!shareUrl) return;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title,
+          text: `Threshold Peaks: ${title}`,
+          url: shareUrl,
+        });
+
+        updateShareStatus("copied");
+        return;
+      }
+
+      await navigator.clipboard.writeText(shareUrl);
+      updateShareStatus("copied");
+    } catch {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        updateShareStatus("copied");
+      } catch {
+        updateShareStatus("error");
+      }
+    }
+  }
+
+  return (
+    <span className="inline-flex flex-col items-start gap-1">
+      <button
+        type="button"
+        onClick={handleShare}
+        className="inline-flex items-center gap-1 text-sm font-black text-black/75 transition hover:text-orange-600 md:text-base"
+      >
+        <span>Link teilen</span>
+        <span aria-hidden="true">→</span>
+      </button>
+
+      {shareStatus !== "idle" ? (
+        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-black/35">
+          {shareStatus === "copied" ? "Link kopiert" : "Nicht kopiert"}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 function JournalMetaLinks({
   stravaUrl,
   soundcloudUrl,
@@ -1817,11 +1917,11 @@ function StoryConnectionsSection({
   const hasAlbums = visibleAlbums.length > 0;
   const hasStrava = Boolean(
     stravaActivity?.title ||
-      stravaActivity?.distance ||
-      stravaActivity?.duration ||
-      stravaActivity?.elevation ||
-      stravaActivity?.mapImage ||
-      stravaUrl,
+    stravaActivity?.distance ||
+    stravaActivity?.duration ||
+    stravaActivity?.elevation ||
+    stravaActivity?.mapImage ||
+    stravaUrl,
   );
 
   if (!hasAlbums && !hasStrava) return null;
@@ -2155,7 +2255,7 @@ function GalleryAlbumPortalDetail({
             </p>
           ) : null}
 
-          <dl className="mt-6 grid w-[calc(100%+112px)] max-w-2xl grid-cols-1 gap-3 border-y border-black/10 py-4 text-xs sm:w-auto sm:grid-cols-4">
+          <dl className="mt-6 grid w-[calc(100%+112px)] max-w-2xl grid-cols-1 gap-3 border-y border-black/10 py-4 text-xs sm:w-auto sm:grid-cols-5">
             <div>
               <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
                 Kategorie
@@ -2189,6 +2289,19 @@ function GalleryAlbumPortalDetail({
                   targetType="galleryAlbum"
                   targetId={commentTargetSlug}
                   className="tracking-[0.16em]"
+                />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
+                Teilen
+              </dt>
+              <dd className="mt-1">
+                <PortalShareButton
+                  title={album.title}
+                  slug={album.slug?.current}
+                  basePath="gallery"
+                  fallbackHash="portal-gallery"
                 />
               </dd>
             </div>
@@ -2599,7 +2712,7 @@ function EventPortalDetail({
         </header>
 
         <section className="mb-12 border-b border-black/10">
-          <div className="divide-y divide-black/10 md:grid md:grid-cols-4 md:divide-x md:divide-y-0">
+          <div className="divide-y divide-black/10 md:grid md:grid-cols-5 md:divide-x md:divide-y-0">
             <EventDetailFact
               label="Datum"
               value={formattedDate ?? "Noch offen"}
@@ -2626,6 +2739,20 @@ function EventPortalDetail({
                   targetType="event"
                   targetId={commentTargetSlug}
                   className="tracking-[0.18em]"
+                />
+              </div>
+            </div>
+            <div className="py-5 md:px-6">
+              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+                Teilen
+              </p>
+
+              <div className="mt-2 flex items-center">
+                <PortalShareButton
+                  title={event.title}
+                  slug={event.slug?.current}
+                  basePath="events"
+                  fallbackHash="portal-events"
                 />
               </div>
             </div>
