@@ -39,6 +39,23 @@ type GalleryAlbum = {
   images?: GalleryImage[];
 };
 
+type SanityImageWithOptionalAsset = SanityImageSource & {
+  asset?: {
+    _ref?: string;
+    _id?: string;
+    url?: string;
+  } | null;
+};
+
+function hasSanityImageAsset<T extends SanityImageSource>(
+  image?: T | null,
+): image is T & SanityImageWithOptionalAsset {
+  const maybeImage = image as SanityImageWithOptionalAsset | null | undefined;
+  const asset = maybeImage?.asset;
+
+  return Boolean(asset?._ref || asset?._id || asset?.url);
+}
+
 type PageProps = {
   params: Promise<{
     slug: string;
@@ -52,7 +69,7 @@ const albumQuery = `*[_type == "galleryAlbum" && slug.current == $slug][0] {
   category,
   tags,
   "description": coalesce(description, teaser, excerpt),
-  images[] {
+  "images": images[defined(asset)] {
     ...,
     alt,
     caption
@@ -209,7 +226,7 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
     notFound();
   }
 
-  const images = album.images || [];
+  const images = (album.images ?? []).filter(hasSanityImageAsset);
   const tags = getGalleryTags(album.tags);
   const formattedDate = formatDate(album.date);
   const categoryLabel = formatCategory(album.category);

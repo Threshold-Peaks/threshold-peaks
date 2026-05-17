@@ -80,6 +80,7 @@ export const galleryAlbum = defineType({
       options: {
         hotspot: true,
       },
+      validation: (Rule) => Rule.required().error('Bitte ein Titelbild auswählen, bevor du das Album veröffentlichst.'),
       fields: [
         defineField({
           name: 'alt',
@@ -119,6 +120,7 @@ export const galleryAlbum = defineType({
           options: {
             hotspot: true,
           },
+          validation: (Rule) => Rule.required().error('Bitte für diesen Eintrag ein Bild auswählen oder den leeren Eintrag löschen.'),
           fields: [
             defineField({
               name: 'caption',

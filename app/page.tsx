@@ -133,13 +133,13 @@ const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
     location,
     "description": coalesce(description, teaser, excerpt),
     "coverImage": select(
-      defined(coverImage) => coverImage{
+      defined(coverImage.asset) => coverImage{
         ...,
         alt,
         caption,
         displayFormat
       },
-      images[0]{
+      images[defined(asset)][0]{
         ...,
         alt,
         caption,
@@ -165,13 +165,13 @@ const allGalleryQuery = `*[_type == "galleryAlbum"] | order(coalesce(date, _crea
   tags,
   "description": coalesce(description, teaser, excerpt),
   "coverImage": select(
-    defined(coverImage) => coverImage{
+    defined(coverImage.asset) => coverImage{
       ...,
       alt,
       caption,
       displayFormat
     },
-    images[0]{
+    images[defined(asset)][0]{
       ...,
       alt,
       caption,
@@ -199,7 +199,20 @@ const allEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(start
   "status": coalesce(status, registrationStatus),
   externalUrl,
   tags,
-  "image": coalesce(image, mainImage, coverImage),
+  "image": select(
+    defined(image.asset) => image{
+      ...,
+      alt
+    },
+    defined(mainImage.asset) => mainImage{
+      ...,
+      alt
+    },
+    defined(coverImage.asset) => coverImage{
+      ...,
+      alt
+    }
+  ),
   body
 }`;
 

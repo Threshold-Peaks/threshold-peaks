@@ -109,6 +109,7 @@ export const event = defineType({
       name: 'image',
       title: 'Bild',
       type: 'image',
+      description: 'Optionales Bild für Event-Übersicht und Event-Detailseite. Wenn kein Bild hinterlegt ist, bleibt die Website stabil und blendet den Bildbereich aus.',
       options: {
         hotspot: true,
       },
@@ -117,6 +118,8 @@ export const event = defineType({
           name: 'alt',
           title: 'Alternativtext',
           type: 'string',
+          description: 'Kurze Bildbeschreibung für SEO und Barrierefreiheit.',
+          validation: (Rule) => Rule.max(160),
         }),
       ],
     }),

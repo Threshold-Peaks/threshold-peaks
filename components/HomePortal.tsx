@@ -219,6 +219,41 @@ const albumCoverRatioConfig = {
   height: 1250,
 } as const;
 
+type SanityImageWithOptionalAsset = SanityImageSource & {
+  asset?: {
+    _ref?: string;
+    _id?: string;
+    url?: string;
+  } | null;
+};
+
+function hasSanityImageAsset<T extends SanityImageSource>(
+  image?: T | null,
+): image is T & SanityImageWithOptionalAsset {
+  const maybeImage = image as SanityImageWithOptionalAsset | null | undefined;
+  const asset = maybeImage?.asset;
+
+  return Boolean(asset?._ref || asset?._id || asset?.url);
+}
+
+function getSanityImagesWithAsset<T extends SanityImageSource>(
+  images?: T[] | null,
+) {
+  return (images ?? []).filter((image) => hasSanityImageAsset(image));
+}
+
+function getAlbumCoverImage(album: HomeGalleryAlbum) {
+  const validImages = getSanityImagesWithAsset(album.images);
+  const coverImage = hasSanityImageAsset(album.coverImage)
+    ? album.coverImage
+    : validImages[0];
+
+  return {
+    coverImage,
+    validImages,
+  };
+}
+
 function getDisplayFormatRatioConfig(displayFormat?: string | null) {
   if (!displayFormat || displayFormat === "auto") return null;
 
@@ -1574,6 +1609,9 @@ function JournalPortalDetail({
   );
   const tags = getJournalTags(post.tags);
   const linkedGalleryAlbums = post.linkedGalleryAlbums ?? [];
+  const mainImage = hasSanityImageAsset(post.mainImage)
+    ? post.mainImage
+    : null;
   const commentTargetSlug = post.slug?.current || post._id;
   const journalFacts = [
     {
@@ -1659,12 +1697,12 @@ function JournalPortalDetail({
             ) : null}
           </div>
 
-          {post.mainImage ? (
+          {mainImage ? (
             <figure className="w-full lg:justify-self-end">
               <div className="relative mx-auto aspect-[1.28/1] w-full max-w-[380px] overflow-hidden rounded-md bg-transparent ring-1 ring-black/10 lg:mx-0">
                 <SanityImage
-                  src={urlFor(post.mainImage).width(900).fit("max").url()}
-                  alt={post.mainImage.alt || post.title || "Journal Bild"}
+                  src={urlFor(mainImage).width(900).fit("max").url()}
+                  alt={mainImage.alt || post.title || "Journal Bild"}
                   fill
                   priority
                   sizes="(min-width: 1024px) 380px, 100vw"
@@ -1673,9 +1711,9 @@ function JournalPortalDetail({
                 />
               </div>
 
-              {post.mainImage.caption ? (
+              {mainImage.caption ? (
                 <figcaption className="mx-auto mt-3 max-w-[380px] border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50 lg:mx-0">
-                  {post.mainImage.caption}
+                  {mainImage.caption}
                 </figcaption>
               ) : null}
             </figure>
@@ -1984,8 +2022,8 @@ function LinkedGalleryAlbumsCard({
 
       <div className="divide-y divide-black/10 border-y border-black/10">
         {albums.map((album, index) => {
-          const image = album.coverImage || album.images?.[0];
-          const imageCount = album.images?.length ?? 0;
+          const { coverImage: image, validImages } = getAlbumCoverImage(album);
+          const imageCount = validImages.length;
 
           return (
             <button
@@ -2084,8 +2122,8 @@ function GalleryPanel({
       ) : (
         <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
           {albums.map((album, index) => {
-            const image = album.coverImage || album.images?.[0];
-            const imageCount = album.images?.length ?? 0;
+            const { coverImage: image, validImages } = getAlbumCoverImage(album);
+            const imageCount = validImages.length;
             const imageRatioConfig = albumCoverRatioConfig;
             const tags = getGalleryTags(album.tags);
             const formattedAlbumDate = formatGalleryDate(album.date);
@@ -2246,8 +2284,7 @@ function GalleryAlbumPortalDetail({
   onToggleTag: (tag: string) => void;
   onBack: () => void;
 }) {
-  const images = album.images || [];
-  const coverImage = album.coverImage || images[0];
+  const { coverImage, validImages: images } = getAlbumCoverImage(album);
   const galleryImages =
     images.length > 0 ? images : coverImage ? [coverImage] : [];
   const tags = getGalleryTags(album.tags);
@@ -2699,7 +2736,7 @@ function EventPortalDetail({
   onBack: () => void;
 }) {
   const formattedDate = formatEventDetailDate(event.startDate);
-  const image = event.image;
+  const image = hasSanityImageAsset(event.image) ? event.image : null;
   const tags = getEventTags(event.tags);
   const commentTargetSlug = event.slug?.current || event._id;
 

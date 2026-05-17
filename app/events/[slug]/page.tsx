@@ -24,6 +24,15 @@ type EventTag =
       slug?: { current?: string };
     };
 
+type EventImage = SanityImageSource & {
+  alt?: string;
+  asset?: {
+    _ref?: string;
+    _id?: string;
+    url?: string;
+  } | null;
+};
+
 type EventItem = {
   _id: string;
   title?: string;
@@ -39,9 +48,7 @@ type EventItem = {
   status?: string;
   externalUrl?: string;
   tags?: string | EventTag[];
-  image?: SanityImageSource & {
-    alt?: string;
-  };
+  image?: EventImage;
   body?: any[];
 };
 
@@ -67,7 +74,20 @@ const eventDetailQuery = `*[
   status,
   externalUrl,
   tags,
-  "image": coalesce(image, mainImage, coverImage),
+  "image": select(
+    defined(image.asset) => image{
+      ...,
+      alt
+    },
+    defined(mainImage.asset) => mainImage{
+      ...,
+      alt
+    },
+    defined(coverImage.asset) => coverImage{
+      ...,
+      alt
+    }
+  ),
   body
 }`;
 
@@ -155,6 +175,12 @@ function formatDate(date?: string) {
   }).format(new Date(date));
 }
 
+function hasSanityImageAsset(image?: EventImage | null): image is EventImage {
+  const asset = image?.asset;
+
+  return Boolean(asset?._ref || asset?._id || asset?.url);
+}
+
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -232,7 +258,8 @@ export default async function EventDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const imageUrl = event.image ? urlFor(event.image).width(1600).url() : null;
+  const eventImage = hasSanityImageAsset(event.image) ? event.image : null;
+  const imageUrl = eventImage ? urlFor(eventImage).width(1600).url() : null;
   const formattedDate = formatDate(event.startDate);
   const tags = getEventTags(event.tags);
 
@@ -276,7 +303,7 @@ export default async function EventDetailPage({ params }: PageProps) {
           <div className="mb-10 overflow-hidden rounded-[2rem] bg-white shadow-sm">
             <img
               src={imageUrl}
-              alt={event.image?.alt ?? event.title ?? "Event Bild"}
+              alt={eventImage?.alt ?? event.title ?? "Event Bild"}
               className="h-auto w-full object-cover"
             />
           </div>

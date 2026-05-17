@@ -63,6 +63,41 @@ type JournalPost = {
   linkedGalleryAlbums?: LinkedGalleryAlbum[];
 };
 
+type SanityImageWithOptionalAsset = SanityImageSource & {
+  asset?: {
+    _ref?: string;
+    _id?: string;
+    url?: string;
+  } | null;
+};
+
+function hasSanityImageAsset<T extends SanityImageSource>(
+  image?: T | null,
+): image is T & SanityImageWithOptionalAsset {
+  const maybeImage = image as SanityImageWithOptionalAsset | null | undefined;
+  const asset = maybeImage?.asset;
+
+  return Boolean(asset?._ref || asset?._id || asset?.url);
+}
+
+function getSanityImagesWithAsset<T extends SanityImageSource>(
+  images?: T[] | null,
+) {
+  return (images ?? []).filter((image) => hasSanityImageAsset(image));
+}
+
+function getAlbumCoverImage(album: LinkedGalleryAlbum) {
+  const validImages = getSanityImagesWithAsset(album.images);
+  const coverImage = hasSanityImageAsset(album.coverImage)
+    ? album.coverImage
+    : validImages[0];
+
+  return {
+    coverImage,
+    validImages,
+  };
+}
+
 const query = `*[_type == "journalPost" && slug.current == $slug][0]{
   title,
   publishedAt,
@@ -85,7 +120,12 @@ const query = `*[_type == "journalPost" && slug.current == $slug][0]{
   },
   soundcloudUrl,
   tags,
-  mainImage,
+  mainImage{
+    ...,
+    alt,
+    caption,
+    imageFormat
+  },
   linkedGalleryAlbums[]->{
     _id,
     title,
@@ -93,20 +133,20 @@ const query = `*[_type == "journalPost" && slug.current == $slug][0]{
     category,
     "description": coalesce(description, teaser, excerpt),
     "coverImage": select(
-      defined(coverImage) => coverImage{
+      defined(coverImage.asset) => coverImage{
         ...,
         alt,
         caption,
         displayFormat
       },
-      images[0]{
+      images[defined(asset)][0]{
         ...,
         alt,
         caption,
         displayFormat
       }
     ),
-    images[]{
+    "images": images[defined(asset)]{
       ...,
       alt,
       caption,
@@ -320,8 +360,8 @@ function LinkedGalleryAlbumsCard({ albums }: { albums: LinkedGalleryAlbum[] }) {
 
       <div className="divide-y divide-black/10">
         {albums.map((album, index) => {
-          const image = album.coverImage || album.images?.[0];
-          const imageCount = album.images?.length ?? 0;
+          const { coverImage: image, validImages } = getAlbumCoverImage(album);
+          const imageCount = validImages.length;
           const href = album.slug?.current
             ? `/gallery/${album.slug.current}`
             : "/#portal-gallery";
@@ -546,8 +586,11 @@ export default async function JournalPostPage({
         .filter((tag): tag is string => Boolean(tag)),
     ),
   );
-  const journalImageRatioConfig = post.mainImage
-    ? getJournalImageRatioConfig(post.mainImage.imageFormat)
+  const mainImage = hasSanityImageAsset(post.mainImage)
+    ? post.mainImage
+    : null;
+  const journalImageRatioConfig = mainImage
+    ? getJournalImageRatioConfig(mainImage.imageFormat)
     : null;
 
   return (
@@ -576,18 +619,18 @@ export default async function JournalPostPage({
                 ) : null}
               </div>
 
-              {post.mainImage && journalImageRatioConfig ? (
+              {mainImage && journalImageRatioConfig ? (
                 <figure className="w-full lg:justify-self-end">
                   <div
                     className={`relative mx-auto w-full max-w-[380px] overflow-hidden rounded-[1.7rem] bg-transparent lg:mx-0 ${journalImageRatioConfig.className}`}
                   >
                     <Image
-                      src={urlFor(post.mainImage)
+                      src={urlFor(mainImage)
                         .width(journalImageRatioConfig.width)
                         .height(journalImageRatioConfig.height)
                         .fit("crop")
                         .url()}
-                      alt={post.mainImage.alt || post.title || "Journal Bild"}
+                      alt={mainImage.alt || post.title || "Journal Bild"}
                       width={journalImageRatioConfig.width}
                       height={journalImageRatioConfig.height}
                       priority
@@ -595,9 +638,9 @@ export default async function JournalPostPage({
                     />
                   </div>
 
-                  {post.mainImage.caption || post.mainImage.alt ? (
+                  {mainImage.caption || mainImage.alt ? (
                     <figcaption className="mx-auto mt-3 max-w-[380px] border-b border-black/10 pb-3 text-sm font-semibold leading-6 text-black/50 lg:mx-0">
-                      {post.mainImage.caption || post.mainImage.alt}
+                      {mainImage.caption || mainImage.alt}
                     </figcaption>
                   ) : null}
                 </figure>
