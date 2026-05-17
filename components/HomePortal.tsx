@@ -2749,13 +2749,13 @@ function EventPortalDetail({
           </div>
 
           {image ? (
-            <figure className="w-full overflow-hidden rounded-md border border-black/10 bg-[#efe8dc] p-1 lg:justify-self-end">
+            <figure className="w-full lg:justify-self-end">
               <SanityImage
                 src={urlFor(image).width(900).height(900).fit("crop").url()}
                 alt={image.alt || event.title || "Event Bild"}
                 width={900}
                 height={900}
-                className="aspect-[4/3] w-full rounded-sm object-cover lg:aspect-[5/4]"
+                className="aspect-[4/3] w-full rounded-md object-cover ring-1 ring-black/10 lg:aspect-[5/4]"
               />
             </figure>
           ) : null}
