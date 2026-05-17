@@ -219,6 +219,9 @@ const albumCoverRatioConfig = {
   height: 1250,
 } as const;
 
+const initialGalleryDetailImageCount = 10;
+const galleryDetailImageBatchSize = 10;
+
 type SanityImageWithOptionalAsset = SanityImageSource & {
   asset?: {
     _ref?: string;
@@ -2291,6 +2294,32 @@ function GalleryAlbumPortalDetail({
   const categoryLabel = formatGalleryCategory(album.category);
   const formattedDate = formatGalleryDate(album.date);
   const commentTargetSlug = album.slug?.current || album._id;
+  const [visibleGalleryImageCount, setVisibleGalleryImageCount] = useState(
+    initialGalleryDetailImageCount,
+  );
+  const [galleryAnimationRun, setGalleryAnimationRun] = useState(0);
+
+  useEffect(() => {
+    setVisibleGalleryImageCount(initialGalleryDetailImageCount);
+    setGalleryAnimationRun(0);
+  }, [album._id]);
+
+  function showMoreGalleryImages() {
+    setVisibleGalleryImageCount((currentCount) =>
+      Math.min(
+        currentCount + galleryDetailImageBatchSize,
+        galleryImages.length,
+      ),
+    );
+    setGalleryAnimationRun((currentRun) => currentRun + 1);
+  }
+
+  const visibleGalleryImages = galleryImages.slice(0, visibleGalleryImageCount);
+  const remainingGalleryImageCount = Math.max(
+    galleryImages.length - visibleGalleryImages.length,
+    0,
+  );
+  const hasMoreGalleryImages = remainingGalleryImageCount > 0;
 
   return (
     <article className="text-neutral-950">
@@ -2444,8 +2473,34 @@ function GalleryAlbumPortalDetail({
             </p>
           </div>
         ) : (
-          <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
-            {galleryImages.map((image, index) => {
+          <>
+            <style>{`
+              @keyframes threshold-gallery-fade-in {
+                from {
+                  opacity: 0;
+                  transform: translateY(5px);
+                  filter: blur(1px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                  filter: blur(0);
+                }
+              }
+
+              .gallery-image-fade-in {
+                animation: threshold-gallery-fade-in 1700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+              }
+
+              @media (prefers-reduced-motion: reduce) {
+                .gallery-image-fade-in {
+                  animation: none;
+                }
+              }
+            `}</style>
+
+            <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
+            {visibleGalleryImages.map((image, index) => {
               const imageRatioConfig = getGalleryDetailImageRatioConfig(
                 index,
                 image.displayFormat,
@@ -2454,8 +2509,14 @@ function GalleryAlbumPortalDetail({
 
               return (
                 <figure
-                  key={`${album._id}-${index}`}
-                  className="group mb-6 break-inside-avoid"
+                  key={`${album._id}-${galleryAnimationRun}-${index}`}
+                  className="gallery-image-fade-in group mb-6 break-inside-avoid"
+                  style={{
+                    animationDelay: `${Math.min(
+                      index,
+                      18,
+                    ) * 165}ms`,
+                  }}
                 >
                   <div
                     className={`relative overflow-hidden rounded-md bg-black/5 ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
@@ -2497,7 +2558,23 @@ function GalleryAlbumPortalDetail({
                 </figure>
               );
             })}
-          </div>
+            </div>
+
+            {hasMoreGalleryImages ? (
+              <div className="mt-8 flex justify-start border-t border-black/10 pt-5">
+                <button
+                  type="button"
+                  onClick={showMoreGalleryImages}
+                  className={lineButtonWideClass}
+                >
+                  Weitere Bilder anzeigen
+                  <span>
+                    +{Math.min(remainingGalleryImageCount, galleryDetailImageBatchSize)}
+                  </span>
+                </button>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
 

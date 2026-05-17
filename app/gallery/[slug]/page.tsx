@@ -1,12 +1,11 @@
 import BackHeader from "@/components/BackHeader";
 import Comments from "@/components/Comments";
+import GalleryImageLoadMore from "@/components/GalleryImageLoadMore";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
-import { urlFor } from "@/sanity/lib/image";
 
 export const revalidate = 10;
 
@@ -308,50 +307,7 @@ export default async function GalleryAlbumPage({ params }: PageProps) {
             </p>
           </div>
         ) : (
-          <div className="columns-1 gap-6 space-y-6 sm:columns-2 lg:columns-3">
-            {images.map((image, index) => {
-              const isLarge = index % 5 === 0;
-              const isTall = index % 5 === 2;
-              const isWide = index % 5 === 4;
-
-              const imageRatioClass = isLarge
-                ? "aspect-[4/5]"
-                : isTall
-                  ? "aspect-[3/4]"
-                  : isWide
-                    ? "aspect-[5/4]"
-                    : "aspect-[4/3]";
-
-              return (
-                <figure
-                  key={`${album.title}-${index}`}
-                  className="mb-6 break-inside-avoid overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm"
-                >
-                  <div
-                    className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}
-                  >
-                    <Image
-                      src={urlFor(image)
-                        .width(1200)
-                        .height(1600)
-                        .fit("crop")
-                        .url()}
-                      alt={image.alt || `${album.title} Bild ${index + 1}`}
-                      width={1200}
-                      height={1600}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-
-                  {image.caption ? (
-                    <figcaption className="px-5 py-4 text-sm leading-6 text-black/60">
-                      {image.caption}
-                    </figcaption>
-                  ) : null}
-                </figure>
-              );
-            })}
-          </div>
+          <GalleryImageLoadMore images={images} albumTitle={album.title} />
         )}
 
         <Comments
