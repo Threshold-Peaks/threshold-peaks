@@ -27,8 +27,10 @@ export default function GalleryLightbox({
   onChange,
 }: GalleryLightboxProps) {
   const [mounted, setMounted] = useState(false);
-  const isOpen = currentIndex !== null;
-  const image = isOpen ? images[currentIndex] : null;
+
+  const activeIndex = currentIndex;
+  const isOpen = activeIndex !== null;
+  const image = isOpen ? images[activeIndex] : null;
   const hasMultipleImages = images.length > 1;
 
   useEffect(() => {
@@ -41,7 +43,10 @@ export default function GalleryLightbox({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         onClose();
+        return;
       }
+
+      if (currentIndex === null) return;
 
       if (event.key === "ArrowLeft" && hasMultipleImages) {
         onChange(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
@@ -63,21 +68,21 @@ export default function GalleryLightbox({
     };
   }, [currentIndex, hasMultipleImages, images.length, isOpen, onChange, onClose]);
 
-  if (!mounted || !isOpen || !image) return null;
+  if (!mounted || activeIndex === null || !image) return null;
 
   const imageCaption = image.caption || image.alt;
-  const imageAlt = image.alt || `${albumTitle} Bild ${currentIndex + 1}`;
+  const imageAlt = image.alt || `${albumTitle} Bild ${activeIndex + 1}`;
 
   function showPreviousImage() {
-    if (!hasMultipleImages) return;
+    if (!hasMultipleImages || activeIndex === null) return;
 
-    onChange(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
+    onChange(activeIndex === 0 ? images.length - 1 : activeIndex - 1);
   }
 
   function showNextImage() {
-    if (!hasMultipleImages) return;
+    if (!hasMultipleImages || activeIndex === null) return;
 
-    onChange(currentIndex === images.length - 1 ? 0 : currentIndex + 1);
+    onChange(activeIndex === images.length - 1 ? 0 : activeIndex + 1);
   }
 
   return createPortal(
@@ -98,7 +103,7 @@ export default function GalleryLightbox({
               Galerie
             </p>
             <p className="mt-1 text-sm font-black text-white/80">
-              {currentIndex + 1} / {images.length}
+              {activeIndex + 1} / {images.length}
             </p>
           </div>
 
