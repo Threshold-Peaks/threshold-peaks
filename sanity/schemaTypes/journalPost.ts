@@ -181,10 +181,14 @@ export const journalPost = defineType({
 
     defineField({
       name: 'stravaActivity',
-      title: 'Strava-Aktivität zur Story',
+      title: 'Manuelle Strava-Daten',
       type: 'object',
       description:
-        'Eigene Darstellung der Strava-Aktivität im Threshold-Peaks-Look. Wenn gepflegt, wird diese Ansicht statt des offiziellen Strava-Embeds verwendet.',
+        'Optionaler Bereich für manuelle Strava-Daten. Normalerweise reicht der Strava-Link oben. Nur öffnen, wenn du Werte oder ein eigenes Kartenbild überschreiben möchtest.',
+      options: {
+        collapsible: true,
+        collapsed: true,
+      },
       fields: [
         defineField({
           name: 'title',
