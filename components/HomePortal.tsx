@@ -613,6 +613,25 @@ export default function HomePortal({
   const portalNavigationDelayRef = useRef<number | null>(null);
   const portalTransitionRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const links = document.querySelectorAll<HTMLElement>("[data-portal-nav-link]");
+
+    links.forEach((link) => {
+      const linkTab = link.dataset.portalNavLink;
+      const isActive = linkTab === activeTab;
+
+      if (isActive) {
+        link.dataset.active = "true";
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.dataset.active = "false";
+        link.removeAttribute("aria-current");
+      }
+    });
+  }, [activeTab]);
+
   function clearPortalDetails() {
     setSelectedPost(null);
     setSelectedAlbum(null);

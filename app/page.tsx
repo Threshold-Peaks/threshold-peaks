@@ -357,10 +357,10 @@ export default async function Home() {
                     <Link
   href="/studio"
   target="_blank"
-  rel="noreferrer"
-  className="whitespace-nowrap transition hover:text-orange-600"
+  rel="noopener noreferrer"
+  className="whitespace-nowrap text-black/40 transition hover:text-orange-600"
 >
-  Admin
+  Studio
 </Link>
                   </div>
                 </div>
@@ -474,18 +474,22 @@ function HeroTopNavLink({
   liveSetsIsOnline: boolean;
 }) {
   const className = mobile
-    ? "group relative inline-flex shrink-0 justify-center pb-2 text-center text-[10px] font-black uppercase tracking-[0.28em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 sm:text-[11px]"
-    : "group relative inline-flex w-max justify-start pb-1 text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600";
+    ? "group relative inline-flex shrink-0 justify-center pb-2 text-center text-[10px] font-black uppercase tracking-[0.28em] text-black/55 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 data-[active=true]:text-black sm:text-[11px]"
+    : "group relative inline-flex w-max justify-start pb-1 text-left text-[10px] font-black uppercase tracking-[0.22em] text-black/50 transition hover:text-orange-600 focus:outline-none focus-visible:text-orange-600 data-[active=true]:text-black";
 
   return (
-    <a href={href} className={className}>
+    <a
+      href={href}
+      data-portal-nav-link={href.replace("#portal-", "")}
+      className={className}
+    >
       <span className="inline-flex translate-x-[0.14em] items-center gap-2 md:translate-x-0">
         <span>{children}</span>
 
         {showLiveStatus ? <LiveSetsStatusDot isOnline={liveSetsIsOnline} /> : null}
       </span>
 
-      <span className="absolute bottom-0 left-1/2 h-px w-9 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 md:left-0 md:w-5 md:translate-x-0" />
+      <span className="absolute bottom-0 left-1/2 h-px w-9 -translate-x-1/2 bg-black/20 transition group-hover:w-full group-hover:bg-orange-500 group-data-[active=true]:w-full group-data-[active=true]:bg-orange-500 md:left-0 md:w-5 md:translate-x-0" />
     </a>
   );
 }
