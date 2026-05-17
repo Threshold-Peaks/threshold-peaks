@@ -13,6 +13,7 @@ import LikeButton from "@/components/LikeButton";
 import StravaStoryActivityCard, {
   type StravaStoryActivityManual,
 } from "@/components/StravaStoryActivity";
+import GalleryLightbox from "@/components/GalleryLightbox";
 
 type PortableTextBlock = any[];
 
@@ -2298,10 +2299,14 @@ function GalleryAlbumPortalDetail({
     initialGalleryDetailImageCount,
   );
   const [galleryAnimationRun, setGalleryAnimationRun] = useState(0);
+  const [lightboxImageIndex, setLightboxImageIndex] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     setVisibleGalleryImageCount(initialGalleryDetailImageCount);
     setGalleryAnimationRun(0);
+    setLightboxImageIndex(null);
   }, [album._id]);
 
   function showMoreGalleryImages() {
@@ -2518,8 +2523,11 @@ function GalleryAlbumPortalDetail({
                     ) * 165}ms`,
                   }}
                 >
-                  <div
-                    className={`relative overflow-hidden rounded-md bg-black/5 ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImageIndex(index)}
+                    className={`group/image relative block w-full overflow-hidden rounded-md bg-black/5 text-left ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
+                    aria-label={`${album.title} Bild ${index + 1} groß öffnen`}
                   >
                     <SanityImage
                       src={urlFor(image)
@@ -2530,12 +2538,16 @@ function GalleryAlbumPortalDetail({
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
                       width={imageRatioConfig.width}
                       height={imageRatioConfig.height}
-                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
+                      className="h-full w-full object-cover transition duration-700 group-hover/image:scale-[1.025]"
                     />
+
+                    <span className="pointer-events-none absolute right-4 top-4 hidden translate-y-2 border-b border-white/35 pb-1 text-[9px] font-black uppercase tracking-[0.24em] text-white/80 opacity-0 transition duration-300 group-hover/image:translate-y-0 group-hover/image:opacity-100 md:block">
+                      Bild öffnen
+                    </span>
 
                     {imageCaption ? (
                       <div
-                        className="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-3 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-4 pb-4 pt-16 text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:block"
+                        className="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-3 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-4 pb-4 pt-16 text-white opacity-0 transition duration-300 group-hover/image:translate-y-0 group-hover/image:opacity-100 md:block"
                         aria-hidden="true"
                       >
                         <p className="mb-2 text-[9px] font-black uppercase tracking-[0.24em] text-white/60">
@@ -2546,7 +2558,7 @@ function GalleryAlbumPortalDetail({
                         </p>
                       </div>
                     ) : null}
-                  </div>
+                  </button>
 
                   {imageCaption ? (
                     <figcaption className="mt-3 border-b border-black/10 pb-4 md:hidden">
@@ -2559,6 +2571,14 @@ function GalleryAlbumPortalDetail({
               );
             })}
             </div>
+
+            <GalleryLightbox
+              images={galleryImages}
+              currentIndex={lightboxImageIndex}
+              albumTitle={album.title}
+              onClose={() => setLightboxImageIndex(null)}
+              onChange={setLightboxImageIndex}
+            />
 
             {hasMoreGalleryImages ? (
               <div className="mt-8 flex justify-start border-t border-black/10 pt-5">
@@ -3016,11 +3036,11 @@ function LiveSetsPanel({ isOnline }: { isOnline: boolean }) {
       <div className="overflow-hidden rounded-md border border-black/12 bg-[#efe8dc]/70 shadow-none">
         <div className="relative aspect-[16/10] overflow-hidden border-b border-black/10 bg-black/5">
           <Image
-            src="/images/twitch-live-sets.png"
-            alt="Threshold Peaks Live Sets auf Twitch"
+            src="/images/live-sets-after-ride-session.png"
+            alt="After-Ride Live-Set-Session mit Pioneer RX3, Rädern und Trainingsgear"
             fill
             sizes="(max-width: 1024px) 100vw, 560px"
-            className="object-cover"
+            className="object-cover object-[center_38%]"
           />
         </div>
 

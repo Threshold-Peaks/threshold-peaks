@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { urlFor } from "@/sanity/lib/image";
+import GalleryLightbox from "@/components/GalleryLightbox";
 
 type GalleryImage = SanityImageSource & {
   alt?: string;
@@ -40,6 +41,9 @@ export default function GalleryImageLoadMore({
   const [visibleImageCount, setVisibleImageCount] =
     useState(initialImageCount);
   const [animationRun, setAnimationRun] = useState(0);
+  const [lightboxImageIndex, setLightboxImageIndex] = useState<number | null>(
+    null,
+  );
 
   function showMoreImages() {
     setVisibleImageCount((currentCount) =>
@@ -97,15 +101,24 @@ export default function GalleryImageLoadMore({
                 ) * 165}ms`,
               }}
             >
-              <div className={`relative overflow-hidden bg-black/5 ${imageRatioClass}`}>
+              <button
+                type="button"
+                onClick={() => setLightboxImageIndex(index)}
+                className={`group/image relative block w-full overflow-hidden bg-black/5 text-left ${imageRatioClass}`}
+                aria-label={`${albumTitle} Bild ${index + 1} groß öffnen`}
+              >
                 <Image
                   src={urlFor(image).width(1200).height(1600).fit("crop").url()}
                   alt={image.alt || `${albumTitle} Bild ${index + 1}`}
                   width={1200}
                   height={1600}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover transition duration-700 group-hover/image:scale-[1.025]"
                 />
-              </div>
+
+                <span className="pointer-events-none absolute right-4 top-4 hidden translate-y-2 border-b border-white/35 pb-1 text-[9px] font-black uppercase tracking-[0.24em] text-white/80 opacity-0 transition duration-300 group-hover/image:translate-y-0 group-hover/image:opacity-100 md:block">
+                  Bild öffnen
+                </span>
+              </button>
 
               {image.caption ? (
                 <figcaption className="px-5 py-4 text-sm leading-6 text-black/60">
@@ -116,6 +129,14 @@ export default function GalleryImageLoadMore({
           );
         })}
       </div>
+
+      <GalleryLightbox
+        images={images}
+        currentIndex={lightboxImageIndex}
+        albumTitle={albumTitle}
+        onClose={() => setLightboxImageIndex(null)}
+        onChange={setLightboxImageIndex}
+      />
 
       {hasMoreImages ? (
         <div className="mt-8 flex justify-start border-t border-black/10 pt-5">
