@@ -355,11 +355,13 @@ export default async function Home() {
                     </span>
 
                     <Link
-                      href="/studio"
-                      className="whitespace-nowrap transition hover:text-orange-600"
-                    >
-                      Admin
-                    </Link>
+  href="/studio"
+  target="_blank"
+  rel="noreferrer"
+  className="whitespace-nowrap transition hover:text-orange-600"
+>
+  Admin
+</Link>
                   </div>
                 </div>
 
