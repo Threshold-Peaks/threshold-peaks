@@ -264,7 +264,7 @@ export default async function Home() {
               fill
               priority
               sizes="(max-width: 768px) 100vw, 64vw"
-              className="object-cover object-[70%_24%] -translate-y-8 scale-[1.08] opacity-35 contrast-105 saturate-105 brightness-105 md:translate-y-0 md:scale-100 md:object-[86%_center] md:opacity-100 md:contrast-110 md:saturate-110"
+              className="object-cover object-[70%_24%] -translate-y-8 scale-[1.08] opacity-35 contrast-105 saturate-105 brightness-105 md:translate-y-0 md:scale-100 md:object-[72%_center] md:max-[1100px]:object-[60%_center] min-[1400px]:object-[86%_center] md:opacity-100 md:contrast-110 md:saturate-110"
             />
 
             <div className="pointer-events-none absolute inset-0 bg-[#f5f3ee]/55 md:hidden" />
@@ -275,8 +275,8 @@ export default async function Home() {
         </div>
 
         {/* HERO LAYOUT */}
-        <div className="relative z-10 px-6 pb-4 pt-6 md:px-10 md:pt-8 lg:px-10 min-[1600px]:pl-16 min-[1600px]:pr-28 min-[1900px]:max-[2199px]:pl-20 min-[1900px]:max-[2199px]:pr-24 min-[2200px]:px-20">
-  <div className="relative mx-0 w-full max-w-[1180px] lg:max-[1599px]:max-w-[860px] min-[2200px]:mx-auto min-[2200px]:max-w-[1280px]">
+        <div className="relative z-10 px-6 pb-4 pt-6 md:px-10 md:pt-8 lg:pl-6 lg:pr-14 min-[1600px]:pl-16 min-[1600px]:pr-28 min-[1900px]:max-[2199px]:pl-28 min-[1900px]:max-[2199px]:pr-16 min-[2200px]:px-20">
+  <div className="relative mx-0 w-full max-w-[1180px] lg:max-[1599px]:max-w-[860px] min-[1900px]:max-[2199px]:translate-x-16 min-[2200px]:mx-auto min-[2200px]:max-w-[1280px] min-[2200px]:translate-x-0">
             {/* LEFT: LOGO + NAV */}
             <div className="relative z-50 mb-8">
               <a
