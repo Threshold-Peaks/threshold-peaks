@@ -305,7 +305,7 @@ const journalPortableTextComponents: PortableTextComponents = {
         <a
           href={href}
           target={isExternal ? "_blank" : undefined}
-          rel={isExternal ? "noreferrer" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
           className="font-black text-orange-600 underline decoration-orange-500/30 underline-offset-4 transition hover:text-orange-700"
         >
           {children}
@@ -339,7 +339,7 @@ const eventPortableTextComponents: PortableTextComponents = {
         <a
           href={href}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="font-medium underline decoration-neutral-400 underline-offset-4 hover:text-neutral-600"
         >
           {children}
@@ -1013,7 +1013,7 @@ export default function HomePortal({
           <div
             className={
               embedded
-                ? "flex min-h-[460px] flex-col p-5 md:p-7 lg:min-h-[500px] lg:p-9"
+                ? "flex min-h-[460px] flex-col p-5 md:min-h-[clamp(430px,58svh,560px)] md:p-7 lg:min-h-[clamp(460px,60svh,640px)] lg:p-9"
                 : "flex min-h-[720px] flex-col p-6 md:min-h-[760px] md:p-8 lg:min-h-[780px] lg:p-10"
             }
           >
@@ -1045,7 +1045,7 @@ export default function HomePortal({
               <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-px bg-black/15 lg:block" />
 
               <div
-                className={`min-h-[560px] transition-all duration-300 ease-out [overflow-anchor:none] md:min-h-[600px] lg:min-h-[640px] lg:pl-8 ${
+                className={`min-h-[520px] transition-all duration-300 ease-out [overflow-anchor:none] md:min-h-[clamp(360px,42svh,560px)] lg:min-h-[clamp(380px,44svh,600px)] lg:pl-8 ${
                   isPortalSwitching
                     ? "translate-y-2 opacity-0"
                     : "translate-y-0 opacity-100"
@@ -1588,7 +1588,7 @@ function JournalPortalDetail({
               <Link
                 href={post.soundcloudUrl}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className={detailActionButtonClass}
               >
                 <span className="sm:hidden">Sound</span>
@@ -1750,7 +1750,7 @@ function JournalMetaLinks({
         <Link
           href={stravaUrl}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-black/75 transition hover:text-orange-600"
         >
           <span>Strava</span>
@@ -1762,7 +1762,7 @@ function JournalMetaLinks({
         <Link
           href={soundcloudUrl}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-1 text-black/75 transition hover:text-orange-600"
         >
           <span>SoundCloud</span>
@@ -2527,7 +2527,7 @@ function EventPortalDetail({
           <Link
             href={event.externalUrl}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className={`${detailActionButtonClass} text-right`}
           >
             <span className="sm:hidden">Veranstaltungsseite</span>
@@ -2680,7 +2680,7 @@ function LiveSetsPanel({ isOnline }: { isOnline: boolean }) {
           <a
             href={twitchUrl}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className={lineButtonWideClass}
           >
             Twitch öffnen
@@ -2860,7 +2860,7 @@ function ContactPanel() {
               key={item.title}
               href={item.href}
               target={isExternal ? "_blank" : undefined}
-              rel={isExternal ? "noreferrer" : undefined}
+              rel={isExternal ? "noopener noreferrer" : undefined}
               className="group flex flex-col gap-4 py-5 transition hover:bg-black/[0.025] md:flex-row md:items-center md:px-3"
             >
               {content}
