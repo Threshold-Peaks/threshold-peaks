@@ -2413,14 +2413,15 @@ function GalleryAlbumPortalDetail({
                 index,
                 image.displayFormat,
               );
+              const imageCaption = image.caption || image.alt;
 
               return (
                 <figure
                   key={`${album._id}-${index}`}
-                  className="mb-6 break-inside-avoid"
+                  className="group mb-6 break-inside-avoid"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-md bg-black/5 ring-1 ring-black/10 transition duration-300 hover:-translate-y-0.5 hover:ring-black/20 ${imageRatioConfig.className}`}
+                    className={`relative overflow-hidden rounded-md bg-black/5 ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
                   >
                     <SanityImage
                       src={urlFor(image)
@@ -2431,14 +2432,28 @@ function GalleryAlbumPortalDetail({
                       alt={image.alt || `${album.title} Bild ${index + 1}`}
                       width={imageRatioConfig.width}
                       height={imageRatioConfig.height}
-                      className="h-full w-full object-cover transition duration-700 hover:scale-[1.025]"
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.025]"
                     />
+
+                    {imageCaption ? (
+                      <div
+                        className="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-3 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-4 pb-4 pt-16 text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:block"
+                        aria-hidden="true"
+                      >
+                        <p className="mb-2 text-[9px] font-black uppercase tracking-[0.24em] text-white/60">
+                          Kommentar
+                        </p>
+                        <p className="line-clamp-4 text-sm font-semibold leading-6 text-white/90">
+                          {imageCaption}
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
 
-                  {image.caption || image.alt ? (
-                    <figcaption className="mt-3 border-b border-black/10 pb-4">
+                  {imageCaption ? (
+                    <figcaption className="mt-3 border-b border-black/10 pb-4 md:hidden">
                       <p className="text-sm font-semibold leading-6 text-black/60">
-                        {image.caption || image.alt}
+                        {imageCaption}
                       </p>
                     </figcaption>
                   ) : null}
