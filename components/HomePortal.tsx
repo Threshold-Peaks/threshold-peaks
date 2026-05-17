@@ -2088,6 +2088,8 @@ function GalleryPanel({
             const imageCount = album.images?.length ?? 0;
             const imageRatioConfig = albumCoverRatioConfig;
             const tags = getGalleryTags(album.tags);
+            const formattedAlbumDate = formatGalleryDate(album.date);
+            const hoverMetaItems = [formattedAlbumDate, album.location].filter(Boolean);
 
             return (
               <article
@@ -2120,6 +2122,39 @@ function GalleryPanel({
                         Kein Bild hinterlegt
                       </div>
                     )}
+
+                    <div
+                      className="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-3 bg-gradient-to-t from-black/70 via-black/35 to-transparent px-4 pb-4 pt-16 text-white opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100 md:block"
+                      aria-hidden="true"
+                    >
+                      {hoverMetaItems.length > 0 ? (
+                        <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] font-black uppercase tracking-[0.2em] text-white/70">
+                          {hoverMetaItems.map((item, itemIndex) => (
+                            <span key={item}>
+                              {itemIndex > 0 ? "· " : ""}
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/85">
+                        Album ansehen →
+                      </p>
+
+                      {tags.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
+                          {tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[9px] font-black uppercase tracking-[0.16em] text-white/65"
+                            >
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
 
                   <div className="mt-3 border-b border-black/10 pb-4">
