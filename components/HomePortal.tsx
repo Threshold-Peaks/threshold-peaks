@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { PortableText, type PortableTextComponents } from "@portabletext/react";
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { Image as SanityImage } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
 import { urlFor } from "@/sanity/lib/image";
@@ -677,6 +677,27 @@ function getEventDistanceLabel(event: HomeEvent) {
 
 type EventSourceFilter = "all" | "threshold" | "flvw";
 
+type EventInlineFilters = {
+  eventSearchInput: string;
+  eventSearchQuery: string;
+  eventRegionFilter: string;
+  eventLocationFilter: string;
+  eventMonthFilter: string;
+  eventDistanceFilter: string;
+};
+
+const initialEventInlineFilters: EventInlineFilters = {
+  eventSearchInput: "",
+  eventSearchQuery: "",
+  eventRegionFilter: "",
+  eventLocationFilter: "",
+  eventMonthFilter: "",
+  eventDistanceFilter: "",
+};
+
+const initialFlvwVisibleCount = 8;
+const flvwVisibleBatchSize = 12;
+
 function normalizeEventSearchValue(value?: string | null) {
   return String(value ?? "")
     .toLowerCase()
@@ -1244,6 +1265,12 @@ export default function HomePortal({
   const [selectedJournalTags, setSelectedJournalTags] = useState<string[]>([]);
   const [selectedGalleryTags, setSelectedGalleryTags] = useState<string[]>([]);
   const [selectedEventTags, setSelectedEventTags] = useState<string[]>([]);
+  const [eventInlineFilters, setEventInlineFilters] = useState<EventInlineFilters>(
+    initialEventInlineFilters,
+  );
+  const [visibleFlvwCount, setVisibleFlvwCount] = useState(
+    initialFlvwVisibleCount,
+  );
   const [showAllContent, setShowAllContent] = useState<
     Record<PortalContentTab, boolean>
   >({
@@ -1787,6 +1814,10 @@ export default function HomePortal({
                       allTags={allEventTags}
                       selectedTags={selectedEventTags}
                       showAll={showAllContent.events}
+                      eventInlineFilters={eventInlineFilters}
+                      onChangeEventInlineFilters={setEventInlineFilters}
+                      visibleFlvwCount={visibleFlvwCount}
+                      onChangeVisibleFlvwCount={setVisibleFlvwCount}
                       onToggleShowAll={() => toggleShowAllContent("events")}
                       onToggleTag={toggleEventTagFilter}
                       onResetTags={resetEventTagFilter}
@@ -3353,6 +3384,10 @@ function EventsPanel({
   allTags,
   selectedTags,
   showAll,
+  eventInlineFilters,
+  onChangeEventInlineFilters,
+  visibleFlvwCount,
+  onChangeVisibleFlvwCount,
   onToggleShowAll,
   onToggleTag,
   onResetTags,
@@ -3363,23 +3398,24 @@ function EventsPanel({
   allTags: string[];
   selectedTags: string[];
   showAll: boolean;
+  eventInlineFilters: EventInlineFilters;
+  onChangeEventInlineFilters: Dispatch<SetStateAction<EventInlineFilters>>;
+  visibleFlvwCount: number;
+  onChangeVisibleFlvwCount: Dispatch<SetStateAction<number>>;
   onToggleShowAll: () => void;
   onToggleTag: (tag: string) => void;
   onResetTags: () => void;
   onOpenEvent: (event: HomeEvent) => void;
 }) {
-  const initialFlvwVisibleCount = 8;
-  const flvwVisibleBatchSize = 12;
+  const {
+    eventSearchInput,
+    eventSearchQuery,
+    eventRegionFilter,
+    eventLocationFilter,
+    eventMonthFilter,
+    eventDistanceFilter,
+  } = eventInlineFilters;
 
-  const [eventSearchInput, setEventSearchInput] = useState("");
-  const [eventSearchQuery, setEventSearchQuery] = useState("");
-  const [eventRegionFilter, setEventRegionFilter] = useState("");
-  const [eventLocationFilter, setEventLocationFilter] = useState("");
-  const [eventMonthFilter, setEventMonthFilter] = useState("");
-  const [eventDistanceFilter, setEventDistanceFilter] = useState("");
-  const [visibleFlvwCount, setVisibleFlvwCount] = useState(
-    initialFlvwVisibleCount,
-  );
   const [isFlvwListSwitching, setIsFlvwListSwitching] = useState(false);
   const flvwListFadeDelayRef = useRef<number | null>(null);
   const flvwListFadeReleaseRef = useRef<number | null>(null);
@@ -3459,7 +3495,7 @@ function EventsPanel({
   const hasMoreThresholdEvents = filteredThresholdEvents.length > 3;
 
   useEffect(() => {
-    setVisibleFlvwCount(initialFlvwVisibleCount);
+    onChangeVisibleFlvwCount(initialFlvwVisibleCount);
   }, [
     eventSearchQuery,
     eventRegionFilter,
@@ -3510,12 +3546,7 @@ function EventsPanel({
 
   function resetInlineEventFilters() {
     runFlvwListFadeTransition(() => {
-      setEventSearchInput("");
-      setEventSearchQuery("");
-      setEventRegionFilter("");
-      setEventLocationFilter("");
-      setEventMonthFilter("");
-      setEventDistanceFilter("");
+      onChangeEventInlineFilters(initialEventInlineFilters);
     });
   }
 
@@ -3608,9 +3639,15 @@ function EventsPanel({
                 onChange={(event) => {
                   const nextSearchQuery = event.target.value;
 
-                  setEventSearchInput(nextSearchQuery);
+                  onChangeEventInlineFilters((currentFilters) => ({
+                    ...currentFilters,
+                    eventSearchInput: nextSearchQuery,
+                  }));
                   runFlvwListFadeTransition(() =>
-                    setEventSearchQuery(nextSearchQuery),
+                    onChangeEventInlineFilters((currentFilters) => ({
+                      ...currentFilters,
+                      eventSearchQuery: nextSearchQuery,
+                    })),
                   );
                 }}
                 placeholder="Name, Strecke, Ausrichter ..."
@@ -3629,7 +3666,12 @@ function EventsPanel({
                 })),
               ]}
               onChange={(value) =>
-                runFlvwListFadeTransition(() => setEventMonthFilter(value))
+                runFlvwListFadeTransition(() =>
+                  onChangeEventInlineFilters((currentFilters) => ({
+                    ...currentFilters,
+                    eventMonthFilter: value,
+                  })),
+                )
               }
             />
 
@@ -3644,7 +3686,12 @@ function EventsPanel({
                 })),
               ]}
               onChange={(value) =>
-                runFlvwListFadeTransition(() => setEventRegionFilter(value))
+                runFlvwListFadeTransition(() =>
+                  onChangeEventInlineFilters((currentFilters) => ({
+                    ...currentFilters,
+                    eventRegionFilter: value,
+                  })),
+                )
               }
             />
 
@@ -3659,7 +3706,12 @@ function EventsPanel({
                 })),
               ]}
               onChange={(value) =>
-                runFlvwListFadeTransition(() => setEventLocationFilter(value))
+                runFlvwListFadeTransition(() =>
+                  onChangeEventInlineFilters((currentFilters) => ({
+                    ...currentFilters,
+                    eventLocationFilter: value,
+                  })),
+                )
               }
             />
 
@@ -3674,7 +3726,12 @@ function EventsPanel({
                 })),
               ]}
               onChange={(value) =>
-                runFlvwListFadeTransition(() => setEventDistanceFilter(value))
+                runFlvwListFadeTransition(() =>
+                  onChangeEventInlineFilters((currentFilters) => ({
+                    ...currentFilters,
+                    eventDistanceFilter: value,
+                  })),
+                )
               }
             />
           </div>
@@ -3744,7 +3801,7 @@ function EventsPanel({
                 type="button"
                 onClick={() =>
                   runFlvwListFadeTransition(() =>
-                    setVisibleFlvwCount(
+                    onChangeVisibleFlvwCount(
                       (current) => current + flvwVisibleBatchSize,
                     ),
                   )
@@ -3762,7 +3819,7 @@ function EventsPanel({
                 type="button"
                 onClick={() =>
                   runFlvwListFadeTransition(() =>
-                    setVisibleFlvwCount(initialFlvwVisibleCount),
+                    onChangeVisibleFlvwCount(initialFlvwVisibleCount),
                   )
                 }
                 className={lineButtonWideClass}
