@@ -105,6 +105,12 @@ function normalizeDistanceLabel(value) {
   if (!Number.isFinite(numericValue)) return rawValue;
 
   if (unit === "km") {
+    // Kleine Dezimal-km lesbarer als Meter anzeigen:
+    // 0,85 km -> 850 m, 0,6 km -> 600 m.
+    if (numericValue > 0 && numericValue < 1) {
+      return `${formatDistanceNumber(Math.round(numericValue * 1000), 0)} m`;
+    }
+
     // FLVW-Datenfehler abfangen: Werte wie 7250 km sind praktisch
     // immer als 7250 m gemeint. Echte Ultras bis unter 400 km bleiben km.
     if (numericValue >= 400) {
@@ -123,6 +129,74 @@ function normalizeDistanceLabel(value) {
   }
 
   return `${formatDistanceNumber(Math.round(numericValue), 0)} m`;
+}
+
+
+function normalizeDistanceText(value) {
+  return cleanText(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getDistanceKmValueFromLabel(label) {
+  const normalizedLabel = normalizeDistanceText(label).replace(/,/g, ".");
+
+  if (normalizedLabel.includes("halbmarathon")) {
+    return 21.098;
+  }
+
+  if (/\bmarathon\b/.test(normalizedLabel)) {
+    return 42.195;
+  }
+
+  const match = normalizedLabel.match(/(\d+(?:\.\d+)?)\s*(km|m)\b/);
+
+  if (!match) return null;
+
+  const numericValue = Number(match[1]);
+  const unit = match[2];
+
+  if (!Number.isFinite(numericValue)) return null;
+
+  return unit === "m" ? numericValue / 1000 : numericValue;
+}
+
+function hasDistanceNear(distances, targetKm, toleranceKm = 0.25) {
+  return distances.some((distance) => {
+    const kmValue = getDistanceKmValueFromLabel(distance);
+
+    return kmValue !== null && Math.abs(kmValue - targetKm) <= toleranceKm;
+  });
+}
+
+function addNamedDistanceFallbacks(distances, competitionText) {
+  const normalizedCompetitionText = normalizeDistanceText(competitionText);
+  const result = [...distances];
+
+  // Manche FLVW-Seiten führen die Strecke im Laufnamen sauber als
+  // "Halbmarathon", aber die numerische Streckenlänge wird im HTML nicht
+  // zuverlässig von unserer km/m-Erkennung erwischt. Dann ergänzen wir die
+  // geläufige Bezeichnung als Fallback.
+  if (
+    normalizedCompetitionText.includes("halbmarathon") &&
+    !result.some((distance) => normalizeDistanceText(distance).includes("halbmarathon")) &&
+    !hasDistanceNear(result, 21.098)
+  ) {
+    result.unshift("Halbmarathon");
+  }
+
+  const textWithoutHalfMarathon = normalizedCompetitionText.replace(/halbmarathon/g, "");
+
+  if (
+    /\bmarathon\b/.test(textWithoutHalfMarathon) &&
+    !result.some((distance) => /^marathon$/i.test(cleanText(distance))) &&
+    !hasDistanceNear(result, 42.195)
+  ) {
+    result.unshift("Marathon");
+  }
+
+  return unique(result);
 }
 
 async function fetchHtml(url) {
@@ -173,6 +247,53 @@ function getPageLinks($, baseUrl) {
       };
     })
     .filter((link) => link.href || link.url || link.text);
+}
+
+
+function getElementTextWithValues($, element) {
+  const root = $(element);
+  const formValues = root
+    .find("input, textarea, option")
+    .toArray()
+    .map((inputElement) => {
+      const input = $(inputElement);
+
+      return input.attr("value") || input.text() || "";
+    });
+
+  return cleanText([root.text(), ...formValues].join(" "));
+}
+
+function extractDistanceLabelsFromText(value) {
+  const text = cleanText(value);
+
+  return [
+    ...(text.match(/\b\d+(?:[,.]\d+)?\s*km\b/gi) || []),
+    // Meterangaben bewusst nur klein geschrieben erkennen, damit Altersklassen
+    // wie "M50" nicht versehentlich als 50 m interpretiert werden.
+    ...(text.match(/\b\d+(?:[,.]\d+)?\s*m\b/g) || []),
+  ];
+}
+
+function getCompetitionTextSources($, competitionText) {
+  const tableTexts = $("table")
+    .toArray()
+    .map((table) => getElementTextWithValues($, table))
+    .filter((tableText) => {
+      const normalizedTableText = normalizeDistanceText(tableText);
+
+      return (
+        normalizedTableText.includes("laufname") ||
+        normalizedTableText.includes("streckenlange") ||
+        normalizedTableText.includes("streckenlaenge") ||
+        normalizedTableText.includes("ausgeschriebene altersklassen")
+      );
+    });
+
+  return unique([
+    competitionText,
+    ...tableTexts,
+  ]);
 }
 
 function isCalendarFileLink(link) {
@@ -391,14 +512,14 @@ function extractDetailData(html, fallback) {
         )
       : "";
 
-  const rawDistances = [
-    ...(competitionText.match(/\d+(?:[,.]\d+)?\s*km\b/gi) || []),
-    // Meterangaben bewusst nur klein geschrieben erkennen, damit Altersklassen
-    // wie "M50" nicht versehentlich als 50 m interpretiert werden.
-    ...(competitionText.match(/\d+(?:[,.]\d+)?\s*m\b/g) || []),
-  ];
+  const competitionTextSources = getCompetitionTextSources($, competitionText);
+  const combinedCompetitionText = cleanText(competitionTextSources.join(" "));
+  const rawDistances = competitionTextSources.flatMap(extractDistanceLabelsFromText);
 
-  const distances = unique(rawDistances.map(normalizeDistanceLabel));
+  const distances = addNamedDistanceFallbacks(
+    unique(rawDistances.map(normalizeDistanceLabel)),
+    combinedCompetitionText,
+  );
 
   return {
     title,

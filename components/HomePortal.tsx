@@ -655,12 +655,24 @@ function getEventLocationLabel(event: HomeEvent) {
   return event.location || event.city || event.region;
 }
 
+function formatEventDistanceDisplayValue(rawDistance: string) {
+  const kmValue = getEventDistanceKmValue(rawDistance);
+
+  if (kmValue === null) return rawDistance;
+
+  if (kmValue > 0 && kmValue < 1) {
+    return `${Math.round(kmValue * 1000)} m`;
+  }
+
+  return `${formatEventDistanceNumber(kmValue)} km`;
+}
+
 function getEventDistanceLabel(event: HomeEvent) {
   const distances = event.distances?.filter(Boolean) ?? [];
 
   if (distances.length === 0) return undefined;
 
-  return distances.slice(0, 6).join(" · ");
+  return distances.slice(0, 6).map(formatEventDistanceDisplayValue).join(" · ");
 }
 
 type EventSourceFilter = "all" | "threshold" | "flvw";
@@ -716,9 +728,9 @@ function formatEventMonthLabel(monthKey: string) {
 }
 
 function getEventMonthOptions(events: HomeEvent[]) {
-  return Array.from(
-    new Set(events.map(getEventMonthKey).filter(Boolean)),
-  ).sort((firstMonth, secondMonth) => firstMonth.localeCompare(secondMonth));
+  return Array.from(new Set(events.map(getEventMonthKey).filter(Boolean))).sort(
+    (firstMonth, secondMonth) => firstMonth.localeCompare(secondMonth),
+  );
 }
 
 function getEventRegionOptions(events: HomeEvent[]) {
@@ -730,7 +742,9 @@ function getEventRegionOptions(events: HomeEvent[]) {
         .map((value) => String(value).trim())
         .filter(Boolean),
     ),
-  ).sort((firstRegion, secondRegion) => firstRegion.localeCompare(secondRegion, "de"));
+  ).sort((firstRegion, secondRegion) =>
+    firstRegion.localeCompare(secondRegion, "de"),
+  );
 }
 
 function getEventLocationFilterValue(event: HomeEvent) {
@@ -739,11 +753,7 @@ function getEventLocationFilterValue(event: HomeEvent) {
 
 function getEventLocationOptions(events: HomeEvent[]) {
   return Array.from(
-    new Set(
-      events
-        .map(getEventLocationFilterValue)
-        .filter(Boolean),
-    ),
+    new Set(events.map(getEventLocationFilterValue).filter(Boolean)),
   ).sort((firstLocation, secondLocation) =>
     firstLocation.localeCompare(secondLocation, "de"),
   );
@@ -781,39 +791,115 @@ function formatEventDistanceNumber(value: number) {
 }
 
 function isApproximatelyDistance(value: number, target: number) {
-  const tolerance = target < 1 ? 0.02 : 0.15;
+  const tolerance = target < 1 ? 0.02 : 0.08;
 
   return Math.abs(value - target) <= tolerance;
 }
 
-function getCanonicalDistanceOption(rawDistance: string): EventDistanceOption | null {
-  const normalizedDistance = normalizeEventDistanceValue(rawDistance);
-  const kmValue = getEventDistanceKmValue(rawDistance);
+function isExactOfficialDistance(value: number, target: number) {
+  return Math.abs(value - target) <= 0.03;
+}
 
-  if (normalizedDistance.includes("halbmarathon") || (kmValue !== null && isApproximatelyDistance(kmValue, 21.1))) {
-    return { value: "half-marathon", label: "Halbmarathon", rank: 21098 };
+function getDistanceRangeOption(kmValue: number): EventDistanceOption | null {
+  if (!Number.isFinite(kmValue) || kmValue <= 0) return null;
+
+  if (kmValue < 1) {
+    return { value: "range:under-1", label: "bis 1 km", rank: 1000 };
   }
 
-  if (normalizedDistance.includes("marathon") || (kmValue !== null && isApproximatelyDistance(kmValue, 42.2))) {
-    return { value: "marathon", label: "Marathon", rank: 42195 };
+  if (kmValue < 3) {
+    return { value: "range:1-3", label: "1 - 3 km", rank: 3000 };
   }
 
-  if (kmValue !== null) {
-    const roundedValue = Math.round(kmValue * 1000) / 1000;
-    const metersValue = Math.round(roundedValue * 1000);
-    const label = roundedValue < 1
-      ? `${metersValue} m`
-      : `${formatEventDistanceNumber(roundedValue)} km`;
+  if (kmValue < 5 && !isExactOfficialDistance(kmValue, 5)) {
+    return { value: "range:3-5", label: "3 - 5 km", rank: 5000 };
+  }
 
+  if (isExactOfficialDistance(kmValue, 5)) {
+    return { value: "exact:5", label: "5 km", rank: 5001 };
+  }
+
+  if (kmValue < 10 && !isExactOfficialDistance(kmValue, 10)) {
     return {
-      value: `km:${roundedValue}`,
-      label,
-      rank: metersValue,
+      value: "range:5-10",
+      label: "5 - 10 km",
+      rank: 10000,
     };
   }
 
-  if (normalizedDistance.includes("walking") || normalizedDistance.includes("walk")) {
+  if (isExactOfficialDistance(kmValue, 10)) {
+    return { value: "exact:10", label: "10 km", rank: 10001 };
+  }
+
+  if (kmValue < 15 && !isExactOfficialDistance(kmValue, 15)) {
+    return {
+      value: "range:10-15",
+      label: "10 - 15 km",
+      rank: 15000,
+    };
+  }
+
+  if (isExactOfficialDistance(kmValue, 15)) {
+    return { value: "exact:15", label: "15 km", rank: 15001 };
+  }
+
+  if (kmValue < 21 && !isApproximatelyDistance(kmValue, 21.1)) {
+    return {
+      value: "range:15-half",
+      label: "15 - 21 km",
+      rank: 21000,
+    };
+  }
+
+  if (
+    kmValue > 21.3 &&
+    kmValue < 42 &&
+    !isApproximatelyDistance(kmValue, 42.2)
+  ) {
+    return {
+      value: "range:half-marathon-marathon",
+      label: "21 - 42 km",
+      rank: 42000,
+    };
+  }
+
+  if (kmValue > 42.4) {
+    return { value: "range:ultra", label: "über 42 km", rank: 43000 };
+  }
+
+  return null;
+}
+
+function getCanonicalDistanceOption(
+  rawDistance: string,
+): EventDistanceOption | null {
+  const normalizedDistance = normalizeEventDistanceValue(rawDistance);
+  const kmValue = getEventDistanceKmValue(rawDistance);
+
+  if (
+    normalizedDistance.includes("halbmarathon") ||
+    (kmValue !== null && isApproximatelyDistance(kmValue, 21.1))
+  ) {
+    return { value: "half-marathon", label: "Halbmarathon", rank: 21098 };
+  }
+
+  if (
+    (normalizedDistance.includes("marathon") &&
+      !normalizedDistance.includes("halbmarathon")) ||
+    (kmValue !== null && isApproximatelyDistance(kmValue, 42.2))
+  ) {
+    return { value: "marathon", label: "Marathon", rank: 42195 };
+  }
+
+  if (
+    normalizedDistance.includes("walking") ||
+    normalizedDistance.includes("walk")
+  ) {
     return { value: "walking", label: "Walking", rank: 900000 };
+  }
+
+  if (kmValue !== null) {
+    return getDistanceRangeOption(kmValue);
   }
 
   return null;
@@ -832,7 +918,22 @@ function getEventDistanceOptions(events: HomeEvent[]) {
     });
   });
 
-  const preferredOrder = ["km:5", "km:10", "half-marathon", "marathon", "walking"];
+  const preferredOrder = [
+    "range:under-1",
+    "range:1-3",
+    "range:3-5",
+    "exact:5",
+    "range:5-10",
+    "exact:10",
+    "range:10-15",
+    "exact:15",
+    "range:15-half",
+    "half-marathon",
+    "range:half-marathon-marathon",
+    "marathon",
+    "range:ultra",
+    "walking",
+  ];
   const options = Array.from(optionsByValue.values());
 
   return options.sort((firstOption, secondOption) => {
@@ -841,12 +942,19 @@ function getEventDistanceOptions(events: HomeEvent[]) {
 
     if (firstPreferredIndex >= 0 || secondPreferredIndex >= 0) {
       return (
-        (firstPreferredIndex >= 0 ? firstPreferredIndex : preferredOrder.length + firstOption.rank) -
-        (secondPreferredIndex >= 0 ? secondPreferredIndex : preferredOrder.length + secondOption.rank)
+        (firstPreferredIndex >= 0
+          ? firstPreferredIndex
+          : preferredOrder.length + firstOption.rank) -
+        (secondPreferredIndex >= 0
+          ? secondPreferredIndex
+          : preferredOrder.length + secondOption.rank)
       );
     }
 
-    return firstOption.rank - secondOption.rank || firstOption.label.localeCompare(secondOption.label, "de");
+    return (
+      firstOption.rank - secondOption.rank ||
+      firstOption.label.localeCompare(secondOption.label, "de")
+    );
   });
 }
 
@@ -854,7 +962,10 @@ function eventMatchesSelectedTags(event: HomeEvent, selectedTags: string[]) {
   return hasAnySelectedTag(getEventTags(event.tags), selectedTags);
 }
 
-function eventMatchesSourceFilter(event: HomeEvent, sourceFilter: EventSourceFilter) {
+function eventMatchesSourceFilter(
+  event: HomeEvent,
+  sourceFilter: EventSourceFilter,
+) {
   if (sourceFilter === "all") return true;
 
   const importedFlvwEvent = isImportedFlvwEvent(event);
@@ -882,26 +993,84 @@ function eventMatchesMonthFilter(event: HomeEvent, monthFilter: string) {
   return getEventMonthKey(event) === monthFilter;
 }
 
+function distanceValueMatchesFilter(
+  distanceValue: number,
+  distanceFilter: string,
+) {
+  if (distanceFilter === "range:under-1") return distanceValue < 1;
+  if (distanceFilter === "range:1-3")
+    return distanceValue >= 1 && distanceValue < 3;
+  if (distanceFilter === "range:3-5")
+    return (
+      distanceValue >= 3 &&
+      distanceValue < 5 &&
+      !isExactOfficialDistance(distanceValue, 5)
+    );
+  if (distanceFilter === "exact:5")
+    return isExactOfficialDistance(distanceValue, 5);
+  if (distanceFilter === "range:5-10")
+    return (
+      distanceValue > 5 &&
+      distanceValue < 10 &&
+      !isExactOfficialDistance(distanceValue, 10)
+    );
+  if (distanceFilter === "exact:10")
+    return isExactOfficialDistance(distanceValue, 10);
+  if (distanceFilter === "range:10-15")
+    return (
+      distanceValue > 10 &&
+      distanceValue < 15 &&
+      !isExactOfficialDistance(distanceValue, 15)
+    );
+  if (distanceFilter === "exact:15")
+    return isExactOfficialDistance(distanceValue, 15);
+  if (distanceFilter === "range:15-half")
+    return (
+      distanceValue > 15 &&
+      distanceValue < 21 &&
+      !isApproximatelyDistance(distanceValue, 21.1)
+    );
+  if (distanceFilter === "range:half-marathon-marathon")
+    return (
+      distanceValue > 21.3 &&
+      distanceValue < 42 &&
+      !isApproximatelyDistance(distanceValue, 42.2)
+    );
+  if (distanceFilter === "range:ultra") return distanceValue > 42.4;
+
+  return false;
+}
+
 function eventMatchesDistanceFilter(event: HomeEvent, distanceFilter: string) {
   if (!distanceFilter) return true;
 
-  const normalizedDistanceTexts = (event.distances ?? []).map(normalizeEventDistanceValue);
+  const normalizedDistanceTexts = (event.distances ?? []).map(
+    normalizeEventDistanceValue,
+  );
   const distanceValues = (event.distances ?? [])
     .map(getEventDistanceKmValue)
     .filter((distanceValue): distanceValue is number => distanceValue !== null);
 
   if (distanceFilter === "half-marathon") {
     return (
-      normalizedDistanceTexts.some((distance) => distance.includes("halbmarathon")) ||
-      distanceValues.some((distanceValue) => isApproximatelyDistance(distanceValue, 21.1))
+      normalizedDistanceTexts.some((distance) =>
+        distance.includes("halbmarathon"),
+      ) ||
+      distanceValues.some((distanceValue) =>
+        isApproximatelyDistance(distanceValue, 21.1),
+      )
     );
   }
 
   if (distanceFilter === "marathon") {
     return (
-      normalizedDistanceTexts.some((distance) =>
-        distance.includes("marathon") && !distance.includes("halbmarathon"),
-      ) || distanceValues.some((distanceValue) => isApproximatelyDistance(distanceValue, 42.2))
+      normalizedDistanceTexts.some(
+        (distance) =>
+          distance.includes("marathon") && !distance.includes("halbmarathon"),
+      ) ||
+      distanceValues.some((distanceValue) =>
+        isApproximatelyDistance(distanceValue, 42.2),
+      )
     );
   }
 
@@ -915,17 +1084,9 @@ function eventMatchesDistanceFilter(event: HomeEvent, distanceFilter: string) {
     return haystack.includes("walking") || haystack.includes("walk");
   }
 
-  if (distanceFilter.startsWith("km:")) {
-    const selectedDistance = Number(distanceFilter.replace("km:", ""));
-
-    if (!Number.isFinite(selectedDistance)) return true;
-
-    return distanceValues.some((distanceValue) =>
-      isApproximatelyDistance(distanceValue, selectedDistance),
-    );
-  }
-
-  return false;
+  return distanceValues.some((distanceValue) =>
+    distanceValueMatchesFilter(distanceValue, distanceFilter),
+  );
 }
 
 function getEventSearchTokens(event: HomeEvent) {
@@ -1000,10 +1161,7 @@ function hasEventCalendarFileNotice(event: HomeEvent) {
 
 function getEventCalendarLink(event: HomeEvent) {
   return (
-    event.calendarUrl ||
-    event.calendarFileUrl ||
-    event.vcalUrl ||
-    event.icalUrl
+    event.calendarUrl || event.calendarFileUrl || event.vcalUrl || event.icalUrl
   );
 }
 
@@ -1056,15 +1214,14 @@ function FlvwSourceNotice({ compact = false }: { compact?: boolean }) {
         Hinweis zur Quelle
       </p>
       <p className="mt-2 max-w-4xl text-xs font-semibold leading-6 text-black/55 md:text-sm md:leading-7">
-        Die Termine werden aus öffentlich verfügbaren Daten des FLVW-Laufkalenders
-        zusammengeführt und zur besseren Auffindbarkeit verlinkt. Angaben ohne
-        Gewähr. Maßgeblich sind die Informationen der jeweiligen Veranstalter
-        bzw. der FLVW-Originalseite.
+        Die Termine werden aus öffentlich verfügbaren Daten des
+        FLVW-Laufkalenders zusammengeführt und zur besseren Auffindbarkeit
+        verlinkt. Angaben ohne Gewähr. Maßgeblich sind die Informationen der
+        jeweiligen Veranstalter bzw. der FLVW-Originalseite.
       </p>
     </aside>
   );
 }
-
 
 export default function HomePortal({
   latestPosts,
@@ -2059,9 +2216,7 @@ function JournalPortalDetail({
   );
   const tags = getJournalTags(post.tags);
   const linkedGalleryAlbums = post.linkedGalleryAlbums ?? [];
-  const mainImage = hasSanityImageAsset(post.mainImage)
-    ? post.mainImage
-    : null;
+  const mainImage = hasSanityImageAsset(post.mainImage) ? post.mainImage : null;
   const commentTargetSlug = post.slug?.current || post._id;
   const journalFacts = [
     {
@@ -2572,12 +2727,15 @@ function GalleryPanel({
       ) : (
         <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
           {albums.map((album, index) => {
-            const { coverImage: image, validImages } = getAlbumCoverImage(album);
+            const { coverImage: image, validImages } =
+              getAlbumCoverImage(album);
             const imageCount = validImages.length;
             const imageRatioConfig = albumCoverRatioConfig;
             const tags = getGalleryTags(album.tags);
             const formattedAlbumDate = formatGalleryDate(album.date);
-            const hoverMetaItems = [formattedAlbumDate, album.location].filter(Boolean);
+            const hoverMetaItems = [formattedAlbumDate, album.location].filter(
+              Boolean,
+            );
 
             return (
               <article
@@ -2951,71 +3109,68 @@ function GalleryAlbumPortalDetail({
             `}</style>
 
             <div className="columns-1 gap-5 space-y-6 sm:columns-2 lg:columns-3">
-            {visibleGalleryImages.map((image, index) => {
-              const imageRatioConfig = getGalleryDetailImageRatioConfig(
-                index,
-                image.displayFormat,
-              );
-              const imageCaption = image.caption || image.alt;
+              {visibleGalleryImages.map((image, index) => {
+                const imageRatioConfig = getGalleryDetailImageRatioConfig(
+                  index,
+                  image.displayFormat,
+                );
+                const imageCaption = image.caption || image.alt;
 
-              return (
-                <figure
-                  key={`${album._id}-${galleryAnimationRun}-${index}`}
-                  className="gallery-image-fade-in group mb-6 break-inside-avoid"
-                  style={{
-                    animationDelay: `${Math.min(
-                      index,
-                      18,
-                    ) * 165}ms`,
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setLightboxImageIndex(index)}
-                    className={`group/image relative block w-full overflow-hidden rounded-md bg-black/5 text-left ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
-                    aria-label={`${album.title} Bild ${index + 1} groß öffnen`}
+                return (
+                  <figure
+                    key={`${album._id}-${galleryAnimationRun}-${index}`}
+                    className="gallery-image-fade-in group mb-6 break-inside-avoid"
+                    style={{
+                      animationDelay: `${Math.min(index, 18) * 165}ms`,
+                    }}
                   >
-                    <SanityImage
-                      src={urlFor(image)
-                        .width(imageRatioConfig.width)
-                        .height(imageRatioConfig.height)
-                        .fit("crop")
-                        .url()}
-                      alt={image.alt || `${album.title} Bild ${index + 1}`}
-                      width={imageRatioConfig.width}
-                      height={imageRatioConfig.height}
-                      className="h-full w-full object-cover transition duration-700 group-hover/image:scale-[1.025]"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImageIndex(index)}
+                      className={`group/image relative block w-full overflow-hidden rounded-md bg-black/5 text-left ring-1 ring-black/10 transition duration-300 group-hover:-translate-y-0.5 group-hover:ring-black/20 ${imageRatioConfig.className}`}
+                      aria-label={`${album.title} Bild ${index + 1} groß öffnen`}
+                    >
+                      <SanityImage
+                        src={urlFor(image)
+                          .width(imageRatioConfig.width)
+                          .height(imageRatioConfig.height)
+                          .fit("crop")
+                          .url()}
+                        alt={image.alt || `${album.title} Bild ${index + 1}`}
+                        width={imageRatioConfig.width}
+                        height={imageRatioConfig.height}
+                        className="h-full w-full object-cover transition duration-700 group-hover/image:scale-[1.025]"
+                      />
 
-                    <span className="pointer-events-none absolute right-4 top-4 hidden translate-y-2 border-b border-white/35 pb-1 text-[9px] font-black uppercase tracking-[0.24em] text-white/80 opacity-0 transition duration-300 group-hover/image:translate-y-0 group-hover/image:opacity-100 md:block">
-                      Bild öffnen
-                    </span>
+                      <span className="pointer-events-none absolute right-4 top-4 hidden translate-y-2 border-b border-white/35 pb-1 text-[9px] font-black uppercase tracking-[0.24em] text-white/80 opacity-0 transition duration-300 group-hover/image:translate-y-0 group-hover/image:opacity-100 md:block">
+                        Bild öffnen
+                      </span>
+
+                      {imageCaption ? (
+                        <div
+                          className="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-3 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-4 pb-4 pt-16 text-white opacity-0 transition duration-300 group-hover/image:translate-y-0 group-hover/image:opacity-100 md:block"
+                          aria-hidden="true"
+                        >
+                          <p className="mb-2 text-[9px] font-black uppercase tracking-[0.24em] text-white/60">
+                            Kommentar
+                          </p>
+                          <p className="line-clamp-4 text-sm font-semibold leading-6 text-white/90">
+                            {imageCaption}
+                          </p>
+                        </div>
+                      ) : null}
+                    </button>
 
                     {imageCaption ? (
-                      <div
-                        className="pointer-events-none absolute inset-x-0 bottom-0 hidden translate-y-3 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-4 pb-4 pt-16 text-white opacity-0 transition duration-300 group-hover/image:translate-y-0 group-hover/image:opacity-100 md:block"
-                        aria-hidden="true"
-                      >
-                        <p className="mb-2 text-[9px] font-black uppercase tracking-[0.24em] text-white/60">
-                          Kommentar
-                        </p>
-                        <p className="line-clamp-4 text-sm font-semibold leading-6 text-white/90">
+                      <figcaption className="mt-3 border-b border-black/10 pb-4 md:hidden">
+                        <p className="text-sm font-semibold leading-6 text-black/60">
                           {imageCaption}
                         </p>
-                      </div>
+                      </figcaption>
                     ) : null}
-                  </button>
-
-                  {imageCaption ? (
-                    <figcaption className="mt-3 border-b border-black/10 pb-4 md:hidden">
-                      <p className="text-sm font-semibold leading-6 text-black/60">
-                        {imageCaption}
-                      </p>
-                    </figcaption>
-                  ) : null}
-                </figure>
-              );
-            })}
+                  </figure>
+                );
+              })}
             </div>
 
             <GalleryLightbox
@@ -3035,7 +3190,11 @@ function GalleryAlbumPortalDetail({
                 >
                   Weitere Bilder anzeigen
                   <span>
-                    +{Math.min(remainingGalleryImageCount, galleryDetailImageBatchSize)}
+                    +
+                    {Math.min(
+                      remainingGalleryImageCount,
+                      galleryDetailImageBatchSize,
+                    )}
                   </span>
                 </button>
               </div>
@@ -3062,7 +3221,6 @@ function GalleryAlbumPortalDetail({
     </article>
   );
 }
-
 
 type EventFilterOption = {
   value: string;
@@ -3094,7 +3252,8 @@ function EventFilterDropdown({
 
       if (
         target &&
-        (buttonRef.current?.contains(target) || panelRef.current?.contains(target))
+        (buttonRef.current?.contains(target) ||
+          panelRef.current?.contains(target))
       ) {
         return;
       }
@@ -3171,7 +3330,10 @@ function EventFilterDropdown({
                 >
                   <span className="min-w-0 truncate">{option.label}</span>
                   {active ? (
-                    <span className="shrink-0 text-[11px] text-orange-600" aria-hidden="true">
+                    <span
+                      className="shrink-0 text-[11px] text-orange-600"
+                      aria-hidden="true"
+                    >
                       ✓
                     </span>
                   ) : null}
@@ -3242,10 +3404,10 @@ function EventsPanel({
 
   const hasInlineEventFilters = Boolean(
     eventSearchQuery.trim() ||
-      eventRegionFilter ||
-      eventLocationFilter ||
-      eventMonthFilter ||
-      eventDistanceFilter,
+    eventRegionFilter ||
+    eventLocationFilter ||
+    eventMonthFilter ||
+    eventDistanceFilter,
   );
 
   const baseItems =
@@ -3262,9 +3424,12 @@ function EventsPanel({
   );
   const flvwEvents = baseItems.filter(isImportedFlvwEvent);
 
-  const filteredThresholdEvents = selectedTags.length > 0
-    ? thresholdEvents.filter((event) => eventMatchesSelectedTags(event, selectedTags))
-    : thresholdEvents;
+  const filteredThresholdEvents =
+    selectedTags.length > 0
+      ? thresholdEvents.filter((event) =>
+          eventMatchesSelectedTags(event, selectedTags),
+        )
+      : thresholdEvents;
   const visibleThresholdEvents = showAll
     ? filteredThresholdEvents
     : filteredThresholdEvents.slice(0, 3);
@@ -3283,10 +3448,7 @@ function EventsPanel({
     filteredFlvwEvents.length - visibleFlvwEvents.length,
     0,
   );
-  const nextFlvwBatchCount = Math.min(
-    remainingFlvwCount,
-    flvwVisibleBatchSize,
-  );
+  const nextFlvwBatchCount = Math.min(remainingFlvwCount, flvwVisibleBatchSize);
 
   const eventMonthOptions = getEventMonthOptions(flvwEvents);
   const eventRegionOptions = getEventRegionOptions(flvwEvents);
@@ -3426,7 +3588,9 @@ function EventsPanel({
           </div>
 
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
-            {flvwEvents.length === 1 ? "1 FLVW-Termin" : `${flvwEvents.length} FLVW-Termine`}
+            {flvwEvents.length === 1
+              ? "1 FLVW-Termin"
+              : `${flvwEvents.length} FLVW-Termine`}
           </p>
         </div>
 
@@ -3445,7 +3609,9 @@ function EventsPanel({
                   const nextSearchQuery = event.target.value;
 
                   setEventSearchInput(nextSearchQuery);
-                  runFlvwListFadeTransition(() => setEventSearchQuery(nextSearchQuery));
+                  runFlvwListFadeTransition(() =>
+                    setEventSearchQuery(nextSearchQuery),
+                  );
                 }}
                 placeholder="Name, Strecke, Ausrichter ..."
                 className="mt-2 w-full rounded-md border border-black/10 bg-[#fbf7ef]/70 px-3 py-2.5 text-sm font-semibold text-black/75 outline-none transition placeholder:text-black/30 hover:border-black/20 hover:bg-[#fffaf2] focus:border-orange-500 focus:bg-[#fffaf2] focus:ring-2 focus:ring-orange-500/10"
@@ -3578,7 +3744,9 @@ function EventsPanel({
                 type="button"
                 onClick={() =>
                   runFlvwListFadeTransition(() =>
-                    setVisibleFlvwCount((current) => current + flvwVisibleBatchSize),
+                    setVisibleFlvwCount(
+                      (current) => current + flvwVisibleBatchSize,
+                    ),
                   )
                 }
                 className={lineButtonWideClass}
@@ -3587,7 +3755,8 @@ function EventsPanel({
                 <span>+{nextFlvwBatchCount}</span>
               </button>
             </div>
-          ) : visibleFlvwCount > initialFlvwVisibleCount && filteredFlvwEvents.length > initialFlvwVisibleCount ? (
+          ) : visibleFlvwCount > initialFlvwVisibleCount &&
+            filteredFlvwEvents.length > initialFlvwVisibleCount ? (
             <div className="mt-7 flex justify-start border-t border-black/10 pt-5">
               <button
                 type="button"
@@ -3789,7 +3958,9 @@ function EventPortalDetail({
   const locationLabel = getEventLocationLabel(event);
   const distanceLabel = getEventDistanceLabel(event);
   const calendarLink = getEventCalendarLink(event);
-  const hasCalendarFile = Boolean(calendarLink || hasEventCalendarFileNotice(event));
+  const hasCalendarFile = Boolean(
+    calendarLink || hasEventCalendarFileNotice(event),
+  );
   const commentTargetSlug = event.sourceId || event.slug?.current || event._id;
   const shareSlug = isFlvwEvent ? undefined : event.slug?.current;
 
@@ -3823,8 +3994,12 @@ function EventPortalDetail({
         <header className="mb-10 grid gap-8 border-b border-black/10 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-end">
           <div>
             <div className="mb-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-neutral-500">
-              {event.eventType ? <span>{formatEventType(event.eventType)}</span> : null}
-              {event.status ? <span>• {formatEventStatus(event.status)}</span> : null}
+              {event.eventType ? (
+                <span>{formatEventType(event.eventType)}</span>
+              ) : null}
+              {event.status ? (
+                <span>• {formatEventStatus(event.status)}</span>
+              ) : null}
               {sourceLabel ? <span>• {sourceLabel}</span> : null}
             </div>
 
@@ -3873,11 +4048,16 @@ function EventPortalDetail({
             {distanceLabel ? (
               <EventDetailFact label="Strecken" value={distanceLabel} />
             ) : null}
-            {event.organizer && getEventOrganizerLines(event.organizer).length > 0 ? (
+            {event.organizer &&
+            getEventOrganizerLines(event.organizer).length > 0 ? (
               <EventDetailFact
                 label="Ausrichter"
                 value={<EventOrganizerValue organizer={event.organizer} />}
-                className={hasCalendarFile ? "md:col-span-2 xl:col-span-2" : "md:col-span-2 xl:col-span-3"}
+                className={
+                  hasCalendarFile
+                    ? "md:col-span-2 xl:col-span-2"
+                    : "md:col-span-2 xl:col-span-3"
+                }
               />
             ) : null}
             {hasCalendarFile ? (
