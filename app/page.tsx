@@ -85,10 +85,23 @@ type HomeEvent = {
   slug?: {
     current?: string;
   };
+  sourceType?: string;
+  sourceName?: string;
+  sourceUrl?: string;
+  calendarUrl?: string;
+  calendarFileUrl?: string;
+  vcalUrl?: string;
+  icalUrl?: string;
+  sourceId?: string;
   startDate?: string;
   endDate?: string;
   time?: string;
   location?: string;
+  postalCode?: string;
+  city?: string;
+  region?: string;
+  organizer?: string;
+  distances?: string[];
   eventType?: string;
   teaser?: string;
   status?: string;
@@ -188,16 +201,27 @@ const allGalleryQuery = `*[_type == "galleryAlbum"] | order(coalesce(date, _crea
 
 const allEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(startDate, date, eventDate))] | order(coalesce(startDate, date, eventDate) asc) {
   _id,
+  _type,
+  "sourceType": _type,
   "title": coalesce(title, name),
   slug,
   "startDate": coalesce(startDate, date, eventDate),
   endDate,
   time,
   location,
+  postalCode,
+  city,
+  region,
+  organizer,
+  distances,
   "eventType": coalesce(eventType, category, type),
   "teaser": coalesce(teaser, excerpt, description, shortDescription),
   "status": coalesce(status, registrationStatus),
   externalUrl,
+  calendarUrl,
+  calendarFileUrl,
+  vcalUrl,
+  icalUrl,
   tags,
   "image": select(
     defined(image.asset) => image{
@@ -214,6 +238,45 @@ const allEventsQuery = `*[_type in ["event", "termin"] && defined(coalesce(start
     }
   ),
   body
+}`;
+
+const importedFlvwEventsQuery = `*[
+  _type == "importedFlvwEvent" &&
+  defined(date) &&
+  date >= $today &&
+  coalesce(hidden, false) != true &&
+  coalesce(status, "") != "archiv"
+] | order(date asc) {
+  _id,
+  _type,
+  "sourceType": _type,
+  sourceName,
+  sourceUrl,
+  sourceId,
+  title,
+  slug,
+  "startDate": date,
+  endDate,
+  time,
+  "location": coalesce(city, location),
+  postalCode,
+  city,
+  region,
+  district,
+  organizer,
+  distances,
+  "eventType": "FLVW Laufkalender",
+  "teaser": select(
+    category match "6.5.1*" => "Straßen-/Landschaftslauf",
+    defined(category) => category,
+    "Laufveranstaltung"
+  ),
+  "status": coalesce(status, "ungeprueft"),
+  "externalUrl": coalesce(externalUrl, sourceUrl),
+  "calendarUrl": coalesce(calendarUrl, calendarFileUrl, vcalUrl, icalUrl),
+  "tags": ["FLVW", "Running"],
+  "image": null,
+  "body": []
 }`;
 
 const siteSettingsQuery = `*[_type == "siteSettings"][0] {
@@ -245,20 +308,34 @@ function isUpcomingHomeEvent(event: HomeEvent) {
 }
 
 export default async function Home() {
-  const [allPosts, allAlbums, fetchedEvents, siteSettings] = await Promise.all([
-    client.fetch<HomeJournalPost[]>(allJournalQuery),
-    client.fetch<HomeGalleryAlbum[]>(allGalleryQuery),
-    client.fetch<HomeEvent[]>(allEventsQuery),
-    client.fetch<SiteSettings | null>(siteSettingsQuery),
-  ]);
+  const [allPosts, allAlbums, thresholdEvents, importedFlvwEvents, siteSettings] =
+    await Promise.all([
+      client.fetch<HomeJournalPost[]>(allJournalQuery),
+      client.fetch<HomeGalleryAlbum[]>(allGalleryQuery),
+      client.fetch<HomeEvent[]>(allEventsQuery),
+      client.fetch<HomeEvent[]>(importedFlvwEventsQuery, {
+        today: getTodayKey(),
+      }),
+      client.fetch<SiteSettings | null>(siteSettingsQuery),
+    ]);
 
   const liveSetsIsOnline = Boolean(siteSettings?.liveSetsIsOnline);
 
   const latestPosts = allPosts.slice(0, 3);
   const latestAlbums = allAlbums.slice(0, 4);
 
+  const fetchedEvents = [...thresholdEvents, ...importedFlvwEvents].sort(
+    (firstEvent, secondEvent) =>
+      getDateKey(firstEvent.startDate).localeCompare(getDateKey(secondEvent.startDate)),
+  );
+
   const upcomingEvents = fetchedEvents.filter(isUpcomingHomeEvent);
-  const latestEvents = upcomingEvents.slice(0, 3);
+  const primaryUpcomingEvents = upcomingEvents.filter(
+    (event) => event.sourceType !== "importedFlvwEvent",
+  );
+  const latestEvents = (
+    primaryUpcomingEvents.length > 0 ? primaryUpcomingEvents : upcomingEvents
+  ).slice(0, 3);
 
   return (
     <main

@@ -84,10 +84,23 @@ type HomeEvent = {
   slug?: {
     current?: string;
   };
+  sourceType?: string;
+  sourceName?: string;
+  sourceUrl?: string;
+  calendarUrl?: string;
+  calendarFileUrl?: string;
+  vcalUrl?: string;
+  icalUrl?: string;
+  sourceId?: string;
   startDate?: string;
   endDate?: string;
   time?: string;
   location?: string;
+  postalCode?: string;
+  city?: string;
+  region?: string;
+  organizer?: string;
+  distances?: string[];
   eventType?: string;
   teaser?: string;
   status?: string;
@@ -616,10 +629,232 @@ function formatEventStatus(status?: string) {
     confirmed: "Fix",
     planned: "Geplant",
     open: "Offen",
+    ungeprueft: "Ungeprüft",
+    geprueft: "Geprüft",
+    interessant: "Interessant",
+    archiv: "Archiv",
   };
 
   return status ? (statuses[status] ?? status) : "Geplant";
 }
+
+function isImportedFlvwEvent(event: HomeEvent) {
+  return (
+    event.sourceType === "importedFlvwEvent" ||
+    event.sourceName === "FLVW Laufkalender"
+  );
+}
+
+function getEventSourceLabel(event: HomeEvent) {
+  if (event.sourceName) return event.sourceName;
+
+  return isImportedFlvwEvent(event) ? "FLVW Laufkalender" : undefined;
+}
+
+function getEventLocationLabel(event: HomeEvent) {
+  return event.location || event.city || event.region;
+}
+
+function getEventDistanceLabel(event: HomeEvent) {
+  const distances = event.distances?.filter(Boolean) ?? [];
+
+  if (distances.length === 0) return undefined;
+
+  return distances.slice(0, 6).join(" · ");
+}
+
+type EventSourceFilter = "all" | "threshold" | "flvw";
+
+function normalizeEventSearchValue(value?: string | null) {
+  return String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+function getEventSearchHaystack(event: HomeEvent) {
+  return normalizeEventSearchValue(
+    [
+      event.title,
+      event.teaser,
+      event.location,
+      event.city,
+      event.region,
+      event.organizer,
+      event.eventType,
+      event.status,
+      event.sourceName,
+      event.sourceId,
+      event.startDate,
+      event.time,
+      ...(event.distances ?? []),
+      ...getEventTags(event.tags),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+}
+
+function getEventMonthKey(event: HomeEvent) {
+  const dateKey = getDateKey(event.startDate);
+
+  return dateKey ? dateKey.slice(0, 7) : "";
+}
+
+function formatEventMonthLabel(monthKey: string) {
+  if (!monthKey) return "Ohne Monat";
+
+  const [year, month] = monthKey.split("-").map(Number);
+
+  if (!year || !month) return monthKey;
+
+  return new Intl.DateTimeFormat("de-DE", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, month - 1, 1));
+}
+
+function getEventMonthOptions(events: HomeEvent[]) {
+  return Array.from(
+    new Set(events.map(getEventMonthKey).filter(Boolean)),
+  ).sort((firstMonth, secondMonth) => firstMonth.localeCompare(secondMonth));
+}
+
+function getEventRegionOptions(events: HomeEvent[]) {
+  return Array.from(
+    new Set(
+      events
+        .map((event) => event.region || event.city || event.location)
+        .filter(Boolean)
+        .map((value) => String(value).trim())
+        .filter(Boolean),
+    ),
+  ).sort((firstRegion, secondRegion) => firstRegion.localeCompare(secondRegion, "de"));
+}
+
+function eventMatchesSelectedTags(event: HomeEvent, selectedTags: string[]) {
+  return hasAnySelectedTag(getEventTags(event.tags), selectedTags);
+}
+
+function eventMatchesSourceFilter(event: HomeEvent, sourceFilter: EventSourceFilter) {
+  if (sourceFilter === "all") return true;
+
+  const importedFlvwEvent = isImportedFlvwEvent(event);
+
+  return sourceFilter === "flvw" ? importedFlvwEvent : !importedFlvwEvent;
+}
+
+function eventMatchesRegionFilter(event: HomeEvent, regionFilter: string) {
+  if (!regionFilter) return true;
+
+  const regionValue = event.region || event.city || event.location || "";
+
+  return regionValue === regionFilter;
+}
+
+function eventMatchesMonthFilter(event: HomeEvent, monthFilter: string) {
+  if (!monthFilter) return true;
+
+  return getEventMonthKey(event) === monthFilter;
+}
+
+function eventMatchesSearchQuery(event: HomeEvent, searchQuery: string) {
+  const normalizedQuery = normalizeEventSearchValue(searchQuery);
+
+  if (!normalizedQuery) return true;
+
+  const searchTerms = normalizedQuery.split(/\s+/).filter(Boolean);
+  const haystack = getEventSearchHaystack(event);
+
+  return searchTerms.every((term) => haystack.includes(term));
+}
+
+function getFilteredEvents(
+  events: HomeEvent[],
+  options: {
+    selectedTags: string[];
+    searchQuery: string;
+    sourceFilter: EventSourceFilter;
+    regionFilter: string;
+    monthFilter: string;
+  },
+) {
+  return events.filter(
+    (event) =>
+      eventMatchesSelectedTags(event, options.selectedTags) &&
+      eventMatchesSearchQuery(event, options.searchQuery) &&
+      eventMatchesSourceFilter(event, options.sourceFilter) &&
+      eventMatchesRegionFilter(event, options.regionFilter) &&
+      eventMatchesMonthFilter(event, options.monthFilter),
+  );
+}
+
+function getEventOrganizerLines(organizer?: string) {
+  if (!organizer) return [];
+
+  return organizer
+    .replace(/\s+((?:E[\s-]?Mail|Email)\s*:)/gi, "\n$1")
+    .replace(/\s+((?:WWW|Website|Webseite)\s*:)/gi, "\n$1")
+    .replace(/\s+((?:Telefon|Tel\.?)\s*:)/gi, "\n$1")
+    .replace(/\s+(Kalender-Datei\s+laden\s+\(vCal\))/gi, "\n$1")
+    .replace(/\s+(Kalender-Datei)/gi, "\n$1")
+    .replace(/\n{2,}/g, "\n")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !/Kalender-Datei/i.test(line));
+}
+
+function hasEventCalendarFileNotice(event: HomeEvent) {
+  return /Kalender-Datei/i.test(event.organizer ?? "");
+}
+
+function getEventCalendarLink(event: HomeEvent) {
+  return (
+    event.calendarUrl ||
+    event.calendarFileUrl ||
+    event.vcalUrl ||
+    event.icalUrl
+  );
+}
+
+function EventOrganizerValue({ organizer }: { organizer: string }) {
+  const lines = getEventOrganizerLines(organizer);
+
+  if (lines.length === 0) return null;
+
+  return (
+    <span className="block space-y-1">
+      {lines.map((line, index) => (
+        <span
+          key={`${line}-${index}`}
+          className="block min-w-0 break-words [overflow-wrap:anywhere]"
+        >
+          {line}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function EventCalendarFileLink({ href }: { href?: string }) {
+  if (!href) {
+    return <span>Kalender-Datei laden (vCal)</span>;
+  }
+
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 transition hover:text-orange-600"
+    >
+      <span>Kalender-Datei laden (vCal)</span>
+      <span aria-hidden="true">→</span>
+    </Link>
+  );
+}
+
 
 export default function HomePortal({
   latestPosts,
@@ -1181,6 +1416,7 @@ export default function HomePortal({
                   ) : (
                     <EventsPanel
                       events={visibleEvents}
+                      searchableEvents={eventTagSource}
                       allTags={allEventTags}
                       selectedTags={selectedEventTags}
                       showAll={showAllContent.events}
@@ -2617,8 +2853,131 @@ function GalleryAlbumPortalDetail({
   );
 }
 
+
+type EventFilterOption = {
+  value: string;
+  label: string;
+};
+
+function EventFilterDropdown({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: EventFilterOption[];
+  onChange: (value: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const selectedOption =
+    options.find((option) => option.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handlePointerDown(event: MouseEvent) {
+      const target = event.target as Node | null;
+
+      if (
+        target &&
+        (buttonRef.current?.contains(target) || panelRef.current?.contains(target))
+      ) {
+        return;
+      }
+
+      setIsOpen(false);
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        buttonRef.current?.focus();
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="relative min-w-0">
+      <span className="block text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+        {label}
+      </span>
+
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => setIsOpen((current) => !current)}
+        className="group mt-2 flex w-full min-w-0 items-center justify-between gap-3 rounded-md border border-black/10 bg-[#fbf7ef]/70 px-3 py-2.5 text-left text-sm font-black text-black/65 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset] outline-none transition hover:border-black/20 hover:bg-[#fffaf2] focus:border-orange-500 focus:bg-[#fffaf2] focus:ring-2 focus:ring-orange-500/10"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span className="min-w-0 truncate">{selectedOption?.label}</span>
+        <span
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-black/10 text-[11px] text-black/45 transition group-hover:border-orange-500/40 group-hover:text-orange-600 ${
+            isOpen ? "rotate-180 border-orange-500/40 text-orange-600" : ""
+          }`}
+          aria-hidden="true"
+        >
+          ▾
+        </span>
+      </button>
+
+      {isOpen ? (
+        <div
+          ref={panelRef}
+          className="absolute left-0 right-0 top-[calc(100%+0.55rem)] z-50 overflow-hidden rounded-md border border-black/15 bg-[#fbf7ef] shadow-[0_18px_45px_rgba(17,18,23,0.16)] ring-1 ring-white/60"
+        >
+          <div className="max-h-64 overflow-y-auto py-1.5 [scrollbar-width:thin]">
+            {options.map((option) => {
+              const active = option.value === value;
+
+              return (
+                <button
+                  key={`${label}-${option.value || "all"}`}
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                    buttonRef.current?.focus();
+                  }}
+                  className={
+                    active
+                      ? "flex w-full items-center justify-between gap-3 bg-orange-500/10 px-3 py-2.5 text-left text-sm font-black text-orange-700"
+                      : "flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm font-bold text-black/60 transition hover:bg-black/[0.035] hover:text-black"
+                  }
+                >
+                  <span className="min-w-0 truncate">{option.label}</span>
+                  {active ? (
+                    <span className="shrink-0 text-[11px] text-orange-600" aria-hidden="true">
+                      ✓
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function EventsPanel({
   events,
+  searchableEvents,
   allTags,
   selectedTags,
   showAll,
@@ -2628,6 +2987,7 @@ function EventsPanel({
   onOpenEvent,
 }: {
   events: HomeEvent[];
+  searchableEvents: HomeEvent[];
   allTags: string[];
   selectedTags: string[];
   showAll: boolean;
@@ -2636,6 +2996,19 @@ function EventsPanel({
   onResetTags: () => void;
   onOpenEvent: (event: HomeEvent) => void;
 }) {
+  const initialFlvwVisibleCount = 8;
+  const flvwVisibleBatchSize = 12;
+
+  const [eventSearchQuery, setEventSearchQuery] = useState("");
+  const [eventRegionFilter, setEventRegionFilter] = useState("");
+  const [eventMonthFilter, setEventMonthFilter] = useState("");
+  const [visibleFlvwCount, setVisibleFlvwCount] = useState(
+    initialFlvwVisibleCount,
+  );
+  const [isFlvwListSwitching, setIsFlvwListSwitching] = useState(false);
+  const flvwListFadeDelayRef = useRef<number | null>(null);
+  const flvwListFadeReleaseRef = useRef<number | null>(null);
+
   const fallbackEvents: HomeEvent[] = [
     {
       _id: "fallback-event-1",
@@ -2654,86 +3027,310 @@ function EventsPanel({
     },
   ];
 
-  const items =
-    events.length > 0 ? events : selectedTags.length > 0 ? [] : fallbackEvents;
+  const hasInlineEventFilters = Boolean(
+    eventSearchQuery.trim() || eventRegionFilter || eventMonthFilter,
+  );
+
+  const baseItems =
+    searchableEvents.length > 0
+      ? searchableEvents
+      : events.length > 0
+        ? events
+        : selectedTags.length > 0
+          ? []
+          : fallbackEvents;
+
+  const thresholdEvents = baseItems.filter(
+    (event) => !isImportedFlvwEvent(event),
+  );
+  const flvwEvents = baseItems.filter(isImportedFlvwEvent);
+
+  const filteredThresholdEvents = selectedTags.length > 0
+    ? thresholdEvents.filter((event) => eventMatchesSelectedTags(event, selectedTags))
+    : thresholdEvents;
+  const visibleThresholdEvents = showAll
+    ? filteredThresholdEvents
+    : filteredThresholdEvents.slice(0, 3);
+
+  const filteredFlvwEvents = getFilteredEvents(flvwEvents, {
+    selectedTags,
+    searchQuery: eventSearchQuery,
+    sourceFilter: "flvw",
+    regionFilter: eventRegionFilter,
+    monthFilter: eventMonthFilter,
+  });
+  const visibleFlvwEvents = filteredFlvwEvents.slice(0, visibleFlvwCount);
+  const remainingFlvwCount = Math.max(
+    filteredFlvwEvents.length - visibleFlvwEvents.length,
+    0,
+  );
+  const nextFlvwBatchCount = Math.min(
+    remainingFlvwCount,
+    flvwVisibleBatchSize,
+  );
+
+  const eventMonthOptions = getEventMonthOptions(flvwEvents);
+  const eventRegionOptions = getEventRegionOptions(flvwEvents);
+  const hasAnyActiveFilter = hasInlineEventFilters || selectedTags.length > 0;
+  const resultCountText = `${filteredFlvwEvents.length} von ${flvwEvents.length} FLVW-Terminen`;
+  const hasMoreThresholdEvents = filteredThresholdEvents.length > 3;
+
+  useEffect(() => {
+    setVisibleFlvwCount(initialFlvwVisibleCount);
+  }, [eventSearchQuery, eventRegionFilter, eventMonthFilter, selectedTags.join("|")]);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window === "undefined") return;
+
+      if (flvwListFadeDelayRef.current) {
+        window.clearTimeout(flvwListFadeDelayRef.current);
+      }
+
+      if (flvwListFadeReleaseRef.current) {
+        window.clearTimeout(flvwListFadeReleaseRef.current);
+      }
+    };
+  }, []);
+
+  function runFlvwListFadeTransition(action: () => void) {
+    if (typeof window === "undefined") {
+      action();
+      return;
+    }
+
+    if (flvwListFadeDelayRef.current) {
+      window.clearTimeout(flvwListFadeDelayRef.current);
+    }
+
+    if (flvwListFadeReleaseRef.current) {
+      window.clearTimeout(flvwListFadeReleaseRef.current);
+    }
+
+    setIsFlvwListSwitching(true);
+
+    flvwListFadeDelayRef.current = window.setTimeout(() => {
+      action();
+
+      flvwListFadeReleaseRef.current = window.setTimeout(() => {
+        setIsFlvwListSwitching(false);
+      }, 55);
+    }, 120);
+  }
+
+  function resetInlineEventFilters() {
+    runFlvwListFadeTransition(() => {
+      setEventSearchQuery("");
+      setEventRegionFilter("");
+      setEventMonthFilter("");
+    });
+  }
 
   return (
-    <div>
-      {items.length === 0 ? (
-        <div className="border-y border-black/10 py-7">
-          <h4 className="text-2xl font-black tracking-[-0.04em]">
-            Keine Events zu dieser Auswahl.
-          </h4>
+    <div className="space-y-10">
+      <section>
+        <div className="mb-5 flex flex-col gap-3 border-b border-black/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-black/35">
+              Threshold Peaks
+            </p>
+            <h4 className="mt-2 text-2xl font-black leading-tight tracking-[-0.045em] text-black md:text-3xl">
+              Meine Highlights
+            </h4>
+            <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-black/55">
+              Persönliche Termine, geplante Läufe und Events, die direkt zu
+              Threshold Peaks gehören.
+            </p>
+          </div>
 
-          <p className="mt-4 max-w-xl leading-8 text-black/65">
-            Der Event-Filter ist gerade etwas zu eng geschnürt. Setz ihn zurück
-            oder wähle einen anderen Hashtag.
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+            {filteredThresholdEvents.length === 1
+              ? "1 Termin"
+              : `${filteredThresholdEvents.length} Termine`}
           </p>
         </div>
-      ) : (
-        <div className="divide-y divide-black/10 border-y border-black/10">
-          {items.map((event) => {
-            const date = formatHomeEventDate(event.startDate, event.endDate);
-            const time = event.time || formatHomeEventTime(event.startDate);
-            const type = formatEventType(event.eventType);
-            const status = formatEventStatus(event.status);
-            const tags = getEventTags(event.tags);
 
-            return (
-              <article
-                key={event._id}
-                className="group py-5 text-left transition hover:bg-black/[0.025] md:px-3"
-              >
-                <button
-                  type="button"
-                  onClick={() => onOpenEvent(event)}
-                  className="w-full text-left"
-                >
-                  <EventCardContent
-                    date={date}
-                    time={time}
-                    title={event.title}
-                    type={type}
-                    status={status}
-                    text={
-                      event.teaser ||
-                      "Ein kommender Termin im Threshold Peaks Kalender."
-                    }
-                    location={event.location}
-                    linked
-                  />
-                </button>
+        {visibleThresholdEvents.length === 0 ? (
+          <div className="border-y border-black/10 py-6">
+            <h5 className="text-xl font-black tracking-[-0.04em]">
+              Keine eigenen Highlights zu dieser Auswahl.
+            </h5>
+            <p className="mt-3 max-w-xl text-sm font-semibold leading-7 text-black/55">
+              Sobald eigene Events in Sanity veröffentlicht sind, erscheinen sie
+              hier über dem FLVW-Kalender.
+            </p>
+          </div>
+        ) : (
+          <EventList
+            events={visibleThresholdEvents}
+            selectedTags={selectedTags}
+            onToggleTag={onToggleTag}
+            onOpenEvent={onOpenEvent}
+          />
+        )}
 
-                {tags.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 md:ml-[170px]">
-                    {tags.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => onToggleTag(tag)}
-                        className={
-                          isTagSelected(selectedTags, tag)
-                            ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
-                            : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
-                        }
-                      >
-                        #{tag}
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
+        {hasMoreThresholdEvents ? (
+          <PortalBottomAction
+            showAll={showAll}
+            showAllLabel="Weitere Highlights anzeigen"
+            showLessLabel="Weniger Highlights anzeigen"
+            onToggle={onToggleShowAll}
+          />
+        ) : null}
+      </section>
+
+      <section>
+        <div className="mb-5 flex flex-col gap-3 border-b border-black/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.32em] text-black/35">
+              Importierter Kalender
+            </p>
+            <h4 className="mt-2 text-2xl font-black leading-tight tracking-[-0.045em] text-black md:text-3xl">
+              FLVW Laufkalender
+            </h4>
+            <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-black/55">
+              Öffentliche Laufveranstaltungen aus dem FLVW-Kalender. Suche und
+              Filter wirken direkt auf diese Liste.
+            </p>
+          </div>
+
+          <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+            {flvwEvents.length === 1 ? "1 FLVW-Termin" : `${flvwEvents.length} FLVW-Termine`}
+          </p>
         </div>
-      )}
 
-      <PortalBottomAction
-        showAll={showAll}
-        showAllLabel="Weitere Termine anzeigen"
-        showLessLabel="Weniger Termine anzeigen"
-        onToggle={onToggleShowAll}
-      />
+        <section className="mb-6 rounded-md border border-black/10 bg-[#f4efe6]/45 p-4 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset] md:p-5">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_repeat(2,minmax(160px,0.75fr))] lg:items-end">
+            <label className="block">
+              <span className="block text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+                Suche
+              </span>
+              <input
+                type="search"
+                value={eventSearchQuery}
+                onChange={(event) => setEventSearchQuery(event.target.value)}
+                placeholder="Name, Ort, Kreis, Ausrichter, Strecke ..."
+                className="mt-2 w-full rounded-md border border-black/10 bg-[#fbf7ef]/70 px-3 py-2.5 text-sm font-semibold text-black/75 outline-none transition placeholder:text-black/30 hover:border-black/20 hover:bg-[#fffaf2] focus:border-orange-500 focus:bg-[#fffaf2] focus:ring-2 focus:ring-orange-500/10"
+              />
+            </label>
+
+            <EventFilterDropdown
+              label="Monat"
+              value={eventMonthFilter}
+              options={[
+                { value: "", label: "Alle Monate" },
+                ...eventMonthOptions.map((monthKey) => ({
+                  value: monthKey,
+                  label: formatEventMonthLabel(monthKey),
+                })),
+              ]}
+              onChange={(value) =>
+                runFlvwListFadeTransition(() => setEventMonthFilter(value))
+              }
+            />
+
+            <EventFilterDropdown
+              label="Region"
+              value={eventRegionFilter}
+              options={[
+                { value: "", label: "Alle Regionen" },
+                ...eventRegionOptions.map((region) => ({
+                  value: region,
+                  label: region,
+                })),
+              ]}
+              onChange={(value) =>
+                runFlvwListFadeTransition(() => setEventRegionFilter(value))
+              }
+            />
+          </div>
+
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
+              {resultCountText}
+            </p>
+
+            {hasAnyActiveFilter ? (
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                {selectedTags.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={onResetTags}
+                    className="border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:border-orange-500 hover:text-orange-600"
+                  >
+                    Hashtags zurücksetzen
+                  </button>
+                ) : null}
+
+                {hasInlineEventFilters ? (
+                  <button
+                    type="button"
+                    onClick={resetInlineEventFilters}
+                    className="border-b border-black/15 pb-1 text-[10px] font-black uppercase tracking-[0.22em] text-black/40 transition hover:border-orange-500 hover:text-orange-600"
+                  >
+                    Suche & Filter zurücksetzen
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <div
+          aria-live="polite"
+          className={`transition-all duration-300 ease-out [overflow-anchor:none] ${
+            isFlvwListSwitching
+              ? "translate-y-2 opacity-0"
+              : "translate-y-0 opacity-100"
+          }`}
+        >
+          {filteredFlvwEvents.length === 0 ? (
+            <div className="border-y border-black/10 py-7">
+              <h5 className="text-2xl font-black tracking-[-0.04em]">
+                Keine FLVW-Termine zu dieser Auswahl.
+              </h5>
+
+              <p className="mt-4 max-w-xl leading-8 text-black/65">
+                Der Filter ist gerade etwas zu eng geschnürt. Setz ihn zurück
+                oder wähle einen anderen Suchbegriff.
+              </p>
+            </div>
+          ) : (
+            <EventList
+              events={visibleFlvwEvents}
+              selectedTags={selectedTags}
+              onToggleTag={onToggleTag}
+              onOpenEvent={onOpenEvent}
+            />
+          )}
+
+          {remainingFlvwCount > 0 ? (
+            <div className="mt-7 flex justify-start border-t border-black/10 pt-5">
+              <button
+                type="button"
+                onClick={() =>
+                  setVisibleFlvwCount((current) => current + flvwVisibleBatchSize)
+                }
+                className={lineButtonWideClass}
+              >
+                Weitere FLVW-Termine anzeigen
+                <span>+{nextFlvwBatchCount}</span>
+              </button>
+            </div>
+          ) : visibleFlvwCount > initialFlvwVisibleCount && filteredFlvwEvents.length > initialFlvwVisibleCount ? (
+            <div className="mt-7 flex justify-start border-t border-black/10 pt-5">
+              <button
+                type="button"
+                onClick={() => setVisibleFlvwCount(initialFlvwVisibleCount)}
+                className={lineButtonWideClass}
+              >
+                Weniger FLVW-Termine anzeigen
+                <span>↑</span>
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </section>
 
       <PortalTagFilter
         label="Event"
@@ -2746,6 +3343,79 @@ function EventsPanel({
   );
 }
 
+function EventList({
+  events,
+  selectedTags,
+  onToggleTag,
+  onOpenEvent,
+}: {
+  events: HomeEvent[];
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
+  onOpenEvent: (event: HomeEvent) => void;
+}) {
+  return (
+    <div className="divide-y divide-black/10 border-y border-black/10">
+      {events.map((event) => {
+        const date = formatHomeEventDate(event.startDate, event.endDate);
+        const time = event.time || formatHomeEventTime(event.startDate);
+        const type = formatEventType(event.eventType);
+        const status = formatEventStatus(event.status);
+        const tags = getEventTags(event.tags);
+        const sourceLabel = getEventSourceLabel(event);
+        const locationLabel = getEventLocationLabel(event);
+
+        return (
+          <article
+            key={event._id}
+            className="group py-5 text-left transition hover:bg-black/[0.025] md:px-3"
+          >
+            <button
+              type="button"
+              onClick={() => onOpenEvent(event)}
+              className="w-full text-left"
+            >
+              <EventCardContent
+                date={date}
+                time={time}
+                title={event.title}
+                type={type}
+                status={status}
+                text={
+                  event.teaser ||
+                  "Ein kommender Termin im Threshold Peaks Kalender."
+                }
+                location={locationLabel}
+                sourceLabel={sourceLabel}
+                linked
+              />
+            </button>
+
+            {tags.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 md:ml-[170px]">
+                {tags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => onToggleTag(tag)}
+                    className={
+                      isTagSelected(selectedTags, tag)
+                        ? "px-1 text-[10px] font-bold tracking-[0.04em] text-orange-600"
+                        : "px-1 text-[10px] font-bold tracking-[0.04em] text-black/35 transition hover:text-orange-600"
+                    }
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </article>
+        );
+      })}
+    </div>
+  );
+}
+
 function EventCardContent({
   date,
   time,
@@ -2754,6 +3424,7 @@ function EventCardContent({
   status,
   text,
   location,
+  sourceLabel,
   linked = false,
 }: {
   date: string;
@@ -2763,6 +3434,7 @@ function EventCardContent({
   status: string;
   text: string;
   location?: string;
+  sourceLabel?: string;
   linked?: boolean;
 }) {
   return (
@@ -2788,6 +3460,7 @@ function EventCardContent({
           <span>{date}</span>
           {time ? <span>{time}</span> : null}
           {location ? <span>{location}</span> : null}
+          {sourceLabel ? <span>Quelle: {sourceLabel}</span> : null}
         </div>
 
         <p className="mt-3 max-w-3xl leading-7 text-black/60">{text}</p>
@@ -2805,18 +3478,20 @@ function EventCardContent({
 function EventDetailFact({
   label,
   value,
+  className = "",
 }: {
   label: string;
   value: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="py-5 md:px-6">
+    <div className={`min-w-0 py-5 md:px-5 ${className}`}>
       <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
         {label}
       </p>
-      <p className="mt-2 text-sm font-black leading-6 text-black/75 md:text-base">
+      <div className="mt-2 min-w-0 whitespace-pre-wrap break-words text-sm font-black leading-6 text-black/75 [overflow-wrap:anywhere] md:text-base">
         {value}
-      </p>
+      </div>
     </div>
   );
 }
@@ -2835,7 +3510,14 @@ function EventPortalDetail({
   const formattedDate = formatEventDetailDate(event.startDate);
   const image = hasSanityImageAsset(event.image) ? event.image : null;
   const tags = getEventTags(event.tags);
-  const commentTargetSlug = event.slug?.current || event._id;
+  const isFlvwEvent = isImportedFlvwEvent(event);
+  const sourceLabel = getEventSourceLabel(event);
+  const locationLabel = getEventLocationLabel(event);
+  const distanceLabel = getEventDistanceLabel(event);
+  const calendarLink = getEventCalendarLink(event);
+  const hasCalendarFile = Boolean(calendarLink || hasEventCalendarFileNotice(event));
+  const commentTargetSlug = event.sourceId || event.slug?.current || event._id;
+  const shareSlug = isFlvwEvent ? undefined : event.slug?.current;
 
   return (
     <article className="text-neutral-950">
@@ -2867,8 +3549,9 @@ function EventPortalDetail({
         <header className="mb-10 grid gap-8 border-b border-black/10 pb-10 lg:grid-cols-[minmax(0,1fr)_minmax(280px,380px)] lg:items-end">
           <div>
             <div className="mb-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.25em] text-neutral-500">
-              {event.eventType ? <span>{event.eventType}</span> : null}
-              {event.status ? <span>• {event.status}</span> : null}
+              {event.eventType ? <span>{formatEventType(event.eventType)}</span> : null}
+              {event.status ? <span>• {formatEventStatus(event.status)}</span> : null}
+              {sourceLabel ? <span>• {sourceLabel}</span> : null}
             </div>
 
             <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-neutral-950 md:text-6xl">
@@ -2895,8 +3578,8 @@ function EventPortalDetail({
           ) : null}
         </header>
 
-        <section className="mb-12 border-b border-black/10">
-          <div className="divide-y divide-black/10 md:grid md:grid-cols-5 md:divide-x md:divide-y-0">
+        <section className="mb-12 border-y border-black/10">
+          <div className="grid divide-y divide-black/10 md:grid-cols-2 xl:grid-cols-3">
             <EventDetailFact
               label="Datum"
               value={formattedDate ?? "Noch offen"}
@@ -2911,9 +3594,44 @@ function EventPortalDetail({
             />
             <EventDetailFact
               label="Ort"
-              value={event.location ?? "Noch offen"}
+              value={locationLabel ?? "Noch offen"}
             />
-            <div className="py-5 md:px-6">
+            {distanceLabel ? (
+              <EventDetailFact label="Strecken" value={distanceLabel} />
+            ) : null}
+            {event.organizer && getEventOrganizerLines(event.organizer).length > 0 ? (
+              <EventDetailFact
+                label="Ausrichter"
+                value={<EventOrganizerValue organizer={event.organizer} />}
+                className={hasCalendarFile ? "md:col-span-2 xl:col-span-2" : "md:col-span-2 xl:col-span-3"}
+              />
+            ) : null}
+            {hasCalendarFile ? (
+              <EventDetailFact
+                label="Kalender"
+                value={<EventCalendarFileLink href={calendarLink} />}
+              />
+            ) : null}
+            {sourceLabel ? (
+              <EventDetailFact
+                label="Quelle"
+                value={
+                  event.sourceUrl ? (
+                    <Link
+                      href={event.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition hover:text-orange-600"
+                    >
+                      {sourceLabel} →
+                    </Link>
+                  ) : (
+                    sourceLabel
+                  )
+                }
+              />
+            ) : null}
+            <div className="min-w-0 py-5 md:px-5">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
                 Gefällt mir
               </p>
@@ -2926,7 +3644,7 @@ function EventPortalDetail({
                 />
               </div>
             </div>
-            <div className="py-5 md:px-6">
+            <div className="min-w-0 py-5 md:px-5">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-black/35">
                 Teilen
               </p>
@@ -2934,7 +3652,7 @@ function EventPortalDetail({
               <div className="mt-2 flex items-center">
                 <PortalShareButton
                   title={event.title}
-                  slug={event.slug?.current}
+                  slug={shareSlug}
                   basePath="events"
                   fallbackHash="portal-events"
                 />

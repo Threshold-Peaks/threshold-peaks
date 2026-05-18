@@ -3,5 +3,13 @@ import {galleryAlbum} from './galleryAlbum'
 import {event} from './event'
 import {comment} from './comment'
 import {siteSettings} from './siteSettings'
+import {importedFlvwEvent} from './importedFlvwEvent'
 
-export const schemaTypes = [journalPost, galleryAlbum, event, comment, siteSettings]
+export const schemaTypes = [
+  journalPost,
+  galleryAlbum,
+  event,
+  comment,
+  siteSettings,
+  importedFlvwEvent,
+]
