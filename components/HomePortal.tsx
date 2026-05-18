@@ -733,6 +733,22 @@ function getEventRegionOptions(events: HomeEvent[]) {
   ).sort((firstRegion, secondRegion) => firstRegion.localeCompare(secondRegion, "de"));
 }
 
+function getEventLocationFilterValue(event: HomeEvent) {
+  return String(event.city || event.location || "").trim();
+}
+
+function getEventLocationOptions(events: HomeEvent[]) {
+  return Array.from(
+    new Set(
+      events
+        .map(getEventLocationFilterValue)
+        .filter(Boolean),
+    ),
+  ).sort((firstLocation, secondLocation) =>
+    firstLocation.localeCompare(secondLocation, "de"),
+  );
+}
+
 function eventMatchesSelectedTags(event: HomeEvent, selectedTags: string[]) {
   return hasAnySelectedTag(getEventTags(event.tags), selectedTags);
 }
@@ -753,10 +769,23 @@ function eventMatchesRegionFilter(event: HomeEvent, regionFilter: string) {
   return regionValue === regionFilter;
 }
 
+function eventMatchesLocationFilter(event: HomeEvent, locationFilter: string) {
+  if (!locationFilter) return true;
+
+  return getEventLocationFilterValue(event) === locationFilter;
+}
+
 function eventMatchesMonthFilter(event: HomeEvent, monthFilter: string) {
   if (!monthFilter) return true;
 
   return getEventMonthKey(event) === monthFilter;
+}
+
+function getEventSearchTokens(event: HomeEvent) {
+  return getEventSearchHaystack(event)
+    .split(/[^a-z0-9]+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
 }
 
 function eventMatchesSearchQuery(event: HomeEvent, searchQuery: string) {
@@ -764,10 +793,17 @@ function eventMatchesSearchQuery(event: HomeEvent, searchQuery: string) {
 
   if (!normalizedQuery) return true;
 
-  const searchTerms = normalizedQuery.split(/\s+/).filter(Boolean);
-  const haystack = getEventSearchHaystack(event);
+  const searchTerms = normalizedQuery
+    .split(/[^a-z0-9]+/)
+    .map((term) => term.trim())
+    .filter(Boolean);
+  const searchableTokens = getEventSearchTokens(event);
 
-  return searchTerms.every((term) => haystack.includes(term));
+  return searchTerms.every((term) =>
+    searchableTokens.some(
+      (token) => token === term || (term.length >= 3 && token.startsWith(term)),
+    ),
+  );
 }
 
 function getFilteredEvents(
@@ -777,6 +813,7 @@ function getFilteredEvents(
     searchQuery: string;
     sourceFilter: EventSourceFilter;
     regionFilter: string;
+    locationFilter: string;
     monthFilter: string;
   },
 ) {
@@ -786,6 +823,7 @@ function getFilteredEvents(
       eventMatchesSearchQuery(event, options.searchQuery) &&
       eventMatchesSourceFilter(event, options.sourceFilter) &&
       eventMatchesRegionFilter(event, options.regionFilter) &&
+      eventMatchesLocationFilter(event, options.locationFilter) &&
       eventMatchesMonthFilter(event, options.monthFilter),
   );
 }
@@ -797,6 +835,7 @@ function getEventOrganizerLines(organizer?: string) {
     .replace(/\s+((?:E[\s-]?Mail|Email)\s*:)/gi, "\n$1")
     .replace(/\s+((?:WWW|Website|Webseite)\s*:)/gi, "\n$1")
     .replace(/\s+((?:Telefon|Tel\.?)\s*:)/gi, "\n$1")
+    .replace(/\s+(Informationen?\s+aus\s+der\s+Stadiondatenbank\s*:)/gi, "\n$1")
     .replace(/\s+(Kalender-Datei\s+laden\s+\(vCal\))/gi, "\n$1")
     .replace(/\s+(Kalender-Datei)/gi, "\n$1")
     .replace(/\n{2,}/g, "\n")
@@ -2999,8 +3038,10 @@ function EventsPanel({
   const initialFlvwVisibleCount = 8;
   const flvwVisibleBatchSize = 12;
 
+  const [eventSearchInput, setEventSearchInput] = useState("");
   const [eventSearchQuery, setEventSearchQuery] = useState("");
   const [eventRegionFilter, setEventRegionFilter] = useState("");
+  const [eventLocationFilter, setEventLocationFilter] = useState("");
   const [eventMonthFilter, setEventMonthFilter] = useState("");
   const [visibleFlvwCount, setVisibleFlvwCount] = useState(
     initialFlvwVisibleCount,
@@ -3028,7 +3069,7 @@ function EventsPanel({
   ];
 
   const hasInlineEventFilters = Boolean(
-    eventSearchQuery.trim() || eventRegionFilter || eventMonthFilter,
+    eventSearchQuery.trim() || eventRegionFilter || eventLocationFilter || eventMonthFilter,
   );
 
   const baseItems =
@@ -3057,6 +3098,7 @@ function EventsPanel({
     searchQuery: eventSearchQuery,
     sourceFilter: "flvw",
     regionFilter: eventRegionFilter,
+    locationFilter: eventLocationFilter,
     monthFilter: eventMonthFilter,
   });
   const visibleFlvwEvents = filteredFlvwEvents.slice(0, visibleFlvwCount);
@@ -3071,13 +3113,14 @@ function EventsPanel({
 
   const eventMonthOptions = getEventMonthOptions(flvwEvents);
   const eventRegionOptions = getEventRegionOptions(flvwEvents);
+  const eventLocationOptions = getEventLocationOptions(flvwEvents);
   const hasAnyActiveFilter = hasInlineEventFilters || selectedTags.length > 0;
   const resultCountText = `${filteredFlvwEvents.length} von ${flvwEvents.length} FLVW-Terminen`;
   const hasMoreThresholdEvents = filteredThresholdEvents.length > 3;
 
   useEffect(() => {
     setVisibleFlvwCount(initialFlvwVisibleCount);
-  }, [eventSearchQuery, eventRegionFilter, eventMonthFilter, selectedTags.join("|")]);
+  }, [eventSearchQuery, eventRegionFilter, eventLocationFilter, eventMonthFilter, selectedTags.join("|")]);
 
   useEffect(() => {
     return () => {
@@ -3120,8 +3163,10 @@ function EventsPanel({
 
   function resetInlineEventFilters() {
     runFlvwListFadeTransition(() => {
+      setEventSearchInput("");
       setEventSearchQuery("");
       setEventRegionFilter("");
+      setEventLocationFilter("");
       setEventMonthFilter("");
     });
   }
@@ -3200,16 +3245,21 @@ function EventsPanel({
         </div>
 
         <section className="mb-6 rounded-md border border-black/10 bg-[#f4efe6]/45 p-4 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset] md:p-5">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_repeat(2,minmax(160px,0.75fr))] lg:items-end">
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_repeat(3,minmax(150px,0.68fr))] lg:items-end">
             <label className="block">
               <span className="block text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
                 Suche
               </span>
               <input
                 type="search"
-                value={eventSearchQuery}
-                onChange={(event) => setEventSearchQuery(event.target.value)}
-                placeholder="Name, Ort, Kreis, Ausrichter, Strecke ..."
+                value={eventSearchInput}
+                onChange={(event) => {
+                  const nextSearchQuery = event.target.value;
+
+                  setEventSearchInput(nextSearchQuery);
+                  runFlvwListFadeTransition(() => setEventSearchQuery(nextSearchQuery));
+                }}
+                placeholder="Name, Strecke, Ausrichter ..."
                 className="mt-2 w-full rounded-md border border-black/10 bg-[#fbf7ef]/70 px-3 py-2.5 text-sm font-semibold text-black/75 outline-none transition placeholder:text-black/30 hover:border-black/20 hover:bg-[#fffaf2] focus:border-orange-500 focus:bg-[#fffaf2] focus:ring-2 focus:ring-orange-500/10"
               />
             </label>
@@ -3241,6 +3291,21 @@ function EventsPanel({
               ]}
               onChange={(value) =>
                 runFlvwListFadeTransition(() => setEventRegionFilter(value))
+              }
+            />
+
+            <EventFilterDropdown
+              label="Ort"
+              value={eventLocationFilter}
+              options={[
+                { value: "", label: "Alle Orte" },
+                ...eventLocationOptions.map((location) => ({
+                  value: location,
+                  label: location,
+                })),
+              ]}
+              onChange={(value) =>
+                runFlvwListFadeTransition(() => setEventLocationFilter(value))
               }
             />
           </div>
@@ -3278,10 +3343,10 @@ function EventsPanel({
 
         <div
           aria-live="polite"
-          className={`transition-all duration-300 ease-out [overflow-anchor:none] ${
+          className={`transition-[opacity,transform,filter] duration-[350ms] ease-out [overflow-anchor:none] ${
             isFlvwListSwitching
-              ? "translate-y-2 opacity-0"
-              : "translate-y-0 opacity-100"
+              ? "translate-y-3 scale-[0.995] opacity-0 blur-[1.5px]"
+              : "translate-y-0 scale-100 opacity-100 blur-0"
           }`}
         >
           {filteredFlvwEvents.length === 0 ? (
@@ -3309,7 +3374,9 @@ function EventsPanel({
               <button
                 type="button"
                 onClick={() =>
-                  setVisibleFlvwCount((current) => current + flvwVisibleBatchSize)
+                  runFlvwListFadeTransition(() =>
+                    setVisibleFlvwCount((current) => current + flvwVisibleBatchSize),
+                  )
                 }
                 className={lineButtonWideClass}
               >
@@ -3321,7 +3388,11 @@ function EventsPanel({
             <div className="mt-7 flex justify-start border-t border-black/10 pt-5">
               <button
                 type="button"
-                onClick={() => setVisibleFlvwCount(initialFlvwVisibleCount)}
+                onClick={() =>
+                  runFlvwListFadeTransition(() =>
+                    setVisibleFlvwCount(initialFlvwVisibleCount),
+                  )
+                }
                 className={lineButtonWideClass}
               >
                 Weniger FLVW-Termine anzeigen
