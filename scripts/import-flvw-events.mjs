@@ -85,6 +85,46 @@ function unique(values) {
   return [...new Set(values.filter(Boolean).map(cleanText))];
 }
 
+function formatDistanceNumber(value, maximumFractionDigits = 3) {
+  if (!Number.isFinite(value)) return "";
+
+  return new Intl.NumberFormat("de-DE", {
+    maximumFractionDigits,
+  }).format(value);
+}
+
+function normalizeDistanceLabel(value) {
+  const rawValue = cleanText(value);
+  const match = rawValue.match(/(\d+(?:[,.]\d+)?)\s*(km|m)\b/i);
+
+  if (!match) return rawValue;
+
+  const numericValue = Number(match[1].replace(",", "."));
+  const unit = match[2].toLowerCase();
+
+  if (!Number.isFinite(numericValue)) return rawValue;
+
+  if (unit === "km") {
+    // FLVW-Datenfehler abfangen: Werte wie 7250 km sind praktisch
+    // immer als 7250 m gemeint. Echte Ultras bis unter 400 km bleiben km.
+    if (numericValue >= 400) {
+      if (numericValue < 1000) {
+        return `${formatDistanceNumber(Math.round(numericValue), 0)} m`;
+      }
+
+      return `${formatDistanceNumber(numericValue / 1000)} km`;
+    }
+
+    return `${formatDistanceNumber(numericValue)} km`;
+  }
+
+  if (numericValue >= 1000) {
+    return `${formatDistanceNumber(numericValue / 1000)} km`;
+  }
+
+  return `${formatDistanceNumber(Math.round(numericValue), 0)} m`;
+}
+
 async function fetchHtml(url) {
   const response = await fetch(url, {
     headers: {
@@ -351,9 +391,14 @@ function extractDetailData(html, fallback) {
         )
       : "";
 
-  const distances = unique(
-    competitionText.match(/\d+(?:[,.]\d+)?\s*km/gi) || []
-  );
+  const rawDistances = [
+    ...(competitionText.match(/\d+(?:[,.]\d+)?\s*km\b/gi) || []),
+    // Meterangaben bewusst nur klein geschrieben erkennen, damit Altersklassen
+    // wie "M50" nicht versehentlich als 50 m interpretiert werden.
+    ...(competitionText.match(/\d+(?:[,.]\d+)?\s*m\b/g) || []),
+  ];
+
+  const distances = unique(rawDistances.map(normalizeDistanceLabel));
 
   return {
     title,

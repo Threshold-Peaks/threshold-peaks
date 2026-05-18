@@ -749,6 +749,107 @@ function getEventLocationOptions(events: HomeEvent[]) {
   );
 }
 
+type EventDistanceOption = {
+  value: string;
+  label: string;
+  rank: number;
+};
+
+function normalizeEventDistanceValue(value?: string | null) {
+  return normalizeEventSearchValue(value).replace(/,/g, ".");
+}
+
+function getEventDistanceKmValue(value?: string | null) {
+  const normalizedValue = normalizeEventDistanceValue(value);
+  const match = normalizedValue.match(/(\d+(?:\.\d+)?)\s*(km|m)\b/);
+
+  if (!match) return null;
+
+  const parsedValue = Number(match[1]);
+
+  if (!Number.isFinite(parsedValue)) return null;
+
+  return match[2] === "m" ? parsedValue / 1000 : parsedValue;
+}
+
+function formatEventDistanceNumber(value: number) {
+  const roundedValue = Math.round(value * 1000) / 1000;
+
+  return new Intl.NumberFormat("de-DE", {
+    maximumFractionDigits: 3,
+  }).format(roundedValue);
+}
+
+function isApproximatelyDistance(value: number, target: number) {
+  const tolerance = target < 1 ? 0.02 : 0.15;
+
+  return Math.abs(value - target) <= tolerance;
+}
+
+function getCanonicalDistanceOption(rawDistance: string): EventDistanceOption | null {
+  const normalizedDistance = normalizeEventDistanceValue(rawDistance);
+  const kmValue = getEventDistanceKmValue(rawDistance);
+
+  if (normalizedDistance.includes("halbmarathon") || (kmValue !== null && isApproximatelyDistance(kmValue, 21.1))) {
+    return { value: "half-marathon", label: "Halbmarathon", rank: 21098 };
+  }
+
+  if (normalizedDistance.includes("marathon") || (kmValue !== null && isApproximatelyDistance(kmValue, 42.2))) {
+    return { value: "marathon", label: "Marathon", rank: 42195 };
+  }
+
+  if (kmValue !== null) {
+    const roundedValue = Math.round(kmValue * 1000) / 1000;
+    const metersValue = Math.round(roundedValue * 1000);
+    const label = roundedValue < 1
+      ? `${metersValue} m`
+      : `${formatEventDistanceNumber(roundedValue)} km`;
+
+    return {
+      value: `km:${roundedValue}`,
+      label,
+      rank: metersValue,
+    };
+  }
+
+  if (normalizedDistance.includes("walking") || normalizedDistance.includes("walk")) {
+    return { value: "walking", label: "Walking", rank: 900000 };
+  }
+
+  return null;
+}
+
+function getEventDistanceOptions(events: HomeEvent[]) {
+  const optionsByValue = new Map<string, EventDistanceOption>();
+
+  events.forEach((event) => {
+    (event.distances ?? []).forEach((distance) => {
+      const option = getCanonicalDistanceOption(distance);
+
+      if (!option || optionsByValue.has(option.value)) return;
+
+      optionsByValue.set(option.value, option);
+    });
+  });
+
+  const preferredOrder = ["km:5", "km:10", "half-marathon", "marathon", "walking"];
+  const options = Array.from(optionsByValue.values());
+
+  return options.sort((firstOption, secondOption) => {
+    const firstPreferredIndex = preferredOrder.indexOf(firstOption.value);
+    const secondPreferredIndex = preferredOrder.indexOf(secondOption.value);
+
+    if (firstPreferredIndex >= 0 || secondPreferredIndex >= 0) {
+      return (
+        (firstPreferredIndex >= 0 ? firstPreferredIndex : preferredOrder.length + firstOption.rank) -
+        (secondPreferredIndex >= 0 ? secondPreferredIndex : preferredOrder.length + secondOption.rank)
+      );
+    }
+
+    return firstOption.rank - secondOption.rank || firstOption.label.localeCompare(secondOption.label, "de");
+  });
+}
+
 function eventMatchesSelectedTags(event: HomeEvent, selectedTags: string[]) {
   return hasAnySelectedTag(getEventTags(event.tags), selectedTags);
 }
@@ -779,6 +880,52 @@ function eventMatchesMonthFilter(event: HomeEvent, monthFilter: string) {
   if (!monthFilter) return true;
 
   return getEventMonthKey(event) === monthFilter;
+}
+
+function eventMatchesDistanceFilter(event: HomeEvent, distanceFilter: string) {
+  if (!distanceFilter) return true;
+
+  const normalizedDistanceTexts = (event.distances ?? []).map(normalizeEventDistanceValue);
+  const distanceValues = (event.distances ?? [])
+    .map(getEventDistanceKmValue)
+    .filter((distanceValue): distanceValue is number => distanceValue !== null);
+
+  if (distanceFilter === "half-marathon") {
+    return (
+      normalizedDistanceTexts.some((distance) => distance.includes("halbmarathon")) ||
+      distanceValues.some((distanceValue) => isApproximatelyDistance(distanceValue, 21.1))
+    );
+  }
+
+  if (distanceFilter === "marathon") {
+    return (
+      normalizedDistanceTexts.some((distance) =>
+        distance.includes("marathon") && !distance.includes("halbmarathon"),
+      ) || distanceValues.some((distanceValue) => isApproximatelyDistance(distanceValue, 42.2))
+    );
+  }
+
+  if (distanceFilter === "walking") {
+    const haystack = normalizeEventSearchValue(
+      [event.title, event.teaser, event.eventType, ...(event.distances ?? [])]
+        .filter(Boolean)
+        .join(" "),
+    );
+
+    return haystack.includes("walking") || haystack.includes("walk");
+  }
+
+  if (distanceFilter.startsWith("km:")) {
+    const selectedDistance = Number(distanceFilter.replace("km:", ""));
+
+    if (!Number.isFinite(selectedDistance)) return true;
+
+    return distanceValues.some((distanceValue) =>
+      isApproximatelyDistance(distanceValue, selectedDistance),
+    );
+  }
+
+  return false;
 }
 
 function getEventSearchTokens(event: HomeEvent) {
@@ -815,6 +962,7 @@ function getFilteredEvents(
     regionFilter: string;
     locationFilter: string;
     monthFilter: string;
+    distanceFilter: string;
   },
 ) {
   return events.filter(
@@ -824,7 +972,8 @@ function getFilteredEvents(
       eventMatchesSourceFilter(event, options.sourceFilter) &&
       eventMatchesRegionFilter(event, options.regionFilter) &&
       eventMatchesLocationFilter(event, options.locationFilter) &&
-      eventMatchesMonthFilter(event, options.monthFilter),
+      eventMatchesMonthFilter(event, options.monthFilter) &&
+      eventMatchesDistanceFilter(event, options.distanceFilter),
   );
 }
 
@@ -836,6 +985,7 @@ function getEventOrganizerLines(organizer?: string) {
     .replace(/\s+((?:WWW|Website|Webseite)\s*:)/gi, "\n$1")
     .replace(/\s+((?:Telefon|Tel\.?)\s*:)/gi, "\n$1")
     .replace(/\s+(Informationen?\s+aus\s+der\s+Stadiondatenbank\s*:)/gi, "\n$1")
+    .replace(/\s+((?:Online[-\s]?Anmeldung|Anmeldung)\s*:)/gi, "\n$1")
     .replace(/\s+(Kalender-Datei\s+laden\s+\(vCal\))/gi, "\n$1")
     .replace(/\s+(Kalender-Datei)/gi, "\n$1")
     .replace(/\n{2,}/g, "\n")
@@ -891,6 +1041,27 @@ function EventCalendarFileLink({ href }: { href?: string }) {
       <span>Kalender-Datei laden (vCal)</span>
       <span aria-hidden="true">→</span>
     </Link>
+  );
+}
+
+function FlvwSourceNotice({ compact = false }: { compact?: boolean }) {
+  return (
+    <aside
+      className={[
+        "rounded-md border border-black/10 bg-[#f4efe6]/55 shadow-[0_1px_0_rgba(255,255,255,0.65)_inset]",
+        compact ? "mb-10 px-4 py-3" : "mb-6 px-4 py-4 md:px-5",
+      ].join(" ")}
+    >
+      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
+        Hinweis zur Quelle
+      </p>
+      <p className="mt-2 max-w-4xl text-xs font-semibold leading-6 text-black/55 md:text-sm md:leading-7">
+        Die Termine werden aus öffentlich verfügbaren Daten des FLVW-Laufkalenders
+        zusammengeführt und zur besseren Auffindbarkeit verlinkt. Angaben ohne
+        Gewähr. Maßgeblich sind die Informationen der jeweiligen Veranstalter
+        bzw. der FLVW-Originalseite.
+      </p>
+    </aside>
   );
 }
 
@@ -3043,6 +3214,7 @@ function EventsPanel({
   const [eventRegionFilter, setEventRegionFilter] = useState("");
   const [eventLocationFilter, setEventLocationFilter] = useState("");
   const [eventMonthFilter, setEventMonthFilter] = useState("");
+  const [eventDistanceFilter, setEventDistanceFilter] = useState("");
   const [visibleFlvwCount, setVisibleFlvwCount] = useState(
     initialFlvwVisibleCount,
   );
@@ -3069,7 +3241,11 @@ function EventsPanel({
   ];
 
   const hasInlineEventFilters = Boolean(
-    eventSearchQuery.trim() || eventRegionFilter || eventLocationFilter || eventMonthFilter,
+    eventSearchQuery.trim() ||
+      eventRegionFilter ||
+      eventLocationFilter ||
+      eventMonthFilter ||
+      eventDistanceFilter,
   );
 
   const baseItems =
@@ -3100,6 +3276,7 @@ function EventsPanel({
     regionFilter: eventRegionFilter,
     locationFilter: eventLocationFilter,
     monthFilter: eventMonthFilter,
+    distanceFilter: eventDistanceFilter,
   });
   const visibleFlvwEvents = filteredFlvwEvents.slice(0, visibleFlvwCount);
   const remainingFlvwCount = Math.max(
@@ -3114,13 +3291,21 @@ function EventsPanel({
   const eventMonthOptions = getEventMonthOptions(flvwEvents);
   const eventRegionOptions = getEventRegionOptions(flvwEvents);
   const eventLocationOptions = getEventLocationOptions(flvwEvents);
+  const eventDistanceOptions = getEventDistanceOptions(flvwEvents);
   const hasAnyActiveFilter = hasInlineEventFilters || selectedTags.length > 0;
   const resultCountText = `${filteredFlvwEvents.length} von ${flvwEvents.length} FLVW-Terminen`;
   const hasMoreThresholdEvents = filteredThresholdEvents.length > 3;
 
   useEffect(() => {
     setVisibleFlvwCount(initialFlvwVisibleCount);
-  }, [eventSearchQuery, eventRegionFilter, eventLocationFilter, eventMonthFilter, selectedTags.join("|")]);
+  }, [
+    eventSearchQuery,
+    eventRegionFilter,
+    eventLocationFilter,
+    eventMonthFilter,
+    eventDistanceFilter,
+    selectedTags.join("|"),
+  ]);
 
   useEffect(() => {
     return () => {
@@ -3168,6 +3353,7 @@ function EventsPanel({
       setEventRegionFilter("");
       setEventLocationFilter("");
       setEventMonthFilter("");
+      setEventDistanceFilter("");
     });
   }
 
@@ -3244,8 +3430,10 @@ function EventsPanel({
           </p>
         </div>
 
+        <FlvwSourceNotice />
+
         <section className="mb-6 rounded-md border border-black/10 bg-[#f4efe6]/45 p-4 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset] md:p-5">
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_repeat(3,minmax(150px,0.68fr))] lg:items-end">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1.35fr)_repeat(4,minmax(135px,0.7fr))] xl:items-end">
             <label className="block">
               <span className="block text-[10px] font-black uppercase tracking-[0.28em] text-black/35">
                 Suche
@@ -3306,6 +3494,21 @@ function EventsPanel({
               ]}
               onChange={(value) =>
                 runFlvwListFadeTransition(() => setEventLocationFilter(value))
+              }
+            />
+
+            <EventFilterDropdown
+              label="Strecke"
+              value={eventDistanceFilter}
+              options={[
+                { value: "", label: "Alle Strecken" },
+                ...eventDistanceOptions.map((distanceOption) => ({
+                  value: distanceOption.value,
+                  label: distanceOption.label,
+                })),
+              ]}
+              onChange={(value) =>
+                runFlvwListFadeTransition(() => setEventDistanceFilter(value))
               }
             />
           </div>
@@ -3731,6 +3934,8 @@ function EventPortalDetail({
             </div>
           </div>
         </section>
+
+        {isFlvwEvent ? <FlvwSourceNotice compact /> : null}
 
         {tags.length > 0 ? (
           <section className="mb-12 border-b border-black/10 pb-6">
