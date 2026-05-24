@@ -1,0 +1,42 @@
+{
+  "18502562910": {
+    "title": "15km Dauerlauf",
+    "sportType": "Run",
+    "dateLabel": "14.05.2026",
+    "distance": "15 km",
+    "elevation": "19 m",
+    "duration": "1 Std. 21 Min.",
+    "generatedAt": "2026-05-24T15:40:23.387Z",
+    "mapImage": "/images/runs/18502562910-map.png"
+  },
+  "18516690889": {
+    "title": "Fahrt am Nachmittag",
+    "sportType": "Ride",
+    "dateLabel": "15.05.2026",
+    "distance": "61,5 km",
+    "elevation": "55 m",
+    "duration": "2 Std. 9 Min.",
+    "generatedAt": "2026-05-24T15:40:16.407Z",
+    "mapImage": "/images/runs/18516690889-map.png"
+  },
+  "18540633949": {
+    "title": "Into The Woods",
+    "sportType": "Run",
+    "dateLabel": "17.05.2026",
+    "distance": "9,21 km",
+    "elevation": "18 m",
+    "duration": "48 Min.",
+    "generatedAt": "2026-05-24T15:39:18.423Z",
+    "mapImage": "/images/runs/18540633949-map.png"
+  },
+  "18632640692": {
+    "title": "Sunday Long Run",
+    "sportType": "Run",
+    "dateLabel": "24.05.2026",
+    "distance": "15 km",
+    "elevation": "36 m",
+    "duration": "1 Std. 27 Min.",
+    "generatedAt": "2026-05-24T15:39:14.923Z",
+    "mapImage": "/images/runs/18632640692-map.png"
+  }
+}

@@ -5,6 +5,7 @@ import type { SanityImageSource } from "@sanity/image-url";
 import BackToTopButton from "@/components/BackToTopButton";
 import HomePortal from "@/components/HomePortal";
 import { client } from "@/sanity/lib/client";
+import stravaActivities from "@/data/strava-activities.json";
 
 export const revalidate = 10;
 
@@ -287,6 +288,11 @@ type SiteSettings = {
   liveSetsIsOnline?: boolean;
 };
 
+const generatedStravaActivities = stravaActivities as Record<
+  string,
+  Partial<StravaActivity>
+>;
+
 function getTodayKey() {
   return new Intl.DateTimeFormat("sv-SE", {
     timeZone: "Europe/Berlin",
@@ -307,6 +313,87 @@ function isUpcomingHomeEvent(event: HomeEvent) {
   return eventDate >= getTodayKey();
 }
 
+
+function getStravaActivityId(stravaUrl?: string) {
+  if (!stravaUrl) return null;
+
+  const match = stravaUrl.match(/strava\.com\/activities\/(\d+)/i);
+  return match?.[1] ?? null;
+}
+
+function formatStravaDateLabel(publishedAt?: string) {
+  if (!publishedAt) return "Aktivität";
+
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(publishedAt));
+}
+
+function hasUsefulStravaActivity(activity?: StravaActivity) {
+  return Boolean(
+    activity?.title ||
+      activity?.distance ||
+      activity?.elevation ||
+      activity?.duration ||
+      activity?.dateLabel,
+  );
+}
+
+const manualStravaActivityFallbacks: Record<string, Partial<StravaActivity>> = {
+  "18632640692": {
+    title: "Sunday Long Run",
+    sportType: "Run",
+    dateLabel: "24.05.2026",
+    distance: "15 km",
+    elevation: "36 m",
+    duration: "1 Std. 27 Min.",
+  },
+  "18502562910": {
+    title: "15km Dauerlauf",
+    sportType: "Run",
+    dateLabel: "Aktivität",
+    distance: "15 km",
+    elevation: "19 m",
+    duration: "–",
+  },
+};
+
+function enrichPostWithStravaFallback(post: HomeJournalPost): HomeJournalPost {
+  const activityId = getStravaActivityId(post.stravaUrl);
+
+  if (!activityId) {
+    return post;
+  }
+
+  const generatedFallback = generatedStravaActivities[activityId] ?? {};
+  const manualFallback = manualStravaActivityFallbacks[activityId] ?? {};
+  const existingActivity = post.stravaActivity ?? {};
+
+  const fallback = {
+    ...manualFallback,
+    ...generatedFallback,
+  };
+
+  return {
+    ...post,
+    stravaActivity: {
+      title: existingActivity.title ?? fallback.title ?? post.title,
+      sportType: existingActivity.sportType ?? fallback.sportType ?? "Run",
+      dateLabel:
+        existingActivity.dateLabel ??
+        fallback.dateLabel ??
+        formatStravaDateLabel(post.publishedAt),
+      distance: existingActivity.distance ?? fallback.distance ?? "–",
+      elevation: existingActivity.elevation ?? fallback.elevation ?? "–",
+      duration: existingActivity.duration ?? fallback.duration ?? "–",
+      kudos: existingActivity.kudos ?? fallback.kudos,
+      mapImage: existingActivity.mapImage ?? fallback.mapImage,
+    },
+  };
+}
+
 export default async function Home() {
   const [allPosts, allAlbums, thresholdEvents, importedFlvwEvents, siteSettings] =
     await Promise.all([
@@ -320,8 +407,9 @@ export default async function Home() {
     ]);
 
   const liveSetsIsOnline = Boolean(siteSettings?.liveSetsIsOnline);
+  const enrichedAllPosts = allPosts.map(enrichPostWithStravaFallback);
 
-  const latestPosts = allPosts.slice(0, 3);
+  const latestPosts = enrichedAllPosts.slice(0, 3);
   const latestAlbums = allAlbums.slice(0, 4);
 
   const fetchedEvents = [...thresholdEvents, ...importedFlvwEvents].sort(
@@ -393,7 +481,7 @@ export default async function Home() {
             <div className="w-full overflow-hidden rounded-md shadow-[0_18px_55px_rgba(17,18,23,0.07)]">
               <HomePortal
                 latestPosts={latestPosts}
-                allPosts={allPosts}
+                allPosts={enrichedAllPosts}
                 latestAlbums={latestAlbums}
                 allAlbums={allAlbums}
                 latestEvents={latestEvents}
