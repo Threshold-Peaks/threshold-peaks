@@ -47,8 +47,6 @@ export default function StravaStoryActivity({
 
   useEffect(() => {
     if (!activityId) {
-      setLoadState("idle");
-      setActivity(null);
       return;
     }
 
@@ -84,14 +82,24 @@ export default function StravaStoryActivity({
     };
   }, [activityId]);
 
-  const title = activity?.name || fallbackActivity?.title || "Aktivität auf Strava";
-  const sportType = activity?.sportType || activity?.type || fallbackActivity?.sportType;
-  const dateLabel = activity?.dateLabel || fallbackActivity?.dateLabel;
-  const distance = activity?.distanceLabel || fallbackActivity?.distance;
-  const elevation = activity?.elevationLabel || fallbackActivity?.elevation;
-  const duration = activity?.movingTimeLabel || fallbackActivity?.duration;
-  const kudos = typeof activity?.kudosCount === "number" ? activity.kudosCount : fallbackActivity?.kudos;
-  const url = activity?.url || stravaUrl;
+  const visibleActivity =
+    activityId && activity?.id.toString() === activityId ? activity : null;
+  const visibleLoadState = activityId ? loadState : "idle";
+  const title =
+    visibleActivity?.name || fallbackActivity?.title || "Aktivität auf Strava";
+  const sportType =
+    visibleActivity?.sportType ||
+    visibleActivity?.type ||
+    fallbackActivity?.sportType;
+  const dateLabel = visibleActivity?.dateLabel || fallbackActivity?.dateLabel;
+  const distance = visibleActivity?.distanceLabel || fallbackActivity?.distance;
+  const elevation = visibleActivity?.elevationLabel || fallbackActivity?.elevation;
+  const duration = visibleActivity?.movingTimeLabel || fallbackActivity?.duration;
+  const kudos =
+    typeof visibleActivity?.kudosCount === "number"
+      ? visibleActivity.kudosCount
+      : fallbackActivity?.kudos;
+  const url = visibleActivity?.url || stravaUrl;
   const hasAnyData = Boolean(title || distance || elevation || duration || activityId);
 
   return (
@@ -127,7 +135,7 @@ export default function StravaStoryActivity({
 
         </div>
 
-        {loadState === "loading" ? (
+        {visibleLoadState === "loading" ? (
           <div className="mt-6 border-y border-black/10 py-4">
             <p className="text-sm font-semibold leading-7 text-black/45">
               Strava-Daten werden geladen …
@@ -143,12 +151,12 @@ export default function StravaStoryActivity({
           </div>
         ) : null}
 
-        {activity?.summaryPolyline ? (
-          <StravaRouteSketch polyline={activity.summaryPolyline} />
+        {visibleActivity?.summaryPolyline ? (
+          <StravaRouteSketch polyline={visibleActivity.summaryPolyline} />
         ) : (
           <div className="mt-5 flex min-h-[190px] items-center justify-center border-y border-dashed border-black/15 bg-transparent px-6 py-10 text-center">
             <p className="max-w-sm text-sm font-semibold leading-7 text-black/45">
-              {loadState === "error"
+              {visibleLoadState === "error"
                 ? "Die Strava-Daten konnten gerade nicht geladen werden. Die manuell gepflegten Werte bleiben als Fallback sichtbar."
                 : activityId
                   ? "Für diese Aktivität wurde keine Route von Strava geliefert."

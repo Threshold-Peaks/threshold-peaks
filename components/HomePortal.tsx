@@ -14,7 +14,7 @@ import LikeButton from "@/components/LikeButton";
 import type { StravaStoryActivityManual } from "@/components/StravaStoryActivity";
 import GalleryLightbox from "@/components/GalleryLightbox";
 
-type PortableTextBlock = any[];
+type PortableTextBlock = Record<string, unknown>[];
 
 type HomeJournalImage = SanityImageSource & {
   alt?: string;
@@ -234,6 +234,22 @@ const albumCoverRatioConfig = {
 
 const initialGalleryDetailImageCount = 10;
 const galleryDetailImageBatchSize = 10;
+
+type GalleryDetailState = {
+  albumId: string;
+  visibleImageCount: number;
+  animationRun: number;
+  lightboxImageIndex: number | null;
+};
+
+function getInitialGalleryDetailState(albumId: string): GalleryDetailState {
+  return {
+    albumId,
+    visibleImageCount: initialGalleryDetailImageCount,
+    animationRun: 0,
+    lightboxImageIndex: null,
+  };
+}
 
 type SanityImageWithOptionalAsset = SanityImageSource & {
   asset?: {
@@ -3069,28 +3085,48 @@ function GalleryAlbumPortalDetail({
   const categoryLabel = formatGalleryCategory(album.category);
   const formattedDate = formatGalleryDate(album.date);
   const commentTargetSlug = album.slug?.current || album._id;
-  const [visibleGalleryImageCount, setVisibleGalleryImageCount] = useState(
-    initialGalleryDetailImageCount,
+  const [galleryDetailState, setGalleryDetailState] = useState(
+    getInitialGalleryDetailState(album._id),
   );
-  const [galleryAnimationRun, setGalleryAnimationRun] = useState(0);
-  const [lightboxImageIndex, setLightboxImageIndex] = useState<number | null>(
-    null,
-  );
+  const currentGalleryDetailState =
+    galleryDetailState.albumId === album._id
+      ? galleryDetailState
+      : getInitialGalleryDetailState(album._id);
+  const {
+    visibleImageCount: visibleGalleryImageCount,
+    animationRun: galleryAnimationRun,
+    lightboxImageIndex,
+  } = currentGalleryDetailState;
 
-  useEffect(() => {
-    setVisibleGalleryImageCount(initialGalleryDetailImageCount);
-    setGalleryAnimationRun(0);
-    setLightboxImageIndex(null);
-  }, [album._id]);
+  function updateGalleryDetailState(
+    updater: (state: GalleryDetailState) => GalleryDetailState,
+  ) {
+    setGalleryDetailState((currentState) => {
+      const baseState =
+        currentState.albumId === album._id
+          ? currentState
+          : getInitialGalleryDetailState(album._id);
+
+      return updater(baseState);
+    });
+  }
+
+  function setLightboxImageIndex(index: number | null) {
+    updateGalleryDetailState((state) => ({
+      ...state,
+      lightboxImageIndex: index,
+    }));
+  }
 
   function showMoreGalleryImages() {
-    setVisibleGalleryImageCount((currentCount) =>
-      Math.min(
-        currentCount + galleryDetailImageBatchSize,
+    updateGalleryDetailState((state) => ({
+      ...state,
+      visibleImageCount: Math.min(
+        state.visibleImageCount + galleryDetailImageBatchSize,
         galleryImages.length,
       ),
-    );
-    setGalleryAnimationRun((currentRun) => currentRun + 1);
+      animationRun: state.animationRun + 1,
+    }));
   }
 
   const visibleGalleryImages = galleryImages.slice(0, visibleGalleryImageCount);
@@ -3634,7 +3670,7 @@ function EventsPanel({
   const hasMoreThresholdEvents = filteredThresholdEvents.length > 3;
 
   useEffect(() => {
-    onChangeVisibleFlvwCount(initialFlvwVisibleCount);
+    queueMicrotask(() => onChangeVisibleFlvwCount(initialFlvwVisibleCount));
   }, [
     eventSearchQuery,
     eventRegionFilter,

@@ -9,7 +9,7 @@ import stravaActivities from "@/data/strava-activities.json";
 
 export const revalidate = 10;
 
-type PortableTextBlock = any[];
+type PortableTextBlock = Record<string, unknown>[];
 
 type HomeJournalImage = SanityImageSource & {
   alt?: string;
@@ -329,16 +329,6 @@ function formatStravaDateLabel(publishedAt?: string) {
     month: "2-digit",
     year: "numeric",
   }).format(new Date(publishedAt));
-}
-
-function hasUsefulStravaActivity(activity?: StravaActivity) {
-  return Boolean(
-    activity?.title ||
-      activity?.distance ||
-      activity?.elevation ||
-      activity?.duration ||
-      activity?.dateLabel,
-  );
 }
 
 const manualStravaActivityFallbacks: Record<string, Partial<StravaActivity>> = {

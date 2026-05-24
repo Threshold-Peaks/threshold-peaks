@@ -40,13 +40,51 @@ type StravaStreamsResponse = {
   };
 };
 
+type GeoJsonCoordinate = [number, number];
+
+type GeoJsonGeometry =
+  | {
+      type: "Point";
+      coordinates: GeoJsonCoordinate;
+    }
+  | {
+      type: "LineString";
+      coordinates: GeoJsonCoordinate[];
+    }
+  | {
+      type: "Polygon";
+      coordinates: GeoJsonCoordinate[][];
+    }
+  | {
+      type: "MultiLineString";
+      coordinates: GeoJsonCoordinate[][];
+    }
+  | {
+      type: "MultiPolygon";
+      coordinates: GeoJsonCoordinate[][][];
+    };
+
 type GeoJsonFeature = {
   type: "Feature";
-  properties: Record<string, any>;
-  geometry: {
-    type: string;
-    coordinates: any;
-  };
+  properties: Record<string, string>;
+  geometry: GeoJsonGeometry;
+};
+
+type OverpassGeometryPoint = {
+  lat: number;
+  lon: number;
+};
+
+type OverpassElement = {
+  type?: string;
+  lat?: number;
+  lon?: number;
+  tags?: Record<string, string>;
+  geometry?: OverpassGeometryPoint[];
+};
+
+type OverpassResponse = {
+  elements?: OverpassElement[];
 };
 
 type RouteLabelCandidate = {
@@ -212,7 +250,7 @@ out geom;
   throw new Error(lastError || "Alle Overpass-Endpunkte sind fehlgeschlagen.");
 }
 
-function overpassToFeatures(overpass: any): GeoJsonFeature[] {
+function overpassToFeatures(overpass: OverpassResponse): GeoJsonFeature[] {
   const features: GeoJsonFeature[] = [];
 
   for (const element of overpass.elements ?? []) {
@@ -228,21 +266,34 @@ function overpassToFeatures(overpass: any): GeoJsonFeature[] {
     }
 
     if (element.type === "way" && Array.isArray(element.geometry)) {
-      const coords = element.geometry.map((p: any) => [p.lon, p.lat]);
+      const coords = element.geometry.map(
+        (point) => [point.lon, point.lat] as GeoJsonCoordinate,
+      );
 
       const isPolygon =
         coords.length > 2 &&
         coords[0][0] === coords[coords.length - 1][0] &&
         coords[0][1] === coords[coords.length - 1][1];
 
-      features.push({
-        type: "Feature",
-        properties: element.tags ?? {},
-        geometry: {
-          type: isPolygon ? "Polygon" : "LineString",
-          coordinates: isPolygon ? [coords] : coords,
-        },
-      });
+      if (isPolygon) {
+        features.push({
+          type: "Feature",
+          properties: element.tags ?? {},
+          geometry: {
+            type: "Polygon",
+            coordinates: [coords],
+          },
+        });
+      } else {
+        features.push({
+          type: "Feature",
+          properties: element.tags ?? {},
+          geometry: {
+            type: "LineString",
+            coordinates: coords,
+          },
+        });
+      }
     }
   }
 

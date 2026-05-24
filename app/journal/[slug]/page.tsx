@@ -58,7 +58,7 @@ type JournalPost = {
   publishedAt?: string;
   category?: string;
   excerpt?: string;
-  body?: any[];
+  body?: Record<string, unknown>[];
   stravaUrl?: string;
   stravaActivity?: StravaActivity;
   soundcloudUrl?: string;
@@ -325,16 +325,6 @@ function formatSportType(sportType?: string) {
   return sportType ? (sports[sportType] ?? sportType) : "Running";
 }
 
-
-function hasUsefulStravaActivity(activity?: StravaActivity) {
-  return Boolean(
-    activity?.title ||
-      activity?.distance ||
-      activity?.elevation ||
-      activity?.duration ||
-      activity?.dateLabel,
-  );
-}
 
 function enrichPostWithGeneratedStravaActivity(post: JournalPost): JournalPost {
   const activityId = getStravaActivityId(post.stravaUrl);

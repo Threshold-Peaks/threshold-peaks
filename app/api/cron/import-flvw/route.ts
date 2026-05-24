@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 
 // Die Importlogik liegt bewusst weiter in scripts/import-flvw-events.mjs,
 // damit npm run import:flvw lokal weiter funktioniert.
-// @ts-ignore - Das Node-ESM-Script hat keine eigene TypeScript-Deklaration.
 import { runFlvwImport } from "../../../../scripts/import-flvw-events.mjs";
 
 export const runtime = "nodejs";

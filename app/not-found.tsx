@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function NotFound() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f5f3ee] px-6 py-12 text-[#111217]">
@@ -20,19 +22,19 @@ export default function NotFound() {
         </p>
 
         <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <a
+          <Link
             href="/"
             className="inline-flex min-w-[220px] items-center justify-between rounded-md bg-[#111217] px-7 py-4 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:shadow-2xl"
           >
             Zur Startseite <span>→</span>
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/#contact"
             className="inline-flex min-w-[220px] items-center justify-between rounded-md border border-black/10 bg-white/70 px-7 py-4 text-sm font-bold shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg"
           >
             Kontakt aufnehmen <span>→</span>
-          </a>
+          </Link>
         </div>
 
         <div className="mt-14 flex justify-center">

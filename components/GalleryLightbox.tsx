@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Image } from "next-sanity/image";
 import type { SanityImageSource } from "@sanity/image-url";
@@ -26,16 +26,10 @@ export default function GalleryLightbox({
   onClose,
   onChange,
 }: GalleryLightboxProps) {
-  const [mounted, setMounted] = useState(false);
-
   const activeIndex = currentIndex;
   const isOpen = activeIndex !== null;
   const image = isOpen ? images[activeIndex] : null;
   const hasMultipleImages = images.length > 1;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -68,7 +62,9 @@ export default function GalleryLightbox({
     };
   }, [currentIndex, hasMultipleImages, images.length, isOpen, onChange, onClose]);
 
-  if (!mounted || activeIndex === null || !image) return null;
+  if (typeof document === "undefined" || activeIndex === null || !image) {
+    return null;
+  }
 
   const imageCaption = image.caption || image.alt;
   const imageAlt = image.alt || `${albumTitle} Bild ${activeIndex + 1}`;

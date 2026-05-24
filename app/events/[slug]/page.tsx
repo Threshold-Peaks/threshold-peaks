@@ -49,7 +49,7 @@ type EventItem = {
   externalUrl?: string;
   tags?: string | EventTag[];
   image?: EventImage;
-  body?: any[];
+  body?: Record<string, unknown>[];
 };
 
 type PageProps = {

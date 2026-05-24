@@ -38,7 +38,7 @@ export default function LikeButton({
     const stored = window.localStorage.getItem(storageKey);
 
     if (stored === "true") {
-      setLiked(true);
+      queueMicrotask(() => setLiked(true));
     }
 
     async function loadCount() {
