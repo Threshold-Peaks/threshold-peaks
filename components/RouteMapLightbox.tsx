@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type RouteMapLightboxProps = {
   src: string;
@@ -60,14 +61,65 @@ export default function RouteMapLightbox({
       }
     }
 
+    const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = originalOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen]);
+
+  const lightbox =
+    isOpen && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/82 px-4 py-5 backdrop-blur-sm sm:px-6"
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            onClick={closeLightbox}
+          >
+            <div
+              className="relative flex max-h-[94vh] w-full max-w-[1500px] flex-col"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="mb-4 flex items-center justify-between gap-4 text-white">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/45">
+                    Strava
+                  </p>
+                  <p className="mt-1 text-sm font-black text-white/80">
+                    {title}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeLightbox}
+                  className="border-b border-white/25 pb-2 text-xs font-black uppercase tracking-[0.22em] text-white/70 transition hover:border-orange-400 hover:text-orange-300"
+                  aria-label="Karte schließen"
+                >
+                  SCHLIESSEN
+                </button>
+              </div>
+
+              <div className="relative flex min-h-[56vh] items-center justify-center overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10 sm:min-h-[72vh]">
+                <Image
+                  src={src}
+                  alt={alt}
+                  width={width}
+                  height={height}
+                  className="max-h-[76vh] w-auto max-w-full object-contain"
+                  priority={false}
+                />
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <>
@@ -93,38 +145,7 @@ export default function RouteMapLightbox({
         </div>
       </button>
 
-      {isOpen ? (
-        <div
-          className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black/80 px-4 pb-8 pt-24 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-label={title}
-          onClick={closeLightbox}
-        >
-          <button
-  type="button"
-  onClick={closeLightbox}
-  className="absolute right-4 top-4 z-10 inline-flex items-center justify-center border border-white/25 bg-[#f5f3ee]/95 px-5 py-3 text-[10px] font-black uppercase tracking-[0.24em] text-black/55 shadow-lg transition hover:border-orange-500 hover:text-orange-600"
-  aria-label="Karte schließen"
->
-  Schließen <span className="ml-2">×</span>
-</button>
-
-          <div
-            className="relative w-full max-w-6xl overflow-hidden rounded-2xl border border-white/15 bg-[#f5f3ee] shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <Image
-              src={src}
-              alt={alt}
-              width={width}
-              height={height}
-              className="h-auto max-h-[calc(100vh-8rem)] w-full object-contain"
-              priority={false}
-            />
-          </div>
-        </div>
-      ) : null}
+      {lightbox}
     </>
   );
 }
