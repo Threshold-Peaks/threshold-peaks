@@ -2650,7 +2650,7 @@ function StravaStoryGeneratedCard({
   const distance = fallbackActivity?.distance || "–";
   const elevation = fallbackActivity?.elevation || "–";
   const duration = fallbackActivity?.duration || "–";
-  const kudos = fallbackActivity?.kudos;
+  const kudos = fallbackActivity?.kudos ?? fallbackActivity?.kudosCount ?? 0;
 
   return (
     <aside className="border-y border-black/10 bg-[#f5f3ee] px-4 py-5 sm:px-5">
@@ -2665,7 +2665,6 @@ function StravaStoryGeneratedCard({
 
       <div className="border-y border-black/10 py-6">
         <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-black uppercase tracking-[0.25em] text-black/35">
-          <span>♟</span>
           <span>{sportType}</span>
           <span className="h-1 w-1 rounded-full bg-black/20" />
           <span>{dateLabel}</span>
@@ -2707,13 +2706,9 @@ function StravaStoryGeneratedCard({
         <GeneratedRouteMap stravaUrl={stravaUrl} title={title} />
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-          {typeof kudos === "number" ? (
-            <p className="text-sm font-black text-orange-600">
-              {kudos} Kudos
-            </p>
-          ) : (
-            <span />
-          )}
+          <p className="text-sm font-black text-orange-600">
+            {kudos} {kudos === 1 ? "Kudo" : "Kudos"}
+          </p>
 
           {stravaUrl ? (
             <Link

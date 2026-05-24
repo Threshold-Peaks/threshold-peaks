@@ -9,6 +9,7 @@ type StravaActivity = {
   distanceKm: number;
   movingTime: string;
   elevationGain: number;
+  kudosCount?: number;
   date: string;
   url: string;
 };

@@ -35,6 +35,7 @@ type StravaActivity = {
   elevation?: string;
   duration?: string;
   kudos?: number;
+  kudosCount?: number;
   mapImage?: SanityImageSource & {
     alt?: string;
   };
@@ -378,7 +379,11 @@ function enrichPostWithStravaFallback(post: HomeJournalPost): HomeJournalPost {
       distance: existingActivity.distance ?? fallback.distance ?? "–",
       elevation: existingActivity.elevation ?? fallback.elevation ?? "–",
       duration: existingActivity.duration ?? fallback.duration ?? "–",
-      kudos: existingActivity.kudos ?? fallback.kudos,
+      kudos:
+        existingActivity.kudos ??
+        existingActivity.kudosCount ??
+        fallback.kudos ??
+        fallback.kudosCount,
       mapImage: existingActivity.mapImage ?? fallback.mapImage,
     },
   };

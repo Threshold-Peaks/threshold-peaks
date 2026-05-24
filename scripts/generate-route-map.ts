@@ -21,6 +21,7 @@ type StravaActivity = {
   sport_type?: string;
   start_date?: string;
   start_date_local?: string;
+  kudos_count?: number;
 };
 
 type StravaActivityMeta = {
@@ -30,6 +31,7 @@ type StravaActivityMeta = {
   distance: string;
   elevation: string;
   duration: string;
+  kudos?: number;
   generatedAt: string;
   mapImage: string;
 };
@@ -846,6 +848,7 @@ async function writeStravaActivityMetadata(
     distance: formatDistance(activity.distance),
     elevation: formatElevation(activity.total_elevation_gain),
     duration: formatDuration(activity.moving_time),
+    kudos: activity.kudos_count ?? 0,
     generatedAt: new Date().toISOString(),
     mapImage: `/images/runs/${activityId}-map.png`,
   };

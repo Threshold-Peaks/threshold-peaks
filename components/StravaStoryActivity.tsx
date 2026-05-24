@@ -11,6 +11,7 @@ export type StravaStoryActivityManual = {
   elevation?: string;
   duration?: string;
   kudos?: number;
+  kudosCount?: number;
   mapImage?: unknown;
 };
 
@@ -98,7 +99,7 @@ export default function StravaStoryActivity({
   const kudos =
     typeof visibleActivity?.kudosCount === "number"
       ? visibleActivity.kudosCount
-      : fallbackActivity?.kudos;
+      : fallbackActivity?.kudos ?? fallbackActivity?.kudosCount;
   const url = visibleActivity?.url || stravaUrl;
   const hasAnyData = Boolean(title || distance || elevation || duration || activityId);
 
@@ -117,7 +118,6 @@ export default function StravaStoryActivity({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-black uppercase tracking-[0.2em] text-black/35">
-              <span>{getSportIcon(sportType)}</span>
               <span>{formatSportType(sportType)}</span>
               {dateLabel ? (
                 <>
@@ -275,26 +275,6 @@ function formatSportType(type?: string) {
   };
 
   return type ? (sportTypes[type] ?? type) : "Aktivität";
-}
-
-function getSportIcon(type?: string) {
-  const icons: Record<string, string> = {
-    Run: "↟",
-    Ride: "◆",
-    VirtualRide: "◆",
-    GravelRide: "◇",
-    MountainBikeRide: "◇",
-    Walk: "•",
-    Hike: "↟",
-    Workout: "✦",
-    running: "↟",
-    cycling: "◆",
-    gravel: "◇",
-    workout: "✦",
-    other: "•",
-  };
-
-  return type ? (icons[type] ?? "•") : "•";
 }
 
 function decodePolyline(encoded: string) {

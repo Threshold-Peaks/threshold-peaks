@@ -18,6 +18,7 @@ type StravaActivity = {
   start_date: string;
   start_date_local: string;
   total_elevation_gain: number;
+  kudos_count?: number;
   average_speed?: number;
 };
 
@@ -106,6 +107,7 @@ export async function GET() {
       distanceKm: formatDistance(activity.distance),
       movingTime: formatTime(activity.moving_time),
       elevationGain: Math.round(activity.total_elevation_gain),
+      kudosCount: activity.kudos_count ?? 0,
       date: activity.start_date_local,
       url: `https://www.strava.com/activities/${activity.id}`,
     }));
