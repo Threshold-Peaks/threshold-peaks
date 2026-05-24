@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type StravaTokenResponse = {
   access_token: string;
   refresh_token?: string;
@@ -107,9 +110,7 @@ export async function GET(
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
-        next: {
-          revalidate: 300,
-        },
+        cache: "no-store",
       },
     );
 

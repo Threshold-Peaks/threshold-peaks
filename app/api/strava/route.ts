@@ -1,6 +1,9 @@
 
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type StravaTokenResponse = {
   access_token: string;
   refresh_token?: string;
@@ -79,9 +82,7 @@ export async function GET() {
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
         },
-        next: {
-          revalidate: 900,
-        },
+        cache: "no-store",
       }
     );
 
@@ -112,9 +113,16 @@ export async function GET() {
       url: `https://www.strava.com/activities/${activity.id}`,
     }));
 
-    return NextResponse.json({
-      activities: cleanedActivities,
-    });
+    return NextResponse.json(
+      {
+        activities: cleanedActivities,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate",
+        },
+      }
+    );
   } catch {
     return NextResponse.json(
       { error: "Unexpected Strava API error." },

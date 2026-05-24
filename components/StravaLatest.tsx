@@ -30,7 +30,14 @@ export default function StravaLatest({ variant = "default" }: StravaLatestProps)
   useEffect(() => {
     async function loadActivities() {
       try {
-        const response = await fetch("/api/strava");
+        const response = await fetch(`/api/strava?ts=${Date.now()}`, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error("Could not load Strava activities.");
+        }
+
         const data = await response.json();
 
         if (data.activities) {
@@ -125,6 +132,10 @@ export default function StravaLatest({ variant = "default" }: StravaLatestProps)
                   label="Höhenm."
                   value={`${Math.round(activity.elevationGain)} m`}
                 />
+                <ActivityStat
+                  label="Kudos"
+                  value={formatKudos(activity.kudosCount)}
+                />
 
                 <span className="hidden text-black/30 transition group-hover:translate-x-1 group-hover:text-orange-600 md:block">
                   →
@@ -164,6 +175,12 @@ function formatDistance(distanceKm: number) {
     maximumFractionDigits: 1,
     minimumFractionDigits: distanceKm < 10 ? 1 : 0,
   }).format(distanceKm);
+}
+
+function formatKudos(kudosCount?: number) {
+  return new Intl.NumberFormat("de-DE", {
+    maximumFractionDigits: 0,
+  }).format(kudosCount ?? 0);
 }
 
 function formatStravaDate(date: string) {
