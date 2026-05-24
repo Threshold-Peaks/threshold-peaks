@@ -9,6 +9,10 @@
   "lint": "eslint",
   "import:flvw": "node scripts/import-flvw-events.mjs",
   "import:flvw:dry": "node scripts/import-flvw-events.mjs --dry-run",
+  "check:flvw": "tsx scripts/flvw/check-updates.ts",
+  "check:flvw:json": "tsx scripts/flvw/check-updates.ts --json",
+  "classify:flvw": "tsx scripts/flvw/check-updates.ts classify",
+  "safe-apply:flvw": "tsx scripts/flvw/check-updates.ts safe-apply",
   "generate-route-map": "tsx scripts/generate-route-map.ts",
   "generate-route-maps": "tsx scripts/generate-missing-route-maps.ts"
 },
