@@ -16,7 +16,7 @@ type DetailedStravaActivity = {
   sport_type?: string;
   distance: number;
   moving_time: number;
-  elapsed_time: number;
+  elapsed_time?: number;
   start_date: string;
   start_date_local: string;
   total_elevation_gain: number;
@@ -26,6 +26,11 @@ type DetailedStravaActivity = {
     polyline?: string | null;
     summary_polyline?: string | null;
   };
+};
+
+type StravaKudoer = {
+  firstname?: string;
+  lastname?: string;
 };
 
 function formatDistanceLabel(meters: number) {
@@ -91,14 +96,36 @@ async function getStravaAccessToken() {
   return tokenData.access_token;
 }
 
+async function getKudoersCount(accessToken: string, activityId: string) {
+  const response = await fetch(
+    `https://www.strava.com/api/v3/activities/${activityId}/kudos?per_page=200&page=1`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cache: "no-store",
+    }
+  );
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const kudoers = (await response.json()) as StravaKudoer[];
+  return Array.isArray(kudoers) ? kudoers.length : null;
+}
+
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
 
   if (!/^\d+$/.test(id)) {
-    return NextResponse.json({ error: "Invalid Strava activity id." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid Strava activity id." },
+      { status: 400 }
+    );
   }
 
   try {
@@ -111,7 +138,7 @@ export async function GET(
           Authorization: `Bearer ${accessToken}`,
         },
         cache: "no-store",
-      },
+      }
     );
 
     if (!activityResponse.ok) {
@@ -123,33 +150,50 @@ export async function GET(
           status: activityResponse.status,
           details: errorText,
         },
-        { status: activityResponse.status },
+        { status: activityResponse.status }
       );
     }
 
     const activity = (await activityResponse.json()) as DetailedStravaActivity;
-    const summaryPolyline = activity.map?.summary_polyline ?? activity.map?.polyline ?? null;
+    const summaryPolyline =
+      activity.map?.summary_polyline ?? activity.map?.polyline ?? null;
 
-    return NextResponse.json({
-      activity: {
-        id: activity.id,
-        name: activity.name,
-        type: activity.sport_type ?? activity.type,
-        sportType: activity.sport_type ?? activity.type,
-        distanceKm: Number((activity.distance / 1000).toFixed(2)),
-        distanceLabel: formatDistanceLabel(activity.distance),
-        movingTime: activity.moving_time,
-        movingTimeLabel: formatTimeLabel(activity.moving_time),
-        elevationGain: Math.round(activity.total_elevation_gain),
-        elevationLabel: `${Math.round(activity.total_elevation_gain)} m`,
-        startDate: activity.start_date,
-        startDateLocal: activity.start_date_local,
-        dateLabel: formatDateLabel(activity.start_date_local),
-        kudosCount: activity.kudos_count ?? 0,
-        summaryPolyline,
-        url: `https://www.strava.com/activities/${activity.id}`,
+    const rawKudosCount = activity.kudos_count ?? 0;
+    const kudoersCount = await getKudoersCount(accessToken, id);
+    const finalKudosCount = kudoersCount ?? rawKudosCount;
+
+    return NextResponse.json(
+      {
+        activity: {
+          id: activity.id,
+          name: activity.name,
+          type: activity.sport_type ?? activity.type,
+          sportType: activity.sport_type ?? activity.type,
+          distanceKm: Number((activity.distance / 1000).toFixed(2)),
+          distanceLabel: formatDistanceLabel(activity.distance),
+          movingTime: activity.moving_time,
+          movingTimeLabel: formatTimeLabel(activity.moving_time),
+          elevationGain: Math.round(activity.total_elevation_gain),
+          elevationLabel: `${Math.round(activity.total_elevation_gain)} m`,
+          startDate: activity.start_date,
+          startDateLocal: activity.start_date_local,
+          dateLabel: formatDateLabel(activity.start_date_local),
+          kudosCount: finalKudosCount,
+          rawKudosCount,
+          kudoersCount,
+          summaryPolyline,
+          url: `https://www.strava.com/activities/${activity.id}`,
+        },
       },
-    });
+      {
+        headers: {
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+      }
+    );
   } catch (error) {
     return NextResponse.json(
       {
@@ -158,7 +202,7 @@ export async function GET(
             ? error.message
             : "Unexpected Strava API error.",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

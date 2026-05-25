@@ -1,4 +1,3 @@
-import RouteMapLightbox from "@/components/RouteMapLightbox";
 import LikeButton from "@/components/LikeButton";
 import Comments from "@/components/Comments";
 import BackHeader from "@/components/BackHeader";
@@ -11,6 +10,7 @@ import type { SanityImageSource } from "@sanity/image-url";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import type { StravaStoryActivityManual } from "@/components/StravaStoryActivity";
+import StravaStoryGeneratedCard from "@/components/StravaStoryGeneratedCard";
 import stravaActivities from "@/data/strava-activities.json";
 
 export const revalidate = 10;
@@ -310,21 +310,6 @@ function getStravaActivityId(stravaUrl?: string) {
   return match?.[1] ?? null;
 }
 
-function formatSportType(sportType?: string) {
-  const sports: Record<string, string> = {
-    Run: "Running",
-    VirtualRun: "Running",
-    TrailRun: "Trail",
-    Ride: "Cycling",
-    GravelRide: "Gravel",
-    MountainBikeRide: "MTB",
-    Walk: "Walk",
-    Hike: "Hike",
-  };
-
-  return sportType ? (sports[sportType] ?? sportType) : "Running";
-}
-
 
 function enrichPostWithGeneratedStravaActivity(post: JournalPost): JournalPost {
   const activityId = getStravaActivityId(post.stravaUrl);
@@ -358,118 +343,6 @@ function enrichPostWithGeneratedStravaActivity(post: JournalPost): JournalPost {
       mapImage: existingActivity.mapImage ?? generatedActivity.mapImage,
     },
   };
-}
-
-function GeneratedRouteMap({
-  stravaUrl,
-  title,
-}: {
-  stravaUrl?: string;
-  title: string;
-}) {
-  const activityId = getStravaActivityId(stravaUrl);
-
-  if (!activityId) return null;
-
-  return (
-  <figure className="-mx-4 mt-7 border-y border-black/10 py-5 sm:-mx-5">
-    <RouteMapLightbox
-      src={`/images/runs/${activityId}-map.png`}
-      alt={`Karte der Laufroute ${title}`}
-      title={`Karte der Laufroute ${title}`}
-      imageClassName="scale-[1.18]"
-    />
-  </figure>
-);
-}
-
-function StravaStoryGeneratedCard({
-  stravaUrl,
-  fallbackActivity,
-}: {
-  stravaUrl?: string;
-  fallbackActivity?: StravaActivity;
-}) {
-  const title = fallbackActivity?.title || "Sunday Long Run";
-  const sportType = formatSportType(fallbackActivity?.sportType) || "Running";
-  const dateLabel = fallbackActivity?.dateLabel || "24.05.2026";
-  const distance = fallbackActivity?.distance || "15 km";
-  const elevation = fallbackActivity?.elevation || "36 m";
-  const duration = fallbackActivity?.duration || "1 Std. 27 Min.";
-  const kudos = fallbackActivity?.kudos ?? fallbackActivity?.kudosCount ?? 0;
-
-  return (
-    <aside className="border-y border-black/10 bg-[#f5f3ee] px-4 py-5 sm:px-5">
-      <div className="mb-5 border-b border-black/10 pb-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black/35">
-          Strava
-        </p>
-        <h3 className="mt-2 text-lg font-black leading-tight tracking-[-0.04em] text-black md:text-xl">
-          Aktivität zur Story
-        </h3>
-      </div>
-
-      <div className="border-y border-black/10 py-6">
-        <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-black uppercase tracking-[0.25em] text-black/35">
-          <span>{sportType}</span>
-          <span className="h-1 w-1 rounded-full bg-black/20" />
-          <span>{dateLabel}</span>
-        </div>
-
-        <h4 className="text-3xl font-black leading-tight tracking-[-0.05em] text-black md:text-4xl">
-          {title}
-        </h4>
-
-        <div className="mt-7 grid grid-cols-1 divide-y divide-black/10 border-y border-black/10 sm:grid-cols-[0.9fr_0.95fr_1.35fr] sm:divide-x sm:divide-y-0">
-          <div className="py-4 sm:pr-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
-              Distanz
-            </p>
-            <p className="mt-2 whitespace-nowrap text-xl font-black leading-none tracking-[-0.04em] text-black md:text-2xl">
-              {distance}
-            </p>
-          </div>
-
-          <div className="py-4 sm:px-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.16em] text-black/30">
-              Höhenmeter
-            </p>
-            <p className="mt-2 whitespace-nowrap text-xl font-black leading-none tracking-[-0.04em] text-black md:text-2xl">
-              {elevation}
-            </p>
-          </div>
-
-          <div className="py-4 sm:pl-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-black/30">
-              Zeit
-            </p>
-            <p className="mt-2 whitespace-nowrap text-xl font-black leading-none tracking-[-0.04em] text-black md:text-2xl">
-              {duration}
-            </p>
-          </div>
-        </div>
-
-        <GeneratedRouteMap stravaUrl={stravaUrl} title={title} />
-
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
-          <p className="text-sm font-black text-orange-600">
-            {kudos} {kudos === 1 ? "Kudo" : "Kudos"}
-          </p>
-
-          {stravaUrl ? (
-            <a
-              href={stravaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center border border-black/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.24em] text-black/45 transition hover:border-orange-500 hover:text-orange-600"
-            >
-              Auf Strava ansehen <span className="ml-2">→</span>
-            </a>
-          ) : null}
-        </div>
-      </div>
-    </aside>
-  );
 }
 
 function StoryConnectionsSection({

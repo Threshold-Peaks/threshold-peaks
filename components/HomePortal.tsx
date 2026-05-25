@@ -2595,8 +2595,16 @@ function JournalMetaLinks({
 function getStravaActivityId(stravaUrl?: string) {
   if (!stravaUrl) return null;
 
-  const match = stravaUrl.match(/strava\.com\/activities\/(\d+)/i);
-  return match?.[1] ?? null;
+  const directMatch = stravaUrl.match(/strava\.com\/activities\/(\d+)/i);
+  if (directMatch?.[1]) return directMatch[1];
+
+  try {
+    const parsedUrl = new URL(stravaUrl);
+    const pathMatch = parsedUrl.pathname.match(/\/activities\/(\d+)/i);
+    return pathMatch?.[1] ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function formatSportType(sportType?: string) {
@@ -2644,13 +2652,85 @@ function StravaStoryGeneratedCard({
   stravaUrl?: string;
   fallbackActivity?: StravaActivity;
 }) {
-  const title = fallbackActivity?.title || "Aktivität zur Story";
-  const sportType = formatSportType(fallbackActivity?.sportType);
-  const dateLabel = fallbackActivity?.dateLabel || "Aktivität";
-  const distance = fallbackActivity?.distance || "–";
-  const elevation = fallbackActivity?.elevation || "–";
-  const duration = fallbackActivity?.duration || "–";
-  const kudos = fallbackActivity?.kudos ?? fallbackActivity?.kudosCount ?? 0;
+  const activityId = getStravaActivityId(stravaUrl);
+
+  const [activity, setActivity] = useState<{
+    id: number;
+    name: string;
+    type: string;
+    sportType?: string;
+    distanceLabel: string;
+    movingTimeLabel: string;
+    elevationLabel: string;
+    dateLabel: string;
+    kudosCount: number;
+    url: string;
+  } | null>(null);
+
+  const [loadState, setLoadState] = useState<"idle" | "loading" | "success" | "error">(
+    activityId ? "loading" : "idle",
+  );
+
+  useEffect(() => {
+    if (!activityId) {
+      setActivity(null);
+      setLoadState("idle");
+      return;
+    }
+
+    let isActive = true;
+
+    async function loadActivity() {
+      setLoadState("loading");
+
+      try {
+        const response = await fetch(
+          `/api/strava/activity/${activityId}?ts=${Date.now()}`,
+          {
+            cache: "no-store",
+          },
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            data?.error || "Strava-Aktivität konnte nicht geladen werden.",
+          );
+        }
+
+        if (isActive) {
+          setActivity(data.activity ?? null);
+          setLoadState("success");
+        }
+      } catch {
+        if (isActive) {
+          setActivity(null);
+          setLoadState("error");
+        }
+      }
+    }
+
+    loadActivity();
+
+    return () => {
+      isActive = false;
+    };
+  }, [activityId]);
+
+  const title = activity?.name || fallbackActivity?.title || "Aktivität zur Story";
+  const sportType = formatSportType(
+    activity?.sportType || activity?.type || fallbackActivity?.sportType,
+  );
+  const dateLabel = activity?.dateLabel || fallbackActivity?.dateLabel || "Aktivität";
+  const distance = activity?.distanceLabel || fallbackActivity?.distance || "–";
+  const elevation = activity?.elevationLabel || fallbackActivity?.elevation || "–";
+  const duration = activity?.movingTimeLabel || fallbackActivity?.duration || "–";
+  const fallbackKudos =
+    fallbackActivity?.kudos ?? fallbackActivity?.kudosCount;
+  const kudos =
+    typeof activity?.kudosCount === "number" ? activity.kudosCount : fallbackKudos ?? 0;
+  const url = activity?.url || stravaUrl;
 
   return (
     <aside className="border-y border-black/10 bg-[#f5f3ee] px-4 py-5 sm:px-5">
@@ -2707,12 +2787,14 @@ function StravaStoryGeneratedCard({
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm font-black text-orange-600">
-            {kudos} {kudos === 1 ? "Kudo" : "Kudos"}
+            {loadState === "loading" && activityId
+              ? "Kudos laden …"
+              : `${kudos} ${kudos === 1 ? "Kudo" : "Kudos"}`}
           </p>
 
-          {stravaUrl ? (
+          {url ? (
             <Link
-              href={stravaUrl}
+              href={url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center border border-black/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.24em] text-black/45 transition hover:border-orange-500 hover:text-orange-600"
@@ -2721,6 +2803,13 @@ function StravaStoryGeneratedCard({
             </Link>
           ) : null}
         </div>
+
+        {loadState === "error" && activityId ? (
+          <p className="mt-3 text-xs font-semibold leading-6 text-black/35">
+            Strava-Daten konnten gerade nicht live geladen werden. Es werden die
+            hinterlegten Werte angezeigt.
+          </p>
+        ) : null}
       </div>
     </aside>
   );

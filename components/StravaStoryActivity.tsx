@@ -44,10 +44,14 @@ export default function StravaStoryActivity({
 }) {
   const activityId = useMemo(() => getStravaActivityId(stravaUrl), [stravaUrl]);
   const [activity, setActivity] = useState<ApiStravaActivity | null>(null);
-  const [loadState, setLoadState] = useState<LoadState>(activityId ? "loading" : "idle");
+  const [loadState, setLoadState] = useState<LoadState>(
+    activityId ? "loading" : "idle"
+  );
 
   useEffect(() => {
     if (!activityId) {
+      setActivity(null);
+      setLoadState("idle");
       return;
     }
 
@@ -57,11 +61,19 @@ export default function StravaStoryActivity({
       setLoadState("loading");
 
       try {
-        const response = await fetch(`/api/strava/activity/${activityId}`);
+        const response = await fetch(
+          `/api/strava/activity/${activityId}?ts=${Date.now()}`,
+          {
+            cache: "no-store",
+          }
+        );
+
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data?.error || "Strava-Aktivität konnte nicht geladen werden.");
+          throw new Error(
+            data?.error || "Strava-Aktivität konnte nicht geladen werden."
+          );
         }
 
         if (isActive) {
@@ -131,8 +143,6 @@ export default function StravaStoryActivity({
               {title}
             </h4>
           </div>
-
-
         </div>
 
         {visibleLoadState === "loading" ? (
@@ -167,7 +177,9 @@ export default function StravaStoryActivity({
 
         <div className="mt-5 flex items-center justify-between gap-4">
           <p className="text-sm font-black text-orange-600">
-            {typeof kudos === "number" ? `${kudos} ${kudos === 1 ? "Kudo" : "Kudos"}` : "Threshold Peaks"}
+            {typeof kudos === "number"
+              ? `${kudos} ${kudos === 1 ? "Kudo" : "Kudos"}`
+              : "Threshold Peaks"}
           </p>
 
           {url ? (

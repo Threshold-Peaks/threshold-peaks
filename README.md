@@ -1,32 +1,25 @@
-# Threshold Peaks
+# Strava Story Kudos Fix
 
-**Beat the extra mile**
+## Dateien kopieren
 
-Threshold Peaks ist meine persönliche Webseite rund um Laufen, Radfahren, elektronische Musik und aktiven Lifestyle.
+1. `components/StravaStoryGeneratedCard.tsx`
+   nach:
+   `components/StravaStoryGeneratedCard.tsx`
 
-Die Seite verbindet persönliche Inhalte, Bilder, Kontaktmöglichkeiten und eine Strava-Integration, die aktuelle Aktivitäten live anzeigt.
+2. `app/journal/[slug]/page.tsx`
+   nach:
+   `app/journal/[slug]/page.tsx`
 
-## Inhalte
+## Danach ausführen
 
-- Hero-Bereich mit Branding
-- Über-mich-Bereich
-- Running / Cycling / Music Bereiche
-- Live-Strava-Aktivitäten über API
-- Kontaktbereich mit Instagram, Strava und E-Mail
-- Impressum und Datenschutz
-- Eigene 404-Seite
-
-## Tech Stack
-
-- Next.js
-- TypeScript
-- Tailwind CSS
-- Vercel
-- Strava API
-
-## Lokale Entwicklung
-
-Projekt starten:
-
-```bash
+```powershell
+Remove-Item -Recurse -Force .next
 npm run dev
+```
+
+## Was wurde geändert?
+
+Die bisherige Story-Karte in `page.tsx` war eine reine Server-/Fallback-Karte.
+Sie hat die Kudos nur aus `fallbackActivity.kudos` bzw. `fallbackActivity.kudosCount` gelesen.
+Jetzt übernimmt eine Client-Komponente den gleichen Look, lädt aber live `/api/strava/activity/[id]`
+und bevorzugt `activity.kudosCount` aus deiner API.
