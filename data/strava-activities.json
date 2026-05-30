@@ -38,5 +38,16 @@
     "duration": "1 Std. 27 Min.",
     "generatedAt": "2026-05-24T15:39:14.923Z",
     "mapImage": "/images/runs/18632640692-map.png"
+  },
+  "18710525426": {
+    "title": "Dauerlauf",
+    "sportType": "Run",
+    "dateLabel": "30.05.2026",
+    "distance": "12 km",
+    "elevation": "22 m",
+    "duration": "1 Std. 11 Min.",
+    "kudos": 0,
+    "generatedAt": "2026-05-30T07:13:01.866Z",
+    "mapImage": "/images/runs/18710525426-map.png"
   }
 }
