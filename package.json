@@ -14,7 +14,8 @@
   "classify:flvw": "tsx scripts/flvw/check-updates.ts classify",
   "safe-apply:flvw": "tsx scripts/flvw/check-updates.ts safe-apply",
   "generate-route-map": "tsx scripts/generate-route-map.ts",
-  "generate-route-maps": "tsx scripts/generate-missing-route-maps.ts"
+  "generate-route-maps": "tsx scripts/generate-missing-route-maps.ts",
+  "regenerate-route-maps": "tsx scripts/regenerate-route-maps.ts"
 },
 "dependencies": {
     "@next/env": "^16.2.6",

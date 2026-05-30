@@ -98,6 +98,8 @@ type RouteLabelCandidate = {
 
 const WIDTH = 1600;
 const HEIGHT = 820;
+const EARTH_RADIUS_METERS = 6371000;
+const DISTANCE_MARKER_INTERVAL_METERS = 5000;
 
 export type GeneratedRouteMap = {
   activityId: string;
@@ -447,21 +449,92 @@ function distanceSquaredToRoute(
   return min;
 }
 
-function getRoutePointAtPercent(
-  routePoints: [number, number][],
-  percent: number,
-) {
-  const index = Math.min(
-    routePoints.length - 1,
-    Math.max(0, Math.floor(routePoints.length * percent)),
-  );
-
-  return routePoints[index];
-}
-
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function degreesToRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function getHaversineDistanceMeters(
+  [firstLat, firstLon]: LatLng,
+  [secondLat, secondLon]: LatLng,
+) {
+  const deltaLat = degreesToRadians(secondLat - firstLat);
+  const deltaLon = degreesToRadians(secondLon - firstLon);
+  const lat1 = degreesToRadians(firstLat);
+  const lat2 = degreesToRadians(secondLat);
+
+  const a =
+    Math.sin(deltaLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) ** 2;
+
+  return (
+    2 *
+    EARTH_RADIUS_METERS *
+    Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  );
+}
+
+function getDistanceMarkerTargets(distanceMeters: number) {
+  if (!Number.isFinite(distanceMeters) || distanceMeters <= 0) {
+    return [];
+  }
+
+  const markerCount = Math.floor(
+    distanceMeters / DISTANCE_MARKER_INTERVAL_METERS,
+  );
+
+  return Array.from({ length: markerCount }, (_, index) => {
+    const markerDistance = (index + 1) * DISTANCE_MARKER_INTERVAL_METERS;
+
+    return {
+      label: `${markerDistance / 1000} km`,
+      distanceMeters: markerDistance,
+    };
+  }).filter((marker) => marker.distanceMeters <= distanceMeters);
+}
+
+function getRoutePointAtDistance(
+  route: LatLng[],
+  routePoints: [number, number][],
+  targetDistanceMeters: number,
+) {
+  if (route.length < 2 || route.length !== routePoints.length) {
+    return null;
+  }
+
+  let cumulativeDistance = 0;
+
+  for (let index = 1; index < route.length; index += 1) {
+    const segmentDistance = getHaversineDistanceMeters(
+      route[index - 1],
+      route[index],
+    );
+
+    if (segmentDistance <= 0) {
+      continue;
+    }
+
+    const nextDistance = cumulativeDistance + segmentDistance;
+
+    if (targetDistanceMeters <= nextDistance) {
+      const segmentRatio =
+        (targetDistanceMeters - cumulativeDistance) / segmentDistance;
+      const [startX, startY] = routePoints[index - 1];
+      const [endX, endY] = routePoints[index];
+
+      return [
+        startX + (endX - startX) * segmentRatio,
+        startY + (endY - startY) * segmentRatio,
+      ] as [number, number];
+    }
+
+    cumulativeDistance = nextDistance;
+  }
+
+  return null;
 }
 
 function choosePlaceLabelPosition({
@@ -712,14 +785,20 @@ function renderMapSvg(
   const start = routePoints[0];
   const end = routePoints[routePoints.length - 1];
 
-  const markerPositions = [
-    { label: "5 km", percent: 0.33 },
-    { label: "10 km", percent: 0.66 },
-    { label: "15 km", percent: 0.94 },
-  ];
+  const distanceMarkers = getDistanceMarkerTargets(activity.distance);
 
-  for (const marker of markerPositions) {
-    const [x, y] = getRoutePointAtPercent(routePoints, marker.percent);
+  for (const marker of distanceMarkers) {
+    const markerPoint = getRoutePointAtDistance(
+      route,
+      routePoints,
+      marker.distanceMeters,
+    );
+
+    if (!markerPoint) {
+      continue;
+    }
+
+    const [x, y] = markerPoint;
 
     kmMarkers.push(`
       <g>

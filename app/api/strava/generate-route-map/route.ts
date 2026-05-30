@@ -243,15 +243,16 @@ export async function POST(request: Request) {
       .commit({ tag: "strava.route-map.generating" });
 
     const generatedMap = await generateRouteMapForActivity(activityId);
+    const timestamp = generatedMap.generatedAt.replace(/[:.]/g, "-");
     const asset = await sanityClient.assets.upload(
       "image",
       generatedMap.pngBuffer,
       {
-        filename: `strava-route-${activityId}.png`,
+        filename: `strava-route-${activityId}-${timestamp}.png`,
         contentType: "image/png",
         title: `Strava Route ${activityId}`,
         source: {
-          id: activityId,
+          id: `${activityId}-${timestamp}`,
           name: "strava",
           url: `https://www.strava.com/activities/${activityId}`,
         },

@@ -87,3 +87,25 @@ Der manuelle Fallback bleibt erhalten:
 npm run generate-route-map -- 18632640692
 npm run generate-route-maps
 ```
+
+## Bestehende Sanity-Karten neu erzeugen
+
+Nach Änderungen an der Kartenlogik können alle veröffentlichten `journalPost`-Dokumente mit Strava-Aktivität neu erzeugt werden:
+
+```bash
+npm run regenerate-route-maps
+```
+
+Das Script überspringt Drafts und Beiträge ohne `stravaActivityUrl`, `stravaUrl` oder `stravaActivityId`. Es erzeugt immer ein neues Sanity Image Asset mit Timestamp im Dateinamen und patcht `routeMapImage` auf die neue Asset-ID. Dadurch zeigen bestehende Beiträge nach der Regeneration auf frische Kartenbilder und Browser/CDN-Caches bleiben nicht am alten Asset hängen.
+
+Vorher prüfen, welche Beiträge betroffen wären:
+
+```bash
+npm run regenerate-route-maps -- --dry-run
+```
+
+Nur die ersten N Beiträge neu erzeugen:
+
+```bash
+npm run regenerate-route-maps -- --limit=2
+```
