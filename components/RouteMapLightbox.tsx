@@ -25,6 +25,14 @@ export default function RouteMapLightbox({
 }: RouteMapLightboxProps) {
   const [isOpen, setIsOpen] = useState(false);
   const previousScrollYRef = useRef(0);
+  const lightboxImageUrl = src;
+
+  useEffect(() => {
+    console.info("[route-map-lightbox]", {
+      title,
+      lightboxImageUrl,
+    });
+  }, [lightboxImageUrl, title]);
 
   function openLightbox() {
     previousScrollYRef.current = window.scrollY;
@@ -107,12 +115,12 @@ export default function RouteMapLightbox({
 
               <div className="relative flex min-h-[56vh] items-center justify-center overflow-hidden rounded-md bg-white/5 ring-1 ring-white/10 sm:min-h-[72vh]">
                 <Image
-                  src={src}
+                  src={lightboxImageUrl}
                   alt={alt}
                   width={width}
                   height={height}
                   className="max-h-[76vh] w-auto max-w-full object-contain"
-                  unoptimized={src.startsWith("http")}
+                  unoptimized={lightboxImageUrl.startsWith("http")}
                   priority={false}
                 />
               </div>
@@ -132,12 +140,12 @@ export default function RouteMapLightbox({
       >
         <div className="relative w-full overflow-hidden rounded-[1.15rem] border border-black/10 bg-[#f5f3ee] shadow-sm">
           <Image
-            src={src}
+            src={lightboxImageUrl}
             alt={alt}
             width={width}
             height={height}
             className={`h-auto w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.24] group-focus-visible:scale-[1.24] ${imageClassName}`}
-            unoptimized={src.startsWith("http")}
+            unoptimized={lightboxImageUrl.startsWith("http")}
             priority={false}
           />
 

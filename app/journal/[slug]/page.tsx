@@ -368,12 +368,14 @@ function enrichPostWithGeneratedStravaActivity(post: JournalPost): JournalPost {
 }
 
 function StoryConnectionsSection({
+  title,
   albums,
   stravaUrl,
   stravaActivityId,
   routeMapImage,
   stravaActivity,
 }: {
+  title: string;
   albums?: LinkedGalleryAlbum[];
   stravaUrl?: string;
   stravaActivityId?: string;
@@ -387,12 +389,22 @@ function StoryConnectionsSection({
   const routeMapImageAsset = hasSanityImageAsset(routeMapImage)
     ? routeMapImage
     : null;
-  const routeMapImageForCard = routeMapImageAsset
-    ? {
-        src: urlFor(routeMapImageAsset).width(1600).height(820).url(),
-        alt: routeMapImageAsset.alt,
-      }
+  const fallbackRouteMapUrl = stravaActivityId
+    ? `/images/runs/${stravaActivityId}-map.png`
     : undefined;
+  const resolvedRouteMapImageUrl = routeMapImageAsset
+    ? urlFor(routeMapImageAsset).width(1600).height(820).url()
+    : fallbackRouteMapUrl;
+  const routeMapImageAlt = routeMapImageAsset?.alt;
+
+  console.info("[route-map]", {
+    journalTitle: title,
+    hasSanityRouteMapImage: Boolean(routeMapImageAsset),
+    resolvedRouteMapImageUrl,
+    lightboxImageUrl: resolvedRouteMapImageUrl,
+    fallbackRouteMapUrl,
+  });
+
   const hasStrava = Boolean(
     stravaActivity?.title ||
       stravaActivity?.distance ||
@@ -425,10 +437,14 @@ function StoryConnectionsSection({
       >
         {hasStrava ? (
           <StravaStoryGeneratedCard
+            journalTitle={title}
             stravaUrl={stravaUrl}
             stravaActivityId={stravaActivityId}
             fallbackActivity={stravaActivity}
-            routeMapImage={routeMapImageForCard}
+            resolvedRouteMapImageUrl={resolvedRouteMapImageUrl}
+            routeMapImageAlt={routeMapImageAlt}
+            fallbackRouteMapUrl={fallbackRouteMapUrl}
+            hasSanityRouteMapImage={Boolean(routeMapImageAsset)}
           />
         ) : null}
 
@@ -780,6 +796,7 @@ export default async function JournalPostPage({
             </div>
 
             <StoryConnectionsSection
+              title={post.title}
               albums={post.linkedGalleryAlbums}
               stravaUrl={post.stravaActivityUrl || post.stravaUrl}
               stravaActivityId={post.stravaActivityId}

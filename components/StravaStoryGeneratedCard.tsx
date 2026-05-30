@@ -27,20 +27,25 @@ type ApiStravaActivity = {
 type LoadState = "idle" | "loading" | "success" | "error";
 
 type StravaStoryGeneratedCardProps = {
+  journalTitle?: string;
   stravaUrl?: string;
   stravaActivityId?: string;
   fallbackActivity?: StravaStoryActivityManual;
-  routeMapImage?: {
-    src: string;
-    alt?: string;
-  };
+  resolvedRouteMapImageUrl?: string;
+  routeMapImageAlt?: string;
+  fallbackRouteMapUrl?: string;
+  hasSanityRouteMapImage?: boolean;
 };
 
 export default function StravaStoryGeneratedCard({
+  journalTitle,
   stravaUrl,
   stravaActivityId,
   fallbackActivity,
-  routeMapImage,
+  resolvedRouteMapImageUrl,
+  routeMapImageAlt,
+  fallbackRouteMapUrl,
+  hasSanityRouteMapImage = false,
 }: StravaStoryGeneratedCardProps) {
   const activityId = useMemo(
     () => normalizeActivityId(stravaActivityId) || getStravaActivityId(stravaUrl),
@@ -122,6 +127,28 @@ export default function StravaStoryGeneratedCard({
     visibleActivity?.url ||
     stravaUrl ||
     (activityId ? `https://www.strava.com/activities/${activityId}` : undefined);
+  const lightboxImageUrl = resolvedRouteMapImageUrl ?? null;
+
+  useEffect(() => {
+    if (!journalTitle && !activityId && !lightboxImageUrl && !fallbackRouteMapUrl) {
+      return;
+    }
+
+    console.info("[route-map]", {
+      journalTitle,
+      hasSanityRouteMapImage,
+      resolvedRouteMapImageUrl,
+      lightboxImageUrl,
+      fallbackRouteMapUrl,
+    });
+  }, [
+    activityId,
+    fallbackRouteMapUrl,
+    hasSanityRouteMapImage,
+    journalTitle,
+    lightboxImageUrl,
+    resolvedRouteMapImageUrl,
+  ]);
 
   return (
     <aside className="border-y border-black/10 bg-[#f5f3ee] px-4 py-5 sm:px-5">
@@ -180,8 +207,8 @@ export default function StravaStoryGeneratedCard({
         </div>
 
         <GeneratedRouteMap
-          activityId={activityId}
-          routeMapImage={routeMapImage}
+          imageUrl={lightboxImageUrl}
+          imageAlt={routeMapImageAlt}
           title={title}
         />
 
@@ -229,26 +256,21 @@ export default function StravaStoryGeneratedCard({
 }
 
 function GeneratedRouteMap({
-  activityId,
-  routeMapImage,
+  imageUrl,
+  imageAlt,
   title,
 }: {
-  activityId?: string | null;
-  routeMapImage?: {
-    src: string;
-    alt?: string;
-  };
+  imageUrl?: string | null;
+  imageAlt?: string;
   title: string;
 }) {
-  const src = routeMapImage?.src || (activityId ? `/images/runs/${activityId}-map.png` : null);
-
-  if (!src) return null;
+  if (!imageUrl) return null;
 
   return (
     <figure className="-mx-4 mt-7 border-y border-black/10 py-5 sm:-mx-5">
       <RouteMapLightbox
-        src={src}
-        alt={routeMapImage?.alt || `Karte der Laufroute ${title}`}
+        src={imageUrl}
+        alt={imageAlt || `Karte der Laufroute ${title}`}
         title={`Karte der Laufroute ${title}`}
         imageClassName="scale-[1.18]"
       />
