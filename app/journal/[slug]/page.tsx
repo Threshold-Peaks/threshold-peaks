@@ -60,6 +60,13 @@ type JournalPost = {
   excerpt?: string;
   body?: Record<string, unknown>[];
   stravaUrl?: string;
+  stravaActivityUrl?: string;
+  stravaActivityId?: string;
+  routeMapImage?: SanityImageSource & {
+    alt?: string;
+  };
+  routeMapStatus?: string;
+  routeMapGeneratedAt?: string;
   stravaActivity?: StravaActivity;
   soundcloudUrl?: string;
   tags?: JournalTag[];
@@ -113,6 +120,14 @@ const query = `*[_type == "journalPost" && slug.current == $slug][0]{
   excerpt,
   body,
   stravaUrl,
+  stravaActivityUrl,
+  stravaActivityId,
+  routeMapImage{
+    ...,
+    alt
+  },
+  routeMapStatus,
+  routeMapGeneratedAt,
   stravaActivity{
     title,
     sportType,
@@ -303,7 +318,11 @@ function formatGalleryCategory(category?: string) {
 }
 
 
-function getStravaActivityId(stravaUrl?: string) {
+function getStravaActivityId(stravaUrl?: string, stravaActivityId?: string) {
+  if (stravaActivityId && /^\d+$/.test(stravaActivityId.trim())) {
+    return stravaActivityId.trim();
+  }
+
   if (!stravaUrl) return null;
 
   const match = stravaUrl.match(/strava\.com\/activities\/(\d+)/i);
@@ -312,7 +331,10 @@ function getStravaActivityId(stravaUrl?: string) {
 
 
 function enrichPostWithGeneratedStravaActivity(post: JournalPost): JournalPost {
-  const activityId = getStravaActivityId(post.stravaUrl);
+  const activityId = getStravaActivityId(
+    post.stravaActivityUrl || post.stravaUrl,
+    post.stravaActivityId,
+  );
 
   if (!activityId) {
     return post;
@@ -348,19 +370,36 @@ function enrichPostWithGeneratedStravaActivity(post: JournalPost): JournalPost {
 function StoryConnectionsSection({
   albums,
   stravaUrl,
+  stravaActivityId,
+  routeMapImage,
   stravaActivity,
 }: {
   albums?: LinkedGalleryAlbum[];
   stravaUrl?: string;
+  stravaActivityId?: string;
+  routeMapImage?: SanityImageSource & {
+    alt?: string;
+  };
   stravaActivity?: StravaActivity;
 }) {
   const visibleAlbums = (albums ?? []).filter((album) => album?._id);
   const hasAlbums = visibleAlbums.length > 0;
+  const routeMapImageAsset = hasSanityImageAsset(routeMapImage)
+    ? routeMapImage
+    : null;
+  const routeMapImageForCard = routeMapImageAsset
+    ? {
+        src: urlFor(routeMapImageAsset).width(1600).height(820).url(),
+        alt: routeMapImageAsset.alt,
+      }
+    : undefined;
   const hasStrava = Boolean(
     stravaActivity?.title ||
       stravaActivity?.distance ||
       stravaActivity?.duration ||
       stravaActivity?.mapImage ||
+      routeMapImageAsset ||
+      stravaActivityId ||
       stravaUrl,
   );
 
@@ -387,7 +426,9 @@ function StoryConnectionsSection({
         {hasStrava ? (
           <StravaStoryGeneratedCard
             stravaUrl={stravaUrl}
+            stravaActivityId={stravaActivityId}
             fallbackActivity={stravaActivity}
+            routeMapImage={routeMapImageForCard}
           />
         ) : null}
 
@@ -709,7 +750,7 @@ export default async function JournalPostPage({
                 <DetailFact label="Datum" value={formatDate(post.publishedAt)} />
                 <DetailFact label="Bereich" value="Journal" />
                 <DetailLinks
-                  stravaUrl={post.stravaUrl}
+                  stravaUrl={post.stravaActivityUrl || post.stravaUrl}
                   soundcloudUrl={post.soundcloudUrl}
                 />
                 <div className="py-4 md:px-5 md:first:pl-0">
@@ -740,7 +781,9 @@ export default async function JournalPostPage({
 
             <StoryConnectionsSection
               albums={post.linkedGalleryAlbums}
-              stravaUrl={post.stravaUrl}
+              stravaUrl={post.stravaActivityUrl || post.stravaUrl}
+              stravaActivityId={post.stravaActivityId}
+              routeMapImage={post.routeMapImage}
               stravaActivity={post.stravaActivity}
             />
 

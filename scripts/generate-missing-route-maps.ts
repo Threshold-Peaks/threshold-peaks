@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { createClient } from "@sanity/client";
+import { generateRouteMapFile } from "./generate-route-map";
 
 dotenv.config({ path: ".env.local" });
 
@@ -13,6 +13,8 @@ type JournalPostWithStrava = {
     current?: string;
   };
   stravaUrl?: string;
+  stravaActivityUrl?: string;
+  stravaActivityId?: string;
 };
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
@@ -38,6 +40,14 @@ function getStravaActivityId(stravaUrl?: string) {
   return match?.[1] ?? null;
 }
 
+function getPostStravaActivityId(post: JournalPostWithStrava) {
+  if (post.stravaActivityId && /^\d+$/.test(post.stravaActivityId.trim())) {
+    return post.stravaActivityId.trim();
+  }
+
+  return getStravaActivityId(post.stravaActivityUrl || post.stravaUrl);
+}
+
 async function fileExists(filePath: string) {
   try {
     await fs.access(filePath);
@@ -47,49 +57,19 @@ async function fileExists(filePath: string) {
   }
 }
 
-function runGenerateRouteMap(activityId: string) {
-  return new Promise<void>((resolve, reject) => {
-    const isWindows = process.platform === "win32";
-
-    const command = isWindows ? "cmd" : "npm";
-    const args = isWindows
-      ? ["/c", "npm", "run", "generate-route-map", "--", activityId]
-      : ["run", "generate-route-map", "--", activityId];
-
-    const child = spawn(command, args, {
-      cwd: process.cwd(),
-      stdio: "inherit",
-      shell: false,
-    });
-
-    child.on("error", reject);
-
-    child.on("close", (code) => {
-      if (code === 0) {
-        resolve();
-        return;
-      }
-
-      reject(
-        new Error(
-          `generate-route-map für Aktivität ${activityId} ist mit Code ${code} fehlgeschlagen.`,
-        ),
-      );
-    });
-  });
-}
-
 async function main() {
   const force = process.argv.includes("--force");
 
   console.log("Suche Journalposts mit Strava-Link...");
 
   const posts = await client.fetch<JournalPostWithStrava[]>(`
-    *[_type == "journalPost" && defined(stravaUrl)] | order(publishedAt desc) {
+    *[_type == "journalPost" && (defined(stravaUrl) || defined(stravaActivityUrl) || defined(stravaActivityId))] | order(publishedAt desc) {
       _id,
       title,
       slug,
-      stravaUrl
+      stravaUrl,
+      stravaActivityUrl,
+      stravaActivityId
     }
   `);
 
@@ -103,7 +83,7 @@ async function main() {
   >();
 
   for (const post of posts) {
-    const activityId = getStravaActivityId(post.stravaUrl);
+    const activityId = getPostStravaActivityId(post);
 
     if (!activityId) {
       console.warn(
@@ -115,7 +95,7 @@ async function main() {
     activityMap.set(activityId, {
       title: post.title,
       slug: post.slug?.current,
-      stravaUrl: post.stravaUrl,
+      stravaUrl: post.stravaActivityUrl || post.stravaUrl,
     });
   }
 
@@ -166,7 +146,7 @@ async function main() {
   for (const activityId of missingActivities) {
     console.log("");
     console.log(`Starte Kartengenerierung für ${activityId}...`);
-    await runGenerateRouteMap(activityId);
+    await generateRouteMapFile(activityId);
   }
 
   console.log("");

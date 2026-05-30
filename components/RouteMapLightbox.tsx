@@ -112,6 +112,7 @@ export default function RouteMapLightbox({
                   width={width}
                   height={height}
                   className="max-h-[76vh] w-auto max-w-full object-contain"
+                  unoptimized={src.startsWith("http")}
                   priority={false}
                 />
               </div>
@@ -136,6 +137,7 @@ export default function RouteMapLightbox({
             width={width}
             height={height}
             className={`h-auto w-full object-contain transition-transform duration-700 ease-out group-hover:scale-[1.24] group-focus-visible:scale-[1.24] ${imageClassName}`}
+            unoptimized={src.startsWith("http")}
             priority={false}
           />
 

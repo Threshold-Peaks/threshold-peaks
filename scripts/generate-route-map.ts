@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 
 dotenv.config({ path: ".env.local" });
@@ -11,7 +12,7 @@ type StravaTokenResponse = {
   access_token: string;
 };
 
-type StravaActivity = {
+export type StravaActivity = {
   id: number;
   name: string;
   distance: number;
@@ -98,38 +99,38 @@ type RouteLabelCandidate = {
 const WIDTH = 1600;
 const HEIGHT = 820;
 
+export type GeneratedRouteMap = {
+  activityId: string;
+  activity: StravaActivity;
+  pngBuffer: Buffer;
+  generatedAt: string;
+};
+
 const ACTIVITY_ID = process.argv[2];
 
-if (!ACTIVITY_ID) {
-  console.error(
-    "Bitte Strava Activity ID angeben, z. B.: npm run generate-route-map 18632640692",
-  );
-  process.exit(1);
-}
-
-const STRAVA_CLIENT_ID = process.env.STRAVA_CLIENT_ID;
-const STRAVA_CLIENT_SECRET = process.env.STRAVA_CLIENT_SECRET;
-const STRAVA_REFRESH_TOKEN = process.env.STRAVA_REFRESH_TOKEN;
-
-if (!STRAVA_CLIENT_ID || !STRAVA_CLIENT_SECRET || !STRAVA_REFRESH_TOKEN) {
-  console.error(
-    "Bitte STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET und STRAVA_REFRESH_TOKEN in .env.local setzen.",
-  );
-  process.exit(1);
-}
-
 async function refreshStravaToken() {
+  const stravaClientId = process.env.STRAVA_CLIENT_ID;
+  const stravaClientSecret = process.env.STRAVA_CLIENT_SECRET;
+  const stravaRefreshToken = process.env.STRAVA_REFRESH_TOKEN;
+
+  if (!stravaClientId || !stravaClientSecret || !stravaRefreshToken) {
+    throw new Error(
+      "Bitte STRAVA_CLIENT_ID, STRAVA_CLIENT_SECRET und STRAVA_REFRESH_TOKEN setzen.",
+    );
+  }
+
   const response = await fetch("https://www.strava.com/oauth/token", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      client_id: STRAVA_CLIENT_ID,
-      client_secret: STRAVA_CLIENT_SECRET,
-      refresh_token: STRAVA_REFRESH_TOKEN,
+      client_id: stravaClientId,
+      client_secret: stravaClientSecret,
+      refresh_token: stravaRefreshToken,
       grant_type: "refresh_token",
     }),
+    cache: "no-store",
   });
 
   if (!response.ok) {
@@ -148,6 +149,7 @@ async function getActivity(accessToken: string, activityId: string) {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
+      cache: "no-store",
     },
   );
 
@@ -166,6 +168,7 @@ async function getActivityRoute(accessToken: string, activityId: string) {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+    cache: "no-store",
   });
 
   if (!response.ok) {
@@ -837,7 +840,7 @@ async function writeStravaActivityMetadata(
   try {
     const existingContent = await fs.readFile(outputPath, "utf8");
     currentData = JSON.parse(existingContent) as Record<string, StravaActivityMeta>;
-  } catch (error) {
+  } catch {
     currentData = {};
   }
 
@@ -865,39 +868,75 @@ async function writeStravaActivityMetadata(
 }
 
 
-async function main() {
-  console.log(`Hole Strava-Daten für Aktivität ${ACTIVITY_ID}...`);
+export async function generateRouteMapForActivity(
+  activityId: string,
+): Promise<GeneratedRouteMap> {
+  if (!/^\d+$/.test(activityId)) {
+    throw new Error(`Ungültige Strava Activity ID: ${activityId}`);
+  }
+
+  console.log(`Hole Strava-Daten fÃ¼r AktivitÃ¤t ${activityId}...`);
 
   const accessToken = await refreshStravaToken();
-  const activity = await getActivity(accessToken, ACTIVITY_ID);
-  const route = await getActivityRoute(accessToken, ACTIVITY_ID);
+  const activity = await getActivity(accessToken, activityId);
+  const route = await getActivityRoute(accessToken, activityId);
 
-  console.log(`Aktivität: ${activity.name}`);
+  console.log(`AktivitÃ¤t: ${activity.name}`);
   console.log(`Distanz: ${(activity.distance / 1000).toFixed(2)} km`);
-  console.log(`Höhenmeter: ${activity.total_elevation_gain.toFixed(0)} m`);
+  console.log(`HÃ¶henmeter: ${activity.total_elevation_gain.toFixed(0)} m`);
 
   const bbox = getBoundingBox(route);
 
-  console.log("Hole OSM-Daten über Overpass...");
+  console.log("Hole OSM-Daten Ã¼ber Overpass...");
   const osm = await getOsmData(bbox);
   const features = overpassToFeatures(osm);
 
   console.log(`OSM-Features: ${features.length}`);
 
   const svg = renderMapSvg(activity, route, features);
+  const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
+
+  return {
+    activityId,
+    activity,
+    pngBuffer,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+export async function generateRouteMapFile(activityId: string) {
+  const result = await generateRouteMapForActivity(activityId);
 
   const outputDir = path.join(process.cwd(), "public", "images", "runs");
   await fs.mkdir(outputDir, { recursive: true });
 
-  const outputPath = path.join(outputDir, `${ACTIVITY_ID}-map.png`);
+  const outputPath = path.join(outputDir, `${activityId}-map.png`);
 
-  await sharp(Buffer.from(svg)).png().toFile(outputPath);
-  await writeStravaActivityMetadata(ACTIVITY_ID, activity);
+  await fs.writeFile(outputPath, result.pngBuffer);
+  await writeStravaActivityMetadata(activityId, result.activity);
 
   console.log(`Fertig: ${outputPath}`);
+
+  return {
+    ...result,
+    outputPath,
+  };
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+async function main() {
+  if (!ACTIVITY_ID) {
+    console.error(
+      "Bitte Strava Activity ID angeben, z. B.: npm run generate-route-map 18632640692",
+    );
+    process.exit(1);
+  }
+
+  await generateRouteMapFile(ACTIVITY_ID);
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
+}

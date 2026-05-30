@@ -180,6 +180,77 @@ export const journalPost = defineType({
     }),
 
     defineField({
+      name: 'stravaActivityUrl',
+      title: 'Strava-Aktivitätslink für automatische Karte',
+      type: 'url',
+      description:
+        'Optional. Wenn gesetzt, nutzt der Webhook diesen Link für die automatische Route-Map. Sonst wird der normale Strava-Link verwendet.',
+      validation: (Rule) => Rule.uri({scheme: ['http', 'https']}).warning(),
+    }),
+
+    defineField({
+      name: 'stravaActivityId',
+      title: 'Strava Activity ID',
+      type: 'string',
+      description:
+        'Optional. Wird automatisch aus dem Link gesetzt; kann auch direkt gepflegt werden.',
+      validation: (Rule) => Rule.regex(/^\d+$/).warning('Bitte nur die numerische Strava Activity ID eintragen.'),
+    }),
+
+    defineField({
+      name: 'routeMapImage',
+      title: 'Automatisch erzeugte Route-Map',
+      type: 'image',
+      description:
+        'Wird vom Strava-Route-Map-Webhook erzeugt und als Sanity Asset gespeichert.',
+      readOnly: true,
+      options: {
+        hotspot: false,
+      },
+      fields: [
+        defineField({
+          name: 'alt',
+          title: 'Alternativtext',
+          type: 'string',
+          readOnly: true,
+          validation: (Rule) => Rule.max(160),
+        }),
+      ],
+    }),
+
+    defineField({
+      name: 'routeMapStatus',
+      title: 'Route-Map-Status',
+      type: 'string',
+      readOnly: true,
+      options: {
+        list: [
+          {title: 'Wird erzeugt', value: 'generating'},
+          {title: 'Fertig', value: 'ready'},
+          {title: 'Fehlgeschlagen', value: 'failed'},
+        ],
+        layout: 'radio',
+      },
+    }),
+
+    defineField({
+      name: 'routeMapGeneratedAt',
+      title: 'Route-Map erzeugt am',
+      type: 'datetime',
+      readOnly: true,
+    }),
+
+    defineField({
+      name: 'routeMapError',
+      title: 'Route-Map Fehler',
+      type: 'text',
+      rows: 3,
+      readOnly: true,
+      description: 'Nur sichtbar, wenn die automatische Kartenerzeugung fehlgeschlagen ist.',
+      hidden: ({document}) => document?.routeMapStatus !== 'failed',
+    }),
+
+    defineField({
       name: 'stravaActivity',
       title: 'Manuelle Strava-Daten',
       type: 'object',

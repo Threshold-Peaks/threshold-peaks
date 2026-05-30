@@ -28,14 +28,24 @@ type LoadState = "idle" | "loading" | "success" | "error";
 
 type StravaStoryGeneratedCardProps = {
   stravaUrl?: string;
+  stravaActivityId?: string;
   fallbackActivity?: StravaStoryActivityManual;
+  routeMapImage?: {
+    src: string;
+    alt?: string;
+  };
 };
 
 export default function StravaStoryGeneratedCard({
   stravaUrl,
+  stravaActivityId,
   fallbackActivity,
+  routeMapImage,
 }: StravaStoryGeneratedCardProps) {
-  const activityId = useMemo(() => getStravaActivityId(stravaUrl), [stravaUrl]);
+  const activityId = useMemo(
+    () => normalizeActivityId(stravaActivityId) || getStravaActivityId(stravaUrl),
+    [stravaActivityId, stravaUrl],
+  );
 
   const [activity, setActivity] = useState<ApiStravaActivity | null>(null);
   const [loadState, setLoadState] = useState<LoadState>(
@@ -44,8 +54,6 @@ export default function StravaStoryGeneratedCard({
 
   useEffect(() => {
     if (!activityId) {
-      setActivity(null);
-      setLoadState("idle");
       return;
     }
 
@@ -89,22 +97,31 @@ export default function StravaStoryGeneratedCard({
     };
   }, [activityId]);
 
+  const visibleActivity =
+    activityId && activity?.id.toString() === activityId ? activity : null;
+  const visibleLoadState = activityId ? loadState : "idle";
+
   const title =
-    activity?.name || fallbackActivity?.title || "Aktivität auf Strava";
+    visibleActivity?.name || fallbackActivity?.title || "Aktivität auf Strava";
 
   const sportType = formatSportType(
-    activity?.sportType || activity?.type || fallbackActivity?.sportType,
+    visibleActivity?.sportType ||
+      visibleActivity?.type ||
+      fallbackActivity?.sportType,
   );
 
-  const dateLabel = activity?.dateLabel || fallbackActivity?.dateLabel || "";
-  const distance = activity?.distanceLabel || fallbackActivity?.distance || "–";
+  const dateLabel = visibleActivity?.dateLabel || fallbackActivity?.dateLabel || "";
+  const distance = visibleActivity?.distanceLabel || fallbackActivity?.distance || "–";
   const elevation =
-    activity?.elevationLabel || fallbackActivity?.elevation || "–";
+    visibleActivity?.elevationLabel || fallbackActivity?.elevation || "–";
   const duration =
-    activity?.movingTimeLabel || fallbackActivity?.duration || "–";
+    visibleActivity?.movingTimeLabel || fallbackActivity?.duration || "–";
 
-  const kudos = getVisibleKudos(activity, fallbackActivity);
-  const url = activity?.url || stravaUrl;
+  const kudos = getVisibleKudos(visibleActivity, fallbackActivity);
+  const url =
+    visibleActivity?.url ||
+    stravaUrl ||
+    (activityId ? `https://www.strava.com/activities/${activityId}` : undefined);
 
   return (
     <aside className="border-y border-black/10 bg-[#f5f3ee] px-4 py-5 sm:px-5">
@@ -162,13 +179,17 @@ export default function StravaStoryGeneratedCard({
           </div>
         </div>
 
-        <GeneratedRouteMap activityId={activityId} title={title} />
+        <GeneratedRouteMap
+          activityId={activityId}
+          routeMapImage={routeMapImage}
+          title={title}
+        />
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-2">
             <p className="text-xs font-bold text-red-600">
               DEBUG: activityId={activityId ?? "keine ID"} | loadState=
-              {loadState} | API={activity?.kudosCount ?? "kein API-Wert"} |
+              {visibleLoadState} | API={visibleActivity?.kudosCount ?? "kein API-Wert"} |
               fallback=
               {fallbackActivity?.kudos ??
                 fallbackActivity?.kudosCount ??
@@ -176,7 +197,7 @@ export default function StravaStoryGeneratedCard({
             </p>
 
             <p className="text-sm font-black text-orange-600">
-              {loadState === "loading" && activityId
+              {visibleLoadState === "loading" && activityId
                 ? "Kudos laden …"
                 : typeof kudos === "number"
                   ? `${kudos} ${kudos === 1 ? "Kudo" : "Kudos"}`
@@ -196,7 +217,7 @@ export default function StravaStoryGeneratedCard({
           ) : null}
         </div>
 
-        {loadState === "error" && activityId ? (
+        {visibleLoadState === "error" && activityId ? (
           <p className="mt-3 text-xs font-semibold leading-6 text-black/35">
             Strava-Daten konnten gerade nicht live geladen werden. Es werden die
             hinterlegten Fallback-Daten angezeigt.
@@ -209,18 +230,25 @@ export default function StravaStoryGeneratedCard({
 
 function GeneratedRouteMap({
   activityId,
+  routeMapImage,
   title,
 }: {
   activityId?: string | null;
+  routeMapImage?: {
+    src: string;
+    alt?: string;
+  };
   title: string;
 }) {
-  if (!activityId) return null;
+  const src = routeMapImage?.src || (activityId ? `/images/runs/${activityId}-map.png` : null);
+
+  if (!src) return null;
 
   return (
     <figure className="-mx-4 mt-7 border-y border-black/10 py-5 sm:-mx-5">
       <RouteMapLightbox
-        src={`/images/runs/${activityId}-map.png`}
-        alt={`Karte der Laufroute ${title}`}
+        src={src}
+        alt={routeMapImage?.alt || `Karte der Laufroute ${title}`}
         title={`Karte der Laufroute ${title}`}
         imageClassName="scale-[1.18]"
       />
@@ -260,6 +288,13 @@ function getStravaActivityId(url?: string) {
   } catch {
     return null;
   }
+}
+
+function normalizeActivityId(activityId?: string) {
+  if (!activityId) return null;
+
+  const trimmed = activityId.trim();
+  return /^\d+$/.test(trimmed) ? trimmed : null;
 }
 
 function formatSportType(type?: string) {

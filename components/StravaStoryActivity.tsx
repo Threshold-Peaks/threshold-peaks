@@ -50,8 +50,6 @@ export default function StravaStoryActivity({
 
   useEffect(() => {
     if (!activityId) {
-      setActivity(null);
-      setLoadState("idle");
       return;
     }
 

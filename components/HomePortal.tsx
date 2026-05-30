@@ -2673,8 +2673,6 @@ function StravaStoryGeneratedCard({
 
   useEffect(() => {
     if (!activityId) {
-      setActivity(null);
-      setLoadState("idle");
       return;
     }
 
