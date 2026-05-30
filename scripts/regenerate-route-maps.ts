@@ -23,6 +23,18 @@ type JournalPostWithRouteMap = {
   routeMapImage?: SanityImageField;
 };
 
+type RegeneratedRouteMapResult = {
+  status: "regenerated";
+  title?: string;
+  documentId: string;
+  activityId: string;
+  distanceKm: number;
+  distanceMarkers: string[];
+  previousAssetRef?: string;
+  assetId: string;
+  hadExistingImage: boolean;
+};
+
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
 const apiVersion = process.env.NEXT_PUBLIC_SANITY_API_VERSION || "2026-05-11";
@@ -153,17 +165,31 @@ async function regeneratePostRouteMap(post: JournalPostWithRouteMap) {
 
   return {
     status: "regenerated" as const,
+    title: post.title,
+    documentId: post._id,
     activityId,
+    distanceKm: generatedMap.activity.distance / 1000,
+    distanceMarkers: generatedMap.distanceMarkers.map((marker) => marker.label),
     previousAssetRef,
     assetId: asset._id,
     hadExistingImage: hasImageAsset(post.routeMapImage),
-  };
+  } satisfies RegeneratedRouteMapResult;
 }
 
 async function main() {
   const dryRun = process.argv.includes("--dry-run");
   const limitArg = process.argv.find((arg) => arg.startsWith("--limit="));
+  const titleArg = process.argv.find((arg) => arg.startsWith("--title="));
+  const activityArg = process.argv.find((arg) =>
+    arg.startsWith("--activity-id="),
+  );
   const limit = limitArg ? Number(limitArg.split("=")[1]) : null;
+  const titleFilter = titleArg
+    ? titleArg.slice("--title=".length).toLowerCase()
+    : null;
+  const activityFilter = activityArg
+    ? activityArg.slice("--activity-id=".length)
+    : null;
 
   if (limit !== null && (!Number.isInteger(limit) || limit <= 0)) {
     console.error("Bitte --limit als positive ganze Zahl angeben.");
@@ -173,7 +199,15 @@ async function main() {
   console.log("Suche veröffentlichte Journalposts mit Strava-Aktivität...");
 
   const posts = await fetchJournalPostsWithStrava();
-  const postsToProcess = limit ? posts.slice(0, limit) : posts;
+  const filteredPosts = posts.filter((post) => {
+    const activityId = getTargetActivityId(post);
+    const titleMatches =
+      !titleFilter || post.title?.toLowerCase().includes(titleFilter);
+    const activityMatches = !activityFilter || activityId === activityFilter;
+
+    return titleMatches && activityMatches;
+  });
+  const postsToProcess = limit ? filteredPosts.slice(0, limit) : filteredPosts;
 
   if (postsToProcess.length === 0) {
     console.log("Keine passenden Journalposts gefunden.");
@@ -217,6 +251,18 @@ async function main() {
 
       if (result.status === "regenerated") {
         regenerated += 1;
+        console.log(`  journalPost title: ${result.title ?? "(ohne Titel)"}`);
+        console.log(`  Sanity document _id: ${result.documentId}`);
+        console.log(`  stravaActivityId: ${result.activityId}`);
+        console.log(`  activity.distance: ${result.distanceKm.toFixed(2)} km`);
+        console.log(
+          `  erzeugte Marker: ${
+            result.distanceMarkers.length > 0
+              ? result.distanceMarkers.join(", ")
+              : "keine"
+          }`,
+        );
+        console.log(`  routeMapImage asset id: ${result.assetId}`);
         console.log(
           `Fertig: ${label} · neues Asset ${result.assetId}${
             result.previousAssetRef

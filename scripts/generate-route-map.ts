@@ -104,6 +104,10 @@ const DISTANCE_MARKER_INTERVAL_METERS = 5000;
 export type GeneratedRouteMap = {
   activityId: string;
   activity: StravaActivity;
+  distanceMarkers: Array<{
+    label: string;
+    distanceMeters: number;
+  }>;
   pngBuffer: Buffer;
   generatedAt: string;
 };
@@ -973,11 +977,13 @@ export async function generateRouteMapForActivity(
   console.log(`OSM-Features: ${features.length}`);
 
   const svg = renderMapSvg(activity, route, features);
+  const distanceMarkers = getDistanceMarkerTargets(activity.distance);
   const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
 
   return {
     activityId,
     activity,
+    distanceMarkers,
     pngBuffer,
     generatedAt: new Date().toISOString(),
   };
