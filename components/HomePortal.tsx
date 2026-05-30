@@ -48,7 +48,14 @@ type HomeJournalPost = {
   excerpt?: string;
   body?: PortableTextBlock;
   stravaUrl?: string;
+  stravaActivityUrl?: string;
+  stravaActivityId?: string;
   stravaActivity?: StravaActivity;
+  routeMapImage?: SanityImageSource & {
+    alt?: string;
+  };
+  routeMapStatus?: string;
+  routeMapGeneratedAt?: string;
   soundcloudUrl?: string;
   location?: string;
   tags?: string | HomeJournalTag[];
@@ -2410,8 +2417,11 @@ function JournalPortalDetail({
           )}
 
           <StoryConnectionsSection
+            title={post.title}
             albums={linkedGalleryAlbums}
-            stravaUrl={post.stravaUrl}
+            stravaUrl={post.stravaActivityUrl || post.stravaUrl}
+            stravaActivityId={post.stravaActivityId}
+            routeMapImage={post.routeMapImage}
             stravaActivity={post.stravaActivity}
             onOpenAlbum={onOpenLinkedGalleryAlbum}
           />
@@ -2592,7 +2602,11 @@ function JournalMetaLinks({
 }
 
 
-function getStravaActivityId(stravaUrl?: string) {
+function getStravaActivityId(stravaUrl?: string, stravaActivityId?: string) {
+  if (stravaActivityId && /^\d+$/.test(stravaActivityId.trim())) {
+    return stravaActivityId.trim();
+  }
+
   if (!stravaUrl) return null;
 
   const directMatch = stravaUrl.match(/strava\.com\/activities\/(\d+)/i);
@@ -2623,36 +2637,49 @@ function formatSportType(sportType?: string) {
 }
 
 function GeneratedRouteMap({
-  stravaUrl,
+  imageUrl,
+  imageAlt,
   title,
 }: {
-  stravaUrl?: string;
+  imageUrl?: string | null;
+  imageAlt?: string;
   title: string;
 }) {
-  const activityId = getStravaActivityId(stravaUrl);
-
-  if (!activityId) return null;
+  if (!imageUrl) return null;
 
   return (
-  <figure className="-mx-4 mt-7 border-y border-black/10 py-5 sm:-mx-5">
-    <RouteMapLightbox
-      src={`/images/runs/${activityId}-map.png`}
-      alt={`Karte der Laufroute ${title}`}
-      title={`Karte der Laufroute ${title}`}
-      imageClassName="scale-[1.18]"
-    />
-  </figure>
-);
+    <figure className="-mx-4 mt-7 border-y border-black/10 py-5 sm:-mx-5">
+      <RouteMapLightbox
+        src={imageUrl}
+        alt={imageAlt || `Karte der Laufroute ${title}`}
+        title={`Karte der Laufroute ${title}`}
+        imageClassName="scale-[1.18]"
+      />
+    </figure>
+  );
 }
 
 function StravaStoryGeneratedCard({
+  journalTitle,
   stravaUrl,
+  stravaActivityId,
   fallbackActivity,
+  resolvedRouteMapImageUrl,
+  routeMapImageAlt,
+  fallbackRouteMapUrl,
+  hasSanityRouteMapImage = false,
 }: {
+  journalTitle?: string;
   stravaUrl?: string;
+  stravaActivityId?: string;
   fallbackActivity?: StravaActivity;
+  resolvedRouteMapImageUrl?: string;
+  routeMapImageAlt?: string;
+  fallbackRouteMapUrl?: string;
+  hasSanityRouteMapImage?: boolean;
 }) {
-  const activityId = getStravaActivityId(stravaUrl);
+  const activityId = getStravaActivityId(stravaUrl, stravaActivityId);
+  const lightboxImageUrl = resolvedRouteMapImageUrl ?? null;
 
   const [activity, setActivity] = useState<{
     id: number;
@@ -2715,6 +2742,22 @@ function StravaStoryGeneratedCard({
       isActive = false;
     };
   }, [activityId]);
+
+  useEffect(() => {
+    console.info("[route-map]", {
+      journalTitle,
+      hasSanityRouteMapImage,
+      resolvedRouteMapImageUrl,
+      lightboxImageUrl,
+      fallbackRouteMapUrl,
+    });
+  }, [
+    journalTitle,
+    hasSanityRouteMapImage,
+    resolvedRouteMapImageUrl,
+    lightboxImageUrl,
+    fallbackRouteMapUrl,
+  ]);
 
   const title = activity?.name || fallbackActivity?.title || "Aktivität zur Story";
   const sportType = formatSportType(
@@ -2781,7 +2824,11 @@ function StravaStoryGeneratedCard({
           </div>
         </div>
 
-        <GeneratedRouteMap stravaUrl={stravaUrl} title={title} />
+        <GeneratedRouteMap
+          imageUrl={lightboxImageUrl}
+          imageAlt={routeMapImageAlt}
+          title={title}
+        />
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm font-black text-orange-600">
@@ -2814,24 +2861,54 @@ function StravaStoryGeneratedCard({
 }
 
 function StoryConnectionsSection({
+  title,
   albums,
   stravaUrl,
+  stravaActivityId,
+  routeMapImage,
   stravaActivity,
   onOpenAlbum,
 }: {
+  title: string;
   albums?: HomeGalleryAlbum[];
   stravaUrl?: string;
+  stravaActivityId?: string;
+  routeMapImage?: SanityImageSource & {
+    alt?: string;
+  };
   stravaActivity?: StravaActivity;
   onOpenAlbum: (album: HomeGalleryAlbum) => void;
 }) {
   const visibleAlbums = (albums ?? []).filter((album) => album?._id);
   const hasAlbums = visibleAlbums.length > 0;
+  const activityId = getStravaActivityId(stravaUrl, stravaActivityId);
+  const routeMapImageAsset = hasSanityImageAsset(routeMapImage)
+    ? routeMapImage
+    : null;
+  const fallbackRouteMapUrl = activityId
+    ? `/images/runs/${activityId}-map.png`
+    : undefined;
+  const resolvedRouteMapImageUrl = routeMapImageAsset
+    ? urlFor(routeMapImageAsset).width(1600).height(820).url()
+    : fallbackRouteMapUrl;
+  const routeMapImageAlt = routeMapImageAsset?.alt;
+
+  console.info("[route-map]", {
+    journalTitle: title,
+    hasSanityRouteMapImage: Boolean(routeMapImageAsset),
+    resolvedRouteMapImageUrl,
+    lightboxImageUrl: resolvedRouteMapImageUrl,
+    fallbackRouteMapUrl,
+  });
+
   const hasStrava = Boolean(
     stravaActivity?.title ||
     stravaActivity?.distance ||
     stravaActivity?.duration ||
     stravaActivity?.elevation ||
     stravaActivity?.mapImage ||
+    routeMapImageAsset ||
+    activityId ||
     stravaUrl,
   );
 
@@ -2858,8 +2935,14 @@ function StoryConnectionsSection({
         {hasStrava ? (
           <div className="w-full max-w-[380px]">
             <StravaStoryGeneratedCard
+              journalTitle={title}
               stravaUrl={stravaUrl}
+              stravaActivityId={activityId ?? undefined}
               fallbackActivity={stravaActivity}
+              resolvedRouteMapImageUrl={resolvedRouteMapImageUrl}
+              routeMapImageAlt={routeMapImageAlt}
+              fallbackRouteMapUrl={fallbackRouteMapUrl}
+              hasSanityRouteMapImage={Boolean(routeMapImageAsset)}
             />
           </div>
         ) : null}

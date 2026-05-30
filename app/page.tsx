@@ -52,7 +52,14 @@ type HomeJournalPost = {
   excerpt?: string;
   body?: PortableTextBlock;
   stravaUrl?: string;
+  stravaActivityUrl?: string;
+  stravaActivityId?: string;
   stravaActivity?: StravaActivity;
+  routeMapImage?: SanityImageSource & {
+    alt?: string;
+  };
+  routeMapStatus?: string;
+  routeMapGeneratedAt?: string;
   soundcloudUrl?: string;
   location?: string;
   tags?: string | HomeJournalTag[];
@@ -122,6 +129,8 @@ const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
   excerpt,
   body,
   stravaUrl,
+  stravaActivityUrl,
+  stravaActivityId,
   stravaActivity{
     title,
     sportType,
@@ -135,6 +144,12 @@ const allJournalQuery = `*[_type == "journalPost"] | order(publishedAt desc) {
       alt
     }
   },
+  routeMapImage{
+    ...,
+    alt
+  },
+  routeMapStatus,
+  routeMapGeneratedAt,
   soundcloudUrl,
   location,
   "tags": coalesce(tags, tag, hashtags, hashtag, keywords, ""),
@@ -315,7 +330,11 @@ function isUpcomingHomeEvent(event: HomeEvent) {
 }
 
 
-function getStravaActivityId(stravaUrl?: string) {
+function getStravaActivityId(stravaUrl?: string, stravaActivityId?: string) {
+  if (stravaActivityId && /^\d+$/.test(stravaActivityId.trim())) {
+    return stravaActivityId.trim();
+  }
+
   if (!stravaUrl) return null;
 
   const match = stravaUrl.match(/strava\.com\/activities\/(\d+)/i);
@@ -352,7 +371,10 @@ const manualStravaActivityFallbacks: Record<string, Partial<StravaActivity>> = {
 };
 
 function enrichPostWithStravaFallback(post: HomeJournalPost): HomeJournalPost {
-  const activityId = getStravaActivityId(post.stravaUrl);
+  const activityId = getStravaActivityId(
+    post.stravaActivityUrl || post.stravaUrl,
+    post.stravaActivityId,
+  );
 
   if (!activityId) {
     return post;
