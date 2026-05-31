@@ -49,5 +49,27 @@
     "kudos": 0,
     "generatedAt": "2026-05-30T07:40:56.797Z",
     "mapImage": "/images/runs/18710525426-map.png"
+  },
+  "18716988470": {
+    "title": "Afternoon Ride",
+    "sportType": "Ride",
+    "dateLabel": "30.05.2026",
+    "distance": "47,9 km",
+    "elevation": "34 m",
+    "duration": "1 Std. 41 Min.",
+    "kudos": 12,
+    "generatedAt": "2026-05-31T06:38:38.487Z",
+    "mapImage": "/images/runs/18716988470-map.png"
+  },
+  "18723361412": {
+    "title": "Sunday Morning Run",
+    "sportType": "Run",
+    "dateLabel": "31.05.2026",
+    "distance": "8,1 km",
+    "elevation": "18 m",
+    "duration": "46 Min.",
+    "kudos": 1,
+    "generatedAt": "2026-05-31T06:41:53.465Z",
+    "mapImage": "/images/runs/18723361412-map.png"
   }
 }
