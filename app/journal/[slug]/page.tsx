@@ -11,6 +11,10 @@ import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import type { StravaStoryActivityManual } from "@/components/StravaStoryActivity";
 import StravaStoryGeneratedCard from "@/components/StravaStoryGeneratedCard";
+import {
+  getGeneratedRouteMapImageUrl,
+  resolveRouteMapImageUrl,
+} from "@/components/routeMapImageUrl";
 import stravaActivities from "@/data/strava-activities.json";
 
 export const revalidate = 10;
@@ -386,15 +390,21 @@ function StoryConnectionsSection({
 }) {
   const visibleAlbums = (albums ?? []).filter((album) => album?._id);
   const hasAlbums = visibleAlbums.length > 0;
+  const activityId = getStravaActivityId(stravaUrl, stravaActivityId);
   const routeMapImageAsset = hasSanityImageAsset(routeMapImage)
     ? routeMapImage
     : null;
-  const fallbackRouteMapUrl = stravaActivityId
-    ? `/images/runs/${stravaActivityId}-map.png`
-    : undefined;
-  const resolvedRouteMapImageUrl = routeMapImageAsset
+  const generatedRouteMapUrl = getGeneratedRouteMapImageUrl({
+    activityId,
+    mapImage: stravaActivity?.mapImage,
+  });
+  const sanityRouteMapUrl = routeMapImageAsset
     ? urlFor(routeMapImageAsset).width(1600).height(820).url()
-    : fallbackRouteMapUrl;
+    : undefined;
+  const resolvedRouteMapImageUrl = resolveRouteMapImageUrl({
+    generatedRouteMapUrl,
+    sanityRouteMapUrl,
+  });
   const routeMapImageAlt = routeMapImageAsset?.alt;
 
   console.info("[route-map]", {
@@ -402,7 +412,7 @@ function StoryConnectionsSection({
     hasSanityRouteMapImage: Boolean(routeMapImageAsset),
     resolvedRouteMapImageUrl,
     lightboxImageUrl: resolvedRouteMapImageUrl,
-    fallbackRouteMapUrl,
+    fallbackRouteMapUrl: generatedRouteMapUrl,
   });
 
   const hasStrava = Boolean(
@@ -411,7 +421,7 @@ function StoryConnectionsSection({
       stravaActivity?.duration ||
       stravaActivity?.mapImage ||
       routeMapImageAsset ||
-      stravaActivityId ||
+      activityId ||
       stravaUrl,
   );
 
@@ -439,11 +449,11 @@ function StoryConnectionsSection({
           <StravaStoryGeneratedCard
             journalTitle={title}
             stravaUrl={stravaUrl}
-            stravaActivityId={stravaActivityId}
+            stravaActivityId={activityId ?? undefined}
             fallbackActivity={stravaActivity}
             resolvedRouteMapImageUrl={resolvedRouteMapImageUrl}
             routeMapImageAlt={routeMapImageAlt}
-            fallbackRouteMapUrl={fallbackRouteMapUrl}
+            fallbackRouteMapUrl={generatedRouteMapUrl}
             hasSanityRouteMapImage={Boolean(routeMapImageAsset)}
           />
         ) : null}

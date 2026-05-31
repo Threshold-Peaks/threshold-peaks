@@ -13,6 +13,10 @@ import Comments from "@/components/Comments";
 import LikeButton from "@/components/LikeButton";
 import type { StravaStoryActivityManual } from "@/components/StravaStoryActivity";
 import GalleryLightbox from "@/components/GalleryLightbox";
+import {
+  getGeneratedRouteMapImageUrl,
+  resolveRouteMapImageUrl,
+} from "@/components/routeMapImageUrl";
 
 type PortableTextBlock = Record<string, unknown>[];
 
@@ -2885,12 +2889,17 @@ function StoryConnectionsSection({
   const routeMapImageAsset = hasSanityImageAsset(routeMapImage)
     ? routeMapImage
     : null;
-  const fallbackRouteMapUrl = activityId
-    ? `/images/runs/${activityId}-map.png`
-    : undefined;
-  const resolvedRouteMapImageUrl = routeMapImageAsset
+  const generatedRouteMapUrl = getGeneratedRouteMapImageUrl({
+    activityId,
+    mapImage: stravaActivity?.mapImage,
+  });
+  const sanityRouteMapUrl = routeMapImageAsset
     ? urlFor(routeMapImageAsset).width(1600).height(820).url()
-    : fallbackRouteMapUrl;
+    : undefined;
+  const resolvedRouteMapImageUrl = resolveRouteMapImageUrl({
+    generatedRouteMapUrl,
+    sanityRouteMapUrl,
+  });
   const routeMapImageAlt = routeMapImageAsset?.alt;
 
   console.info("[route-map]", {
@@ -2898,7 +2907,7 @@ function StoryConnectionsSection({
     hasSanityRouteMapImage: Boolean(routeMapImageAsset),
     resolvedRouteMapImageUrl,
     lightboxImageUrl: resolvedRouteMapImageUrl,
-    fallbackRouteMapUrl,
+    fallbackRouteMapUrl: generatedRouteMapUrl,
   });
 
   const hasStrava = Boolean(
@@ -2941,7 +2950,7 @@ function StoryConnectionsSection({
               fallbackActivity={stravaActivity}
               resolvedRouteMapImageUrl={resolvedRouteMapImageUrl}
               routeMapImageAlt={routeMapImageAlt}
-              fallbackRouteMapUrl={fallbackRouteMapUrl}
+              fallbackRouteMapUrl={generatedRouteMapUrl}
               hasSanityRouteMapImage={Boolean(routeMapImageAsset)}
             />
           </div>
