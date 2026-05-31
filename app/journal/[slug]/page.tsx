@@ -396,16 +396,16 @@ function StoryConnectionsSection({
     : null;
   const generatedRouteMapUrl = getGeneratedRouteMapImageUrl({
     activityId,
-    mapImage: stravaActivity?.mapImage,
   });
   const sanityRouteMapUrl = routeMapImageAsset
     ? urlFor(routeMapImageAsset).width(1600).height(820).url()
     : undefined;
   const resolvedRouteMapImageUrl = resolveRouteMapImageUrl({
+    activityId,
     generatedRouteMapUrl,
     sanityRouteMapUrl,
   });
-  const routeMapImageAlt = routeMapImageAsset?.alt;
+  const routeMapImageAlt = generatedRouteMapUrl ? undefined : routeMapImageAsset?.alt;
 
   console.info("[route-map]", {
     journalTitle: title,
