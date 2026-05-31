@@ -100,6 +100,10 @@ const WIDTH = 1600;
 const HEIGHT = 820;
 const EARTH_RADIUS_METERS = 6371000;
 const DISTANCE_MARKER_INTERVAL_METERS = 5000;
+// Headless SVG-to-PNG font fallback can render text as tofu boxes; keep labels
+// opt-in until a bundled font is added.
+const RENDER_STATIC_MAP_TEXT_LABELS =
+  process.env.ROUTE_MAP_TEXT_LABELS === "1";
 
 export type GeneratedRouteMap = {
   activityId: string;
@@ -705,7 +709,7 @@ function renderMapSvg(
           );
         }
 
-        if (important && name) {
+        if (RENDER_STATIC_MAP_TEXT_LABELS && important && name) {
           const candidates: RouteLabelCandidate[] = (points as [number, number][])
             .filter(([x, y]: [number, number]) => {
               return x > 70 && x < WIDTH - 70 && y > 70 && y < HEIGHT - 70;
@@ -775,14 +779,16 @@ function renderMapSvg(
             routePoints,
           });
 
-      placeLabels.push(`
-        <g>
-          <rect x="${labelPosition.x - boxWidth / 2}" y="${labelPosition.y - boxHeight / 2}" width="${boxWidth}" height="${boxHeight}" rx="8" fill="#f5f3ee" stroke="#242b32" stroke-width="1.15" opacity="1" />
-          <text x="${labelPosition.x}" y="${labelPosition.y + 5}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${fontWeight}" fill="#242b32" text-anchor="middle" opacity="1">
-            ${escapeXml(name)}
-          </text>
-        </g>
-      `);
+      if (RENDER_STATIC_MAP_TEXT_LABELS) {
+        placeLabels.push(`
+          <g>
+            <rect x="${labelPosition.x - boxWidth / 2}" y="${labelPosition.y - boxHeight / 2}" width="${boxWidth}" height="${boxHeight}" rx="8" fill="#f5f3ee" stroke="#242b32" stroke-width="1.15" opacity="1" />
+            <text x="${labelPosition.x}" y="${labelPosition.y + 5}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="${fontWeight}" fill="#242b32" text-anchor="middle" opacity="1">
+              ${escapeXml(name)}
+            </text>
+          </g>
+        `);
+      }
     }
   }
 
@@ -807,8 +813,12 @@ function renderMapSvg(
     kmMarkers.push(`
       <g>
         <circle cx="${x}" cy="${y}" r="6" fill="#faf5e9" stroke="#10161d" stroke-width="1.4" />
-        <rect x="${x + 10}" y="${y - 18}" width="50" height="24" rx="6" fill="#faf5e9" stroke="#10161d" stroke-width="0.7" opacity="0.9" />
-        <text x="${x + 35}" y="${y - 2}" font-family="Arial, sans-serif" font-size="12" fill="#10161d" text-anchor="middle">${marker.label}</text>
+        ${
+          RENDER_STATIC_MAP_TEXT_LABELS
+            ? `<rect x="${x + 10}" y="${y - 18}" width="50" height="24" rx="6" fill="#faf5e9" stroke="#10161d" stroke-width="0.7" opacity="0.9" />
+        <text x="${x + 35}" y="${y - 2}" font-family="Arial, sans-serif" font-size="12" fill="#10161d" text-anchor="middle">${marker.label}</text>`
+            : ""
+        }
       </g>
     `);
   }
@@ -841,13 +851,21 @@ function renderMapSvg(
 
   <g>
     <line x1="80" y1="${HEIGHT - 55}" x2="190" y2="${HEIGHT - 55}" stroke="#10161d" stroke-width="3" />
-    <text x="135" y="${HEIGHT - 68}" font-family="Arial, sans-serif" font-size="15" fill="#10161d" text-anchor="middle">1 km</text>
+    ${
+      RENDER_STATIC_MAP_TEXT_LABELS
+        ? `<text x="135" y="${HEIGHT - 68}" font-family="Arial, sans-serif" font-size="15" fill="#10161d" text-anchor="middle">1 km</text>`
+        : ""
+    }
   </g>
 
   <g>
     <line x1="${WIDTH - 70}" y1="125" x2="${WIDTH - 70}" y2="75" stroke="#10161d" stroke-width="2" />
     <path d="M ${WIDTH - 70} 64 L ${WIDTH - 80} 82 L ${WIDTH - 60} 82 Z" fill="#10161d" />
-    <text x="${WIDTH - 70}" y="55" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#10161d" text-anchor="middle">N</text>
+    ${
+      RENDER_STATIC_MAP_TEXT_LABELS
+        ? `<text x="${WIDTH - 70}" y="55" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#10161d" text-anchor="middle">N</text>`
+        : ""
+    }
   </g>
 </svg>
 `;
