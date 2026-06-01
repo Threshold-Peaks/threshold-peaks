@@ -2864,6 +2864,8 @@ function StravaStoryGeneratedCard({
   );
 }
 
+const canUseGeneratedRouteMapFallback = process.env.NODE_ENV !== "production";
+
 function StoryConnectionsSection({
   title,
   albums,
@@ -2889,9 +2891,11 @@ function StoryConnectionsSection({
   const routeMapImageAsset = hasSanityImageAsset(routeMapImage)
     ? routeMapImage
     : null;
-  const generatedRouteMapUrl = getGeneratedRouteMapImageUrl({
-    activityId,
-  });
+  const generatedRouteMapUrl = canUseGeneratedRouteMapFallback
+    ? getGeneratedRouteMapImageUrl({
+        activityId,
+      })
+    : undefined;
   const sanityRouteMapUrl = routeMapImageAsset
     ? urlFor(routeMapImageAsset).width(1600).height(820).url()
     : undefined;
@@ -2900,7 +2904,7 @@ function StoryConnectionsSection({
     generatedRouteMapUrl,
     sanityRouteMapUrl,
   });
-  const routeMapImageAlt = generatedRouteMapUrl ? undefined : routeMapImageAsset?.alt;
+  const routeMapImageAlt = routeMapImageAsset?.alt;
 
   console.info("[route-map]", {
     journalTitle: title,

@@ -25,7 +25,7 @@ export type StravaActivity = {
   kudos_count?: number;
 };
 
-type StravaActivityMeta = {
+export type StravaActivityMeta = {
   title: string;
   sportType: string;
   dateLabel: string;
@@ -927,9 +927,28 @@ function getActivitySportType(activity: StravaActivity) {
   return activity.sport_type || activity.type || "Run";
 }
 
+export function createStravaActivityMetadata(
+  activityId: string,
+  activity: StravaActivity,
+  generatedAt = new Date().toISOString(),
+): StravaActivityMeta {
+  return {
+    title: activity.name,
+    sportType: getActivitySportType(activity),
+    dateLabel: formatActivityDateLabel(activity),
+    distance: formatDistance(activity.distance),
+    elevation: formatElevation(activity.total_elevation_gain),
+    duration: formatDuration(activity.moving_time),
+    kudos: activity.kudos_count ?? 0,
+    generatedAt,
+    mapImage: `/images/runs/${activityId}-map.png`,
+  };
+}
+
 async function writeStravaActivityMetadata(
   activityId: string,
   activity: StravaActivity,
+  generatedAt?: string,
 ) {
   const outputDir = path.join(process.cwd(), "data");
   const outputPath = path.join(outputDir, "strava-activities.json");
@@ -945,17 +964,11 @@ async function writeStravaActivityMetadata(
     currentData = {};
   }
 
-  currentData[activityId] = {
-    title: activity.name,
-    sportType: getActivitySportType(activity),
-    dateLabel: formatActivityDateLabel(activity),
-    distance: formatDistance(activity.distance),
-    elevation: formatElevation(activity.total_elevation_gain),
-    duration: formatDuration(activity.moving_time),
-    kudos: activity.kudos_count ?? 0,
-    generatedAt: new Date().toISOString(),
-    mapImage: `/images/runs/${activityId}-map.png`,
-  };
+  currentData[activityId] = createStravaActivityMetadata(
+    activityId,
+    activity,
+    generatedAt,
+  );
 
   const sortedData = Object.fromEntries(
     Object.entries(currentData).sort(([firstId], [secondId]) =>
@@ -1016,7 +1029,7 @@ export async function generateRouteMapFile(activityId: string) {
   const outputPath = path.join(outputDir, `${activityId}-map.png`);
 
   await fs.writeFile(outputPath, result.pngBuffer);
-  await writeStravaActivityMetadata(activityId, result.activity);
+  await writeStravaActivityMetadata(activityId, result.activity, result.generatedAt);
 
   console.log(`Fertig: ${outputPath}`);
 
