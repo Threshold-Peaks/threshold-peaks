@@ -71,5 +71,16 @@
     "kudos": 1,
     "generatedAt": "2026-05-31T06:41:53.465Z",
     "mapImage": "/images/runs/18723361412-map.png"
+  },
+  "18745856704": {
+    "title": "DJK Bahntraining",
+    "sportType": "Run",
+    "dateLabel": "01.06.2026",
+    "distance": "6,3 km",
+    "elevation": "0 m",
+    "duration": "34 Min.",
+    "kudos": 4,
+    "generatedAt": "2026-06-01T20:00:33.430Z",
+    "mapImage": "/images/runs/18745856704-map.png"
   }
 }
